@@ -13,4 +13,4 @@ DB_FILE="sqlite://data.db"
 CONFIG_FILE="config.redb"
 
 # Generate from: openssl rand -base64 48
-JWT_SECRET="HGhnaIGht0WJqqWqC/bN9m5dl/EkMx8ahPAcSx4PWMJ6gyIhkUyDs7v3gd2YMz1N"
+JWT_SECRET="A_very_secure_secret"
