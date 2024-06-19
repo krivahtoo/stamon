@@ -1,0 +1,88 @@
+<script>
+  import { Button } from '$lib/components/ui/button/index.js';
+  import * as Card from '$lib/components/ui/card/index.js';
+  import { Input } from '$lib/components/ui/input/index.js';
+  import { Label } from '$lib/components/ui/label/index.js';
+  import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+  import CircleAlert from 'lucide-svelte/icons/circle-alert';
+  import * as Alert from '$lib/components/ui/alert/index.js';
+
+  let show_pass = false;
+  $: type = show_pass ? 'text' : 'password';
+</script>
+
+<svelte:head>
+  <title>Login</title>
+  <meta name="description" content="CVify login page" />
+</svelte:head>
+
+<div class="grid gap-6">
+  <Card.Root
+    data-x-chunk-name="dashboard-04-chunk-2"
+    data-x-chunk-description="A form to update the plugins directory with a checkbox to allow administrators to change the directory."
+  >
+    <Card.Header>
+      <Card.Title>Plugins Directory</Card.Title>
+      <Card.Description>
+        The directory within your project, in which your plugins are located.
+      </Card.Description>
+    </Card.Header>
+    <Card.Content>
+      <form class="flex flex-col gap-4">
+        <Input placeholder="Project Name" value="/content/plugins" />
+        <div class="flex items-center space-x-2">
+          <Checkbox id="include" checked={true} />
+          <label
+            for="include"
+            class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Allow administrators to change the directory.
+          </label>
+        </div>
+      </form>
+    </Card.Content>
+    <Card.Footer class="border-t px-6 py-4">
+      <Button>Save</Button>
+    </Card.Footer>
+  </Card.Root>
+
+  <div class="grid gap-4">
+    <Alert.Root variant="destructive">
+      <CircleAlert class="h-4 w-4" />
+      <Alert.Title>Error</Alert.Title>
+      <Alert.Description>Your session has expired. Please login again.</Alert.Description>
+    </Alert.Root>
+    <div class="grid gap-2">
+      <Label for="email">Email</Label>
+      <Input id="email" type="email" placeholder="E.g. emam@example.com" required />
+    </div>
+    <div class="grid gap-2">
+      <div class="flex items-center">
+        <Label for="password">Password</Label>
+        <a
+          href="/"
+          class="ml-auto inline-block text-sm text-secondary-foreground underline-offset-1 hover:underline"
+        >
+          Forgot your password?
+        </a>
+      </div>
+      <Input id="password" {type} placeholder="Enter password..." required />
+      <div class="flex items-center space-x-2">
+        <Checkbox id="terms" bind:checked={show_pass} aria-labelledby="terms-label" />
+        <Label
+          id="terms-label"
+          for="terms"
+          class="cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          Show password
+        </Label>
+      </div>
+    </div>
+    <Button type="submit" class="w-full">Login</Button>
+    <Button variant="outline" class="w-full">Login with Google</Button>
+  </div>
+  <div class="mt-4 text-center text-sm">
+    Don&apos;t have an account?
+    <a href="/register" class="text-secondary-foreground hover:underline">Sign up</a>
+  </div>
+</div>

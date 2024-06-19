@@ -1,0 +1,16 @@
+# Cargo config file.
+# See: https://doc.rust-lang.org/cargo/reference/config.html
+
+# Environments variables set for all `cargo ...` commands.
+[env]
+PORT="3000"
+
+# Scope down tracing, to filter out external lib tracing.
+RUST_LOG="server=debug,worker=debug,common=debug"
+
+#
+DB_FILE="sqlite://data.db"
+CONFIG_FILE="config.redb"
+
+# Generate from: openssl rand -base64 48
+JWT_SECRET="HGhnaIGht0WJqqWqC/bN9m5dl/EkMx8ahPAcSx4PWMJ6gyIhkUyDs7v3gd2YMz1N"
