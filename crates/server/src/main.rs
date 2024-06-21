@@ -1,7 +1,7 @@
 // At the start
 #![allow(dead_code)]
 
-use std::{io, str::FromStr, sync::Arc, time::Duration};
+use std::{io, net::SocketAddr, str::FromStr, sync::Arc, time::Duration};
 
 use apalis::{
     cron::{CronStream, Schedule},
@@ -13,16 +13,17 @@ use apalis::{
     prelude::*,
     sqlite::SqliteStorage,
 };
-use axum::Router;
+use axum::{routing::get, Router};
 use config::ConfigStore;
 use sqlx::SqlitePool;
-use tokio::signal;
+use tokio::{signal, sync::broadcast};
 use tower_http::{
     services::{ServeDir, ServeFile},
     timeout::TimeoutLayer as HttpTimeoutLayer,
     trace::TraceLayer as HttpTraceLayer,
 };
 use tracing::{debug, error, info};
+use ws::ws_handler;
 
 use crate::{
     config::env_config,
@@ -36,13 +37,15 @@ mod job;
 mod models;
 mod routes;
 mod service;
+mod ws;
 
 type AppState = Arc<AppStateInner>;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct AppStateInner {
     store: ConfigStore,
     pool: SqlitePool,
+    tx: broadcast::Sender<String>,
 }
 
 #[tokio::main]
@@ -50,6 +53,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
 
     let env = env_config();
+    info!(
+        "Running stamon version: {}",
+        option_env!("STAMON_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"))
+    );
 
     let pool = SqlitePool::connect(&env.db_file)
         .await
@@ -61,11 +68,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let store = ConfigStore::new(&env.config_file).expect("Should load config db");
 
     let serve_dir = ServeDir::new("assets").not_found_service(ServeFile::new("assets/index.html"));
+    let (tx, _rx) = broadcast::channel(100);
 
     // build our application with a route
-    let state = Arc::new(AppStateInner { store, pool });
+    let state = Arc::new(AppStateInner { store, pool, tx });
+    let ws_route = Router::new()
+        .route("/ws", get(ws_handler))
+        .with_state(state.clone());
     let app = Router::new()
         .nest("/api", routes(state.clone()))
+        .merge(ws_route)
         .fallback_service(serve_dir)
         .layer((
             HttpTraceLayer::new_for_http(),
@@ -79,15 +91,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let listener = tokio::net::TcpListener::bind(("0.0.0.0", env.port))
             .await
             .unwrap_or_else(|e| panic!("Can't bind to port {}: {e}", env.port));
-        info!("listening on port 3000");
-        axum::serve(listener, app)
-            .with_graceful_shutdown(async {
-                shutdown_signal()
-                    .await
-                    .expect("failed to install Ctrl+C handler");
-            })
-            .await?;
-        info!("axum server stopped");
+        info!("listening on port {}", env.port);
+        axum::serve(
+            listener,
+            app.into_make_service_with_connect_info::<SocketAddr>(),
+        )
+        .with_graceful_shutdown(async {
+            shutdown_signal()
+                .await
+                .expect("failed to install Ctrl+C handler");
+            info!("Ctrl+C Received, Shutting down");
+        })
+        .await?;
         Ok::<(), Box<dyn std::error::Error>>(())
     };
 
@@ -98,7 +113,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let monitor_storage: SqliteStorage<MonitorJob> = SqliteStorage::new(state.pool.clone());
 
-        let schedule = Schedule::from_str("*/10 * * * * *")?;
+        let schedule = Schedule::from_str("* * * * * *")?;
         let cron_timer = WorkerBuilder::new("uptime-timer")
             .data(service::TimerService::new(state.pool.clone()))
             .stream(CronStream::new(schedule).into_stream())
@@ -115,7 +130,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .build_fn(job::notify);
 
         let monitor_worker = WorkerBuilder::new("monitor-worker")
-            .data(state.pool.clone())
+            .data(state.clone())
             .layer(RetryLayer::new(RetryPolicy::retries(3)))
             .layer(TraceLayer::new())
             .with_storage(monitor_storage)
@@ -130,30 +145,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let worker_id = e.id();
                 match e.inner() {
                     Event::Start => {
-                        info!("Worker [{worker_id}] started");
+                        info!(target: "worker", worker = %worker_id, "started");
                     }
                     Event::Engage => {
-                        debug!("Worker [{worker_id}] engaged");
+                        debug!(target: "worker", worker = %worker_id, "engaged");
                     }
                     Event::Idle => {
-                        debug!("Worker [{worker_id}] idle");
+                        debug!(target: "worker", worker = %worker_id, "idle");
                     }
                     Event::Error(e) => {
-                        error!("Worker [{worker_id}] encountered an error: {e}");
+                        error!(target: "worker", worker = %worker_id, "error: {e:?}");
                     }
                     Event::Exit => {
-                        info!("Worker [{worker_id}] exited");
+                        info!(target: "worker", worker = %worker_id, "exited");
                     }
                     Event::Stop => {
-                        info!("Worker [{worker_id}] stopped");
+                        info!(target: "worker", worker = %worker_id, "stopped");
                     }
                 }
             })
-            .run_with_signal(shutdown_signal())
+            .run_with_signal(async {
+                shutdown_signal().await?;
+                info!(target: "worker","Ctrl+C Received, Shutting down");
+                Ok(())
+            })
             .await?;
+        info!("workers stopped");
         Ok::<(), Box<dyn std::error::Error>>(())
     };
 
+    // Start axum server and workers
     let _res = tokio::join!(http, monitors);
     info!("closing db connection");
     state.pool.close().await;

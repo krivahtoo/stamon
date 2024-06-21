@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use tracing::{debug, error};
 
+use crate::AppState;
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub enum Status {
     Up,
@@ -28,16 +30,15 @@ impl Job for MonitorJob {
     const NAME: &'static str = "stamon::Monitor";
 }
 
+#[tracing::instrument]
 async fn ping(addr: IpAddr, timeout: Duration) -> Status {
-    //tokio::time::sleep(Duration::from_secs(15)).await;
     let data = [1, 2, 3, 4]; // ping data
     let data_arc = Arc::new(&data[..]);
     let options = ping_rs::PingOptions {
         ttl: 128,
         dont_fragment: true,
     };
-    let result = ping_rs::send_ping_async(&addr, timeout, data_arc, Some(&options)).await;
-    match result {
+    match ping_rs::send_ping_async(&addr, timeout, data_arc, Some(&options)).await {
         Ok(reply) => {
             debug!(
                 bytes = data.len(),
@@ -56,11 +57,10 @@ async fn ping(addr: IpAddr, timeout: Duration) -> Status {
     }
 }
 
-pub async fn job_monitor(job: MonitorJob, wid: Data<WorkerId>, _db: Data<SqlitePool>) {
+pub async fn job_monitor(job: MonitorJob, wid: Data<WorkerId>, state: Data<AppState>) {
     let status = match job.job_type {
         MonitorType::Ping(addr, timeout) => {
-            //let addr = "35.246.11.73".parse().unwrap();
-            //let timeout = Duration::from_secs(5);
+            state.tx.send(format!("running ping on {}", addr)).unwrap();
             ping(addr, timeout).await
         }
     };
