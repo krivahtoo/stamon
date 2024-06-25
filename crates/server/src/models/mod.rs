@@ -1,4 +1,5 @@
 use sqlx::SqlitePool;
+use tracing::info;
 
 pub use self::user::{UserForLogin, UserForRegister};
 
@@ -18,6 +19,7 @@ pub async fn setup(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query("PRAGMA cache_size = 64000;")
         .execute(pool)
         .await?;
+    info!("Running database migrations");
     sqlx::migrate!().run(pool).await?;
     Ok(())
 }

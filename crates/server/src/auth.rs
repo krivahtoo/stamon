@@ -9,16 +9,22 @@ use axum_extra::{
     headers::{authorization::Bearer, Authorization},
     TypedHeader,
 };
+use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
+use rand_core::OsRng;
 use jsonwebtoken::{decode, DecodingKey, EncodingKey, Validation};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::config::env_config;
+use crate::{config::env_config, models::user::UserRole};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
-    sub: String,
-    exp: usize,
+    #[serde(rename = "sub")]
+    pub user_id: i32,
+    pub role: UserRole,
+    pub issued_at: usize,
+    #[serde(rename = "exp")]
+    pub expiry: usize,
 }
 
 #[async_trait]
@@ -78,4 +84,12 @@ impl IntoResponse for AuthError {
         }));
         (status, body).into_response()
     }
+}
+
+pub fn hash(val: String) -> String {
+    let salt = SaltString::generate(&mut OsRng);
+    Argon2::default()
+        .hash_password(val.as_bytes(), &salt)
+        .expect("Error while hashing key")
+        .to_string()
 }

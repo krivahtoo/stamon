@@ -478,10 +478,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "common"
-version = "0.1.0"
-
-[[package]]
 name = "const-oid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2062,6 +2058,7 @@ dependencies = [
  "futures",
  "jsonwebtoken",
  "ping-rs",
+ "rand_core",
  "redb",
  "reqwest",
  "serde",
@@ -3291,23 +3288,6 @@ checksum = "a277a57398d4bfa075df44f501a17cfdf8542d224f0d36095a2adc7aee4ef0a5"
 dependencies = [
  "cfg-if",
  "windows-sys 0.48.0",
-]
-
-[[package]]
-name = "worker"
-version = "0.1.0"
-dependencies = [
- "apalis",
- "chrono",
- "ping-rs",
- "reqwest",
- "serde",
- "serde_json",
- "sqlx",
- "tokio",
- "tower",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]

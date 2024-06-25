@@ -6,7 +6,7 @@ use std::{
 
 const CONFIG_TABLE: TableDefinition<&str, &str> = TableDefinition::new("settings");
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ConfigStore {
     db: Arc<Database>,
 }
