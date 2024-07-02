@@ -17,7 +17,7 @@
   </h1>
   <p class="text-xl text-muted-foreground">Sorry, we couldn’t find the page you’re looking for.</p>
   <div class="mt-10 flex items-center justify-center gap-x-6">
-    <Button>Go back home</Button>
+    <Button href="/">Go back home</Button>
     <Button variant="link">
       Contact support <span aria-hidden="true">&rarr;</span>
     </Button>

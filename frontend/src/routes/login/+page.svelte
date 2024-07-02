@@ -19,7 +19,7 @@
 <Card.Root class="mx-auto my-auto max-w-sm dark:border-primary/50">
   <Card.Header>
     <Card.Title class="text-2xl">Login</Card.Title>
-    <Card.Description>Enter your email below to login to your account</Card.Description>
+    <Card.Description>Enter your username below to login to your account</Card.Description>
   </Card.Header>
   <Card.Content>
     <div class="grid gap-4">
@@ -29,19 +29,11 @@
         <Alert.Description>Your session has expired. Please login again.</Alert.Description>
       </Alert.Root>
       <div class="grid gap-2">
-        <Label for="email">Email</Label>
-        <Input id="email" type="email" placeholder="E.g. emam@example.com" required />
+        <Label for="username">Username</Label>
+        <Input id="username" type="text" placeholder="Enter username..." required />
       </div>
       <div class="grid gap-2">
-        <div class="flex items-center">
-          <Label for="password">Password</Label>
-          <a
-            href="/"
-            class="ml-auto inline-block text-sm text-secondary-foreground underline-offset-1 hover:underline"
-          >
-            Forgot your password?
-          </a>
-        </div>
+        <Label for="password">Password</Label>
         <Input id="password" {type} placeholder="Enter password..." required />
         <div class="flex items-center space-x-2">
           <Checkbox id="terms" bind:checked={show_pass} aria-labelledby="terms-label" />
@@ -55,11 +47,6 @@
         </div>
       </div>
       <Button type="submit" class="w-full">Login</Button>
-      <Button variant="outline" class="w-full">Login with Google</Button>
-    </div>
-    <div class="mt-4 text-center text-sm">
-      Don&apos;t have an account?
-      <a href="/register" class="text-secondary-foreground hover:underline">Sign up</a>
     </div>
   </Card.Content>
 </Card.Root>
