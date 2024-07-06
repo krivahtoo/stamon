@@ -1,6 +1,3 @@
-// At the start
-#![allow(dead_code)]
-
 use std::{io, net::SocketAddr, str::FromStr, sync::Arc, time::Duration};
 
 use apalis::{
@@ -14,8 +11,7 @@ use apalis::{
     sqlite::SqliteStorage,
 };
 use axum::{routing::get, Router};
-use config::ConfigStore;
-use sqlx::SqlitePool;
+use sqlx::{migrate::MigrateDatabase, Sqlite, SqlitePool};
 use tokio::{signal, sync::broadcast};
 use tower_http::{
     services::{ServeDir, ServeFile},
@@ -43,7 +39,6 @@ type AppState = Arc<AppStateInner>;
 
 #[derive(Clone, Debug)]
 struct AppStateInner {
-    store: ConfigStore,
     pool: SqlitePool,
     tx: broadcast::Sender<String>,
 }
@@ -58,6 +53,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         option_env!("STAMON_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"))
     );
 
+    if !Sqlite::database_exists(&env.db_file).await.unwrap_or(false) {
+        info!("Creating database {}", env.db_file);
+        match Sqlite::create_database(&env.db_file).await {
+            Ok(_) => info!("Create db success"),
+            Err(error) => panic!("error: {}", error),
+        }
+    } else {
+        info!("Database already exists");
+    }
+
     let pool = SqlitePool::connect(&env.db_file)
         .await
         .expect("Should open sqlite db");
@@ -65,13 +70,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Run database migrations
     models::setup(&pool).await?;
 
-    let store = ConfigStore::new(&env.config_file).expect("Should load config db");
-
-    let serve_dir = ServeDir::new("assets").not_found_service(ServeFile::new("assets/index.html"));
+    let serve_dir = ServeDir::new(&env.assets_path)
+        .not_found_service(ServeFile::new(env.assets_path.join("404.html")));
+    info!("Serving assets at: {}", env.assets_path.to_string_lossy());
     let (tx, _rx) = broadcast::channel(100);
 
     // build our application with a route
-    let state = Arc::new(AppStateInner { store, pool, tx });
+    let state = Arc::new(AppStateInner { pool, tx });
     let ws_route = Router::new()
         .route("/ws", get(ws_handler))
         .with_state(state.clone());
@@ -175,7 +180,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     // Start axum server and workers
-    let _res = tokio::join!(http, monitors);
+    match tokio::join!(http, monitors) {
+        (Err(e), _) => error!("Server exited with error: {e}"),
+        (_, Err(e)) => error!("Worker exited with error: {e}"),
+        _ => ()
+    }
     info!("closing db connection");
     state.pool.close().await;
     Ok(())
