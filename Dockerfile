@@ -2,6 +2,19 @@
 # Build
 #################
 
+FROM node:18-alpine3.18 as frontend
+
+RUN npm install -g pnpm
+
+WORKDIR /app
+COPY ./frontend/package.json ./frontend/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+COPY ./frontend .
+RUN pnpm build
+
+## Rust
+
 # Start with a rust alpine image
 FROM rust:1.77.2-alpine3.18 as build
 
@@ -26,7 +39,6 @@ RUN --mount=type=bind,source=crates,target=crates \
     --mount=type=cache,target=/app/target/ \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
     --mount=type=cache,target=/usr/local/cargo/git/ \
-    --mount=type=bind,source=sql,target=sql \
     cargo build --locked --release --package server && \
     cp ./target/release/server /bin/server
 
@@ -44,6 +56,9 @@ RUN apk add --no-cache libgcc
 
 # copy the binary from the build stage
 COPY --from=build /bin/server /bin/
+
+# copy frontend assets
+COPY --from=frontend /app/build /assets
 
 # set the entrypoint
 ENTRYPOINT ["/bin/server"]

@@ -1,0 +1,7 @@
+services:
+  stamon:
+    environment:
+      JWT_SECRET: "A_very_secure_secret"
+    ports:
+      - "3000:3000"
+    build: .
