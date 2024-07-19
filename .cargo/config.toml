@@ -3,14 +3,17 @@
 
 # Environments variables set for all `cargo ...` commands.
 [env]
-PORT="3000"
+# Web static assets
+ASSETS_PATH="./frontend/build/"
 
 # Scope down tracing, to filter out external lib tracing.
 RUST_LOG="server=debug,worker=debug,common=debug"
 
-#
-DB_FILE="sqlite://data.db"
-CONFIG_FILE="config.redb"
+# Path to store data
+DATA_PATH="./data"
 
 # Generate from: openssl rand -base64 48
 JWT_SECRET="A_very_secure_secret"
+
+# for testing
+DATABASE_URL="sqlite://data/test.db"

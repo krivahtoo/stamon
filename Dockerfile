@@ -51,6 +51,9 @@ RUN --mount=type=bind,source=crates,target=crates \
 # the alpine version needs to match the builder
 FROM alpine:3.18
 
+# set assets path
+ENV ASSETS_PATH="/assets/"
+
 # install the runtime dependencies
 RUN apk add --no-cache libgcc
 

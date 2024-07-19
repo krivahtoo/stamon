@@ -1,8 +1,5 @@
 node_modules
 
-.git
-.gitattributes
-
 .eslintignore
 .eslintrc.cjs
 
@@ -10,5 +7,3 @@ node_modules
 .pretieriignore
 
 README.md
-
-Dockerfile

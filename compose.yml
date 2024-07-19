@@ -1,5 +1,7 @@
 services:
   stamon:
+    image: k4htoo/stamon
+
     environment:
       JWT_SECRET: "A_very_secure_secret"
     ports:
