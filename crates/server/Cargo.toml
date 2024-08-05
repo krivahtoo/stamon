@@ -9,7 +9,7 @@ authors.workspace = true
 [dependencies]
 argon2 = "0.5.3"
 axum = { version = "0.7.5", features = ["ws", "macros"] }
-axum-extra = { version = "0.9.3", features = ["typed-header"] }
+axum-extra = { version = "0.9.3", features = ["typed-header", "cookie"] }
 axum-macros = { version = "0.4.1" }
 bincode = "1.3.3"
 chrono = { version = "0.4.38", features = ["serde"] }

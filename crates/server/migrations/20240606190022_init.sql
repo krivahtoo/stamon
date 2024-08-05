@@ -8,51 +8,53 @@ CREATE TABLE users (
     timezone TEXT
 );
 
--- entities table: Stores monitored entities
-CREATE TABLE entities (
+-- services table: Stores monitored service
+CREATE TABLE services (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     active BOOLEAN NOT NULL DEFAULT 1,
     name TEXT NOT NULL,
     interval INTEGER NOT NULL,
-    url TEXT,
+    url TEXT NOT NULl,
     payload TEXT,
-    monitor_type TEXT NOT NULL,
+    timeout INTEGER NOT NULL DEFAULT 10,
+    last_status INTEGER NOT NULL DEFAULT 0,
+    service_type TEXT NOT NULL,
     retry INTEGER NOT NULL DEFAULT 3,
     retry_interval INTEGER NOT NULL,
 
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- status_logs table: Logs the status changes of entities
-CREATE TABLE status_logs (
+-- logs table: Logs the status changes of services
+CREATE TABLE logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    entity_id INTEGER NOT NULL,
+    service_id INTEGER NOT NULL,
     status INTEGER NOT NULL,
     message TEXT,
     time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    ping INTEGER,
     duration INTEGER NOT NULL,
 
-    FOREIGN KEY (entity_id) REFERENCES entities(id)
+    FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
 );
 
 -- notifications table: Stores notification logs related to status changes
 CREATE TABLE notifications (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    entity_id INTEGER NOT NULL,
-    status_log_id INTEGER NOT NULL,
+    service_id INTEGER NOT NULL,
+    log_id INTEGER NOT NULL,
     message TEXT,
     sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (entity_id) REFERENCES entities(id),
-    FOREIGN KEY (status_log_id) REFERENCES status_logs(id)
+    FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,
+    FOREIGN KEY (log_id) REFERENCES logs(id)
 );
 
 -- configuration table: Stores configuration settings
-CREATE TABLE config (
+CREATE TABLE configs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     value TEXT NOT NULL,
+    category TEXT,
     last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
 );

@@ -3,10 +3,11 @@ use tracing::info;
 
 pub use self::user::{UserForLogin, UserForRegister};
 
-pub mod entity;
-pub mod status_log;
-pub mod user;
+pub mod config;
+pub mod log;
 pub mod notification;
+pub mod service;
+pub mod user;
 
 pub async fn setup(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query("PRAGMA journal_mode = 'WAL';")

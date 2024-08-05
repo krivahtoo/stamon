@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::ops::Deref;
 
 use apalis::{
     prelude::{Data, Storage, TaskId, WorkerId},
@@ -8,7 +8,7 @@ use chrono::{DateTime, Timelike, Utc};
 use sqlx::sqlite::SqlitePool;
 use tracing::error;
 
-use crate::job::{monitor::MonitorType, MonitorJob, Notification};
+use crate::models::service::Service;
 
 #[derive(Clone)]
 pub struct TimerService {
@@ -21,23 +21,12 @@ impl TimerService {
     }
 
     pub async fn execute(&self, job: Timer) -> Result<(), Box<dyn std::error::Error>> {
-        if job.is_interval(16) {
-            let mut storage: SqliteStorage<Notification> = SqliteStorage::new(self.pool.clone());
-            storage
-                .push(Notification {
-                    to: format!("notify:{}@example.com", job.0.num_seconds_from_midnight()),
-                    text: "Test background job from apalis".to_string(),
-                })
-                .await?;
-        }
-        if job.is_interval(10) {
-            let mut storage: SqliteStorage<MonitorJob> = SqliteStorage::new(self.pool.clone());
-            storage
-                .push(MonitorJob {
-                    id: 2,
-                    job_type: MonitorType::Ping("1.1.1.1".parse().unwrap(), Duration::from_secs(5)),
-                })
-                .await?;
+        let mut storage: SqliteStorage<Service> = SqliteStorage::new(self.pool.clone());
+
+        for service in Service::all_active(&self.pool).await? {
+            if job.is_interval(service.interval) {
+                storage.push(service).await?;
+            }
         }
         Ok(())
     }
@@ -52,9 +41,17 @@ impl From<DateTime<Utc>> for Timer {
     }
 }
 
+impl Deref for Timer {
+    type Target = DateTime<Utc>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 impl Timer {
     fn is_interval(&self, interval: u32) -> bool {
-        self.0.num_seconds_from_midnight() % interval == 0
+        self.num_seconds_from_midnight() % interval == 0
     }
 }
 
@@ -64,7 +61,7 @@ pub async fn run_timer_cron_service(
     wid: WorkerId,
     id: Data<TaskId>,
 ) -> bool {
-    let timer = job.0.to_rfc3339();
+    let timer = job.to_rfc3339();
     match svc.execute(job).await {
         Ok(_) => true,
         Err(e) => {

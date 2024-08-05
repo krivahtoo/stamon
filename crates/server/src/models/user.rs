@@ -1,5 +1,7 @@
-use serde::{Serialize, Deserialize};
-use chrono_tz::Tz;
+use serde::{Deserialize, Serialize};
+use sqlx::SqlitePool;
+
+use crate::auth::hash;
 
 #[derive(sqlx::Type, Debug, Serialize, Deserialize)]
 #[sqlx(rename_all = "lowercase")]
@@ -24,11 +26,44 @@ pub struct UserForRegister {
     pub username: String,
     pub role: Option<UserRole>,
     pub password: String,
-    pub timezone: Option<Tz>,
+    pub timezone: Option<String>,
 }
 
 #[derive(sqlx::FromRow, Serialize, Deserialize)]
 pub struct UserForLogin {
     pub username: String,
     pub password: String,
+}
+
+impl User {
+    pub async fn insert(pool: &SqlitePool, user: UserForRegister) -> sqlx::Result<u64> {
+        // Default role to Viewer if not provided
+        let role = user.role.unwrap_or(UserRole::Viewer);
+
+        // Construct the base query
+        let mut query = "INSERT INTO users (username, password, role, active".to_string();
+        if user.timezone.is_some() {
+            query.push_str(", timezone");
+        }
+        query.push_str(") VALUES (?, ?, ?, ?");
+        if user.timezone.is_some() {
+            query.push_str(", ?");
+        }
+        query.push(')');
+
+        // Create a query builder and bind parameters
+        let mut query_builder = sqlx::query(&query)
+            .bind(user.username)
+            .bind(hash(user.password)) // use hashed password
+            .bind(role)
+            .bind(true); // Assume new users are active by default
+
+        if let Some(timezone) = user.timezone {
+            query_builder = query_builder.bind(timezone);
+        }
+
+        // Execute the query
+        let result = query_builder.execute(pool).await?;
+        Ok(result.rows_affected())
+    }
 }

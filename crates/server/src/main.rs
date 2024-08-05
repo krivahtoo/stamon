@@ -21,11 +21,7 @@ use tower_http::{
 use tracing::{debug, error, info};
 use ws::ws_handler;
 
-use crate::{
-    config::env_config,
-    job::{MonitorJob, Notification},
-    routes::routes,
-};
+use crate::{config::env_config, job::Notification, models::service::Service, routes::routes};
 
 mod auth;
 mod config;
@@ -116,7 +112,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let notification_storage: SqliteStorage<Notification> =
             SqliteStorage::new(state.pool.clone());
 
-        let monitor_storage: SqliteStorage<MonitorJob> = SqliteStorage::new(state.pool.clone());
+        let monitor_storage: SqliteStorage<Service> = SqliteStorage::new(state.pool.clone());
 
         let schedule = Schedule::from_str("* * * * * *")?;
         let cron_timer = WorkerBuilder::new("uptime-timer")
@@ -183,7 +179,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     match tokio::join!(http, monitors) {
         (Err(e), _) => error!("Server exited with error: {e}"),
         (_, Err(e)) => error!("Worker exited with error: {e}"),
-        _ => ()
+        _ => (),
     }
     info!("closing db connection");
     state.pool.close().await;
