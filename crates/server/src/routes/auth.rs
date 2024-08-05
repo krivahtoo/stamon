@@ -13,7 +13,7 @@ use sqlx::Row;
 use tracing::debug;
 
 use crate::{
-    auth::{hash, Claims},
+    auth::Claims,
     config::env_config,
     models::{
         user::{User, UserRole},
@@ -41,7 +41,7 @@ async fn login(State(state): State<AppState>, Json(user_login): Json<UserForLogi
         .await
         .unwrap()
     else {
-        return Redirect::temporary("/register").into_response();
+        return Redirect::to("/register").into_response();
     };
 
     let is_valid = {
@@ -52,7 +52,7 @@ async fn login(State(state): State<AppState>, Json(user_login): Json<UserForLogi
     };
 
     if !is_valid {
-        return Json(json!({"error": "Invalid email or password"}).to_string()).into_response();
+        return Json(json!({"error": "Invalid email or password"})).into_response();
     }
 
     let now = Utc::now();
@@ -92,29 +92,25 @@ async fn register(State(state): State<AppState>, Json(user): Json<UserForRegiste
         .get(0);
 
     if users_exists {
-        return Redirect::temporary("/login").into_response();
+        return Redirect::to("/login").into_response();
     }
 
-    let count = sqlx::query(
-        "INSERT INTO users (username, role, password, timezone) VALUES ($1, $2, $3, $4)",
-    )
-    .bind(user.username)
-    .bind(user.role)
-    .bind(hash(user.password))
-    .bind(user.timezone.map(|v| v.to_string()))
-    .execute(&state.pool)
-    .await
-    .unwrap()
-    .rows_affected();
+    let count = User::insert(&state.pool, user).await.unwrap();
     debug!("Register {:?}", count);
 
-    Json(json!({"message": "users registered"}).to_string()).into_response()
+    Json(json!({"message": "users registered"})).into_response()
 }
 
-// basic handler that responds with a static string
-async fn logout() -> &'static str {
-    debug!("Root");
-    "Hello, World!"
+async fn logout() -> Response {
+    Response::builder()
+        .header("Content-Type", "application/json")
+        .header(
+            "Set-Cookie",
+            "token=; Path=/; SameSite=Lax; Secure; HttpOnly; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+        )
+        .body(json!({ "message": "Logged out successfully" }).to_string())
+        .unwrap()
+        .into_response()
 }
 
 pub fn routes(state: AppState) -> Router {
