@@ -1,44 +1,37 @@
-use std::{fmt::Debug, net::IpAddr, sync::Arc, time::Duration};
+use std::{net::IpAddr, str::FromStr, sync::Arc, time::Duration};
 
 use apalis::prelude::{Data, Job, WorkerId};
-use serde::{Deserialize, Serialize};
-use sqlx::SqlitePool;
 use tracing::{debug, error};
 
-use crate::AppState;
+use crate::{
+    models::{
+        log::{Log, LogForCreate, Status},
+        service::{Service, ServiceType},
+    },
+    AppState,
+};
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub enum Status {
-    Up,
-    Down(Option<String>),
-    Pending(Option<String>),
-}
-
-#[non_exhaustive]
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub enum MonitorType {
-    Ping(IpAddr, Duration),
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct MonitorJob {
-    pub id: i32,
-    pub job_type: MonitorType,
-}
-
-impl Job for MonitorJob {
+impl Job for Service {
     const NAME: &'static str = "stamon::Monitor";
 }
 
 #[tracing::instrument]
-async fn ping(addr: IpAddr, timeout: Duration) -> Status {
+async fn ping(svc: Service) -> LogForCreate {
+    let addr = IpAddr::from_str(&svc.url).unwrap();
     let data = [1, 2, 3, 4]; // ping data
     let data_arc = Arc::new(&data[..]);
     let options = ping_rs::PingOptions {
         ttl: 128,
         dont_fragment: true,
     };
-    match ping_rs::send_ping_async(&addr, timeout, data_arc, Some(&options)).await {
+    match ping_rs::send_ping_async(
+        &addr,
+        Duration::from_secs(svc.timeout as u64),
+        data_arc,
+        Some(&options),
+    )
+    .await
+    {
         Ok(reply) => {
             debug!(
                 bytes = data.len(),
@@ -47,25 +40,41 @@ async fn ping(addr: IpAddr, timeout: Duration) -> Status {
                 "reply from {}:",
                 reply.address,
             );
-            Status::Up
+            LogForCreate {
+                status: Status::Up,
+                duration: reply.rtt,
+                service_id: svc.id,
+                ..Default::default()
+            }
         }
         //Err(PingError::IoPending) => Status::Pending(None),
         Err(e) => {
             error!("{:?}", e);
-            Status::Down(Some(format!("{:?}", e)))
+            LogForCreate {
+                status: Status::Down,
+                message: Some(format!("{:?}", e)),
+                service_id: svc.id,
+                ..Default::default()
+            }
         }
     }
 }
 
-pub async fn job_monitor(job: MonitorJob, wid: Data<WorkerId>, state: Data<AppState>) {
-    let status = match job.job_type {
-        MonitorType::Ping(addr, timeout) => {
-            state.tx.send(format!("running ping on {}", addr)).unwrap();
-            ping(addr, timeout).await
+pub async fn job_monitor(job: Service, wid: Data<WorkerId>, state: Data<AppState>) {
+    let status = match job.service_type {
+        ServiceType::Ping => {
+            state
+                .tx
+                .send(format!("running ping on {}", job.url))
+                .unwrap();
+            ping(job).await
         }
+        _ => todo!(),
     };
+    debug!(worker = wid.to_string(), "Monitor status {:?}", status);
 
     // save status
-
-    debug!(worker = wid.to_string(), "Monitor status {:?}", status);
+    if let Err(e) = Log::insert(&state.pool, status).await {
+        error!("error {e}");
+    };
 }

@@ -1,5 +1,5 @@
-pub use notification::{Notification, notify};
-pub use monitor::{MonitorJob, job_monitor};
+pub use monitor::job_monitor;
+pub use notification::{notify, Notification};
 
-pub mod notification;
 pub mod monitor;
+pub mod notification;
