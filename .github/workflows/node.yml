@@ -1,0 +1,29 @@
+name: Node CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 6.0.2
+      - run: pnpm ci
+        working-directory: ./frontend
+      - name: build
+        working-directory: ./frontend
+        run: pnpm run build
