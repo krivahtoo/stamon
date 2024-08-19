@@ -1,0 +1,10 @@
+[package]
+name = "ssl-exp"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+chrono = "0.4.38"
+openssl = "0.10.66"
+thiserror = "1.0.63"

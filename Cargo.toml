@@ -3,6 +3,9 @@ resolver = "2"
 members = [
   # -- Application Services
   "crates/server",
+
+  # -- Application Libraries
+  "crates/ssl-exp",
 ]
 
 [workspace.package]
