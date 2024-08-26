@@ -41,6 +41,20 @@ pub struct ServiceForCreate {
     pub retry_interval: u16,
 }
 
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct ServiceForUpdate {
+    pub active: Option<bool>,
+    pub name: Option<String>,
+    pub interval: Option<u16>,
+    pub url: Option<String>,
+    pub payload: Option<String>,
+    #[serde(skip)]
+    pub last_status: Option<Status>,
+    pub service_type: Option<ServiceType>,
+    pub retry: Option<u16>,
+    pub retry_interval: Option<u16>,
+}
+
 impl Service {
     pub async fn insert(pool: &SqlitePool, service: ServiceForCreate) -> sqlx::Result<u64> {
         // Default active to true if not provided
@@ -96,6 +110,98 @@ impl Service {
             .await?;
 
         Ok(services)
+    }
+
+    pub async fn update(
+        pool: &SqlitePool,
+        service_id: u32,
+        update_data: ServiceForUpdate,
+    ) -> sqlx::Result<u64> {
+        let mut query = String::from("UPDATE services SET ");
+        let mut has_updates = false;
+
+        if update_data.active.is_some() {
+            query.push_str("active = ?, ");
+            has_updates = true;
+        }
+        if update_data.name.is_some() {
+            query.push_str("name = ?, ");
+            has_updates = true;
+        }
+        if update_data.interval.is_some() {
+            query.push_str("interval = ?, ");
+            has_updates = true;
+        }
+        if update_data.url.is_some() {
+            query.push_str("url = ?, ");
+            has_updates = true;
+        }
+        if update_data.payload.is_some() {
+            query.push_str("payload = ?, ");
+            has_updates = true;
+        }
+        if update_data.last_status.is_some() {
+            query.push_str("last_status = ?, ");
+            has_updates = true;
+        }
+        if update_data.service_type.is_some() {
+            query.push_str("service_type = ?, ");
+            has_updates = true;
+        }
+        if update_data.retry.is_some() {
+            query.push_str("retry = ?, ");
+            has_updates = true;
+        }
+        if update_data.retry_interval.is_some() {
+            query.push_str("retry_interval = ?, ");
+            has_updates = true;
+        }
+
+        // Remove the trailing comma and space
+        if has_updates {
+            query.truncate(query.len() - 2);
+            query.push_str(" WHERE id = ?");
+        } else {
+            // No updates were provided
+            return Ok(0);
+        }
+
+        let mut query_builder = sqlx::query(&query);
+
+        if let Some(active) = update_data.active {
+            query_builder = query_builder.bind(active);
+        }
+        if let Some(name) = update_data.name {
+            query_builder = query_builder.bind(name);
+        }
+        if let Some(interval) = update_data.interval {
+            query_builder = query_builder.bind(interval);
+        }
+        if let Some(url) = update_data.url {
+            query_builder = query_builder.bind(url);
+        }
+        if let Some(payload) = update_data.payload {
+            query_builder = query_builder.bind(payload);
+        }
+        if let Some(last_status) = update_data.last_status {
+            query_builder = query_builder.bind(last_status);
+        }
+        if let Some(service_type) = update_data.service_type {
+            query_builder = query_builder.bind(service_type as u8);
+        }
+        if let Some(retry) = update_data.retry {
+            query_builder = query_builder.bind(retry);
+        }
+        if let Some(retry_interval) = update_data.retry_interval {
+            query_builder = query_builder.bind(retry_interval);
+        }
+
+        // bind to service_id
+        query_builder = query_builder.bind(service_id);
+
+        // Execute the query
+        let result = query_builder.execute(pool).await?;
+        Ok(result.rows_affected())
     }
 }
 

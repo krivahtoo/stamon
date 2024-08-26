@@ -7,7 +7,7 @@
 ASSETS_PATH="./frontend/build/"
 
 # Scope down tracing, to filter out external lib tracing.
-RUST_LOG="server=debug,worker=debug,common=debug"
+RUST_LOG="server=debug,worker=debug,tower_http=trace"
 
 # Path to store data
 DATA_PATH="./data"
