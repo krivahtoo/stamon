@@ -1,18 +1,28 @@
 use axum::{
-    extract::State,
+    extract::{Query, State},
     response::{IntoResponse, Response},
     routing::get,
     Router,
 };
 use axum_macros::debug_handler;
+use serde::Deserialize;
 use serde_json::json;
 use tracing::error;
 
 use crate::{auth::Claims, models::log::Log, AppState};
 
+#[derive(Deserialize)]
+struct Pagination {
+    limit: Option<u32>,
+}
+
 #[debug_handler]
-async fn list_logs(_: Claims, State(state): State<AppState>) -> Response {
-    match Log::all(&state.pool, None).await {
+async fn list_logs(
+    //_: Claims,
+    State(state): State<AppState>,
+    pagination: Query<Pagination>,
+) -> Response {
+    match Log::list(&state.pool, pagination.limit).await {
         Ok(logs) => Response::builder()
             .header("Content-Type", "application/json")
             .body(json!({ "logs": logs }).to_string())

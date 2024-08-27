@@ -1,17 +1,20 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 use sqlx::{
     prelude::{FromRow, Type},
     SqlitePool,
 };
 
-#[derive(Debug, Clone, Type, Default, Deserialize, Serialize)]
-#[repr(i32)]
+#[derive(Debug, Clone, Copy, Type, Default, Deserialize_repr, Serialize_repr)]
+#[repr(u8)]
 pub enum Status {
     #[default]
     Pending = 0,
     Up = 1,
     Down = 2,
+    /// There was an internal error
+    Failed = 3,
 }
 
 #[derive(Debug, FromRow, Serialize, Deserialize)]
@@ -70,13 +73,19 @@ impl Log {
         Ok(result.rows_affected())
     }
 
-    pub async fn all(pool: &SqlitePool, limit: Option<u32>) -> sqlx::Result<Vec<Log>> {
-        let logs = sqlx::query_as::<_, Log>(r#"SELECT * FROM logs LIMIT ?"#)
-            .bind(limit.unwrap_or(1000))
+    pub async fn list(pool: &SqlitePool, limit: Option<u32>) -> sqlx::Result<Vec<Log>> {
+        let logs = sqlx::query_as::<_, Log>(r#"SELECT * FROM logs ORDER BY id DESC LIMIT ?"#)
+            .bind(limit.unwrap_or(100))
             .fetch_all(pool)
             .await?;
 
         Ok(logs)
+    }
+}
+
+impl std::fmt::Display for LogForCreate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?} time={}ms", self.status, self.duration)
     }
 }
 
@@ -107,11 +116,35 @@ mod tests {
 
     #[sqlx::test(fixtures("users", "services", "logs"))]
     async fn list_logs(pool: SqlitePool) -> sqlx::Result<()> {
-        let logs = Log::all(&pool, None).await?;
+        let logs = Log::list(&pool, None).await?;
 
         dbg!(&logs);
 
         assert_eq!(logs.len(), 5);
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services", "logs"))]
+    async fn list_logs_limit(pool: SqlitePool) -> sqlx::Result<()> {
+        let logs = Log::list(&pool, Some(2)).await?;
+
+        dbg!(&logs);
+
+        assert_eq!(logs.len(), 2);
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services", "logs"))]
+    async fn list_logs_order(pool: SqlitePool) -> sqlx::Result<()> {
+        let logs = Log::list(&pool, Some(2)).await?;
+
+        dbg!(&logs);
+
+        assert!(logs.first().unwrap().id > logs.last().unwrap().id);
+
+        assert_eq!(logs.len(), 2);
 
         Ok(())
     }
