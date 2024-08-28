@@ -1,17 +1,24 @@
-use std::{borrow::Cow, net::SocketAddr, ops::ControlFlow};
+use std::{net::SocketAddr, ops::ControlFlow};
 
 use axum::{
     extract::{
-        ws::{CloseFrame, Message, WebSocket},
+        ws::{Message, WebSocket},
         ConnectInfo, State, WebSocketUpgrade,
     },
     response::IntoResponse,
 };
 use axum_extra::{headers::UserAgent, TypedHeader};
 use futures::{SinkExt, StreamExt};
-use tracing::{debug, error, info, warn};
+use serde::Serialize;
+use tracing::{debug, info, warn};
 
-use crate::AppState;
+use crate::{models::log::LogForCreate, AppState};
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "type", content = "value")]
+pub enum Event {
+    Log(LogForCreate),
+}
 
 /// The handler for the HTTP request (this gets called when the HTTP GET lands at the start
 /// of websocket negotiation). After this completes, the actual switching from HTTP to
@@ -60,7 +67,11 @@ async fn handle_socket(mut socket: WebSocket, who: SocketAddr, state: AppState) 
     let mut send_task = tokio::spawn(async move {
         while let Ok(msg) = rx.recv().await {
             // In any websocket error, break loop.
-            if sender.send(Message::Text(msg)).await.is_err() {
+            if sender
+                .send(Message::Text(serde_json::to_string(&msg).unwrap()))
+                .await
+                .is_err()
+            {
                 break;
             }
         }

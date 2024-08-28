@@ -2,13 +2,14 @@ use std::{net::IpAddr, str::FromStr, sync::Arc, time::Duration};
 
 use apalis::prelude::{Data, Job, WorkerId};
 use ping_rs::PingError;
-use tracing::{debug, error};
+use tracing::{debug, error, warn};
 
 use crate::{
     models::{
         log::{Log, LogForCreate, Status},
         service::{Service, ServiceForUpdate, ServiceType},
     },
+    ws::Event,
     AppState,
 };
 
@@ -51,7 +52,7 @@ async fn ping(svc: Service) -> LogForCreate {
             }
         }
         Err(PingError::OsError(_, msg)) => {
-            error!("Ping failed {}", msg);
+            warn!("Ping failed {}", msg);
             LogForCreate {
                 status: Status::Failed,
                 message: Some(msg),
@@ -74,22 +75,19 @@ async fn ping(svc: Service) -> LogForCreate {
 }
 
 pub async fn job_monitor(job: Service, wid: Data<WorkerId>, state: Data<AppState>) {
-    let status = match job.service_type {
+    let status_log = match job.service_type {
         ServiceType::Ping => ping(job).await,
         _ => todo!(),
     };
-    state
-        .tx
-        .send(serde_json::to_string(&status).unwrap())
-        .unwrap();
-    debug!(worker = wid.to_string(), "Service status {}", status);
+    state.tx.send(Event::Log(status_log.clone())).unwrap();
+    debug!(worker = wid.to_string(), "Service status {}", status_log);
 
     // save status
     if let Err(e) = Service::update(
         &state.pool,
-        status.service_id,
+        status_log.service_id,
         ServiceForUpdate {
-            last_status: Some(status.status),
+            last_status: Some(status_log.status),
             ..Default::default()
         },
     )
@@ -97,7 +95,7 @@ pub async fn job_monitor(job: Service, wid: Data<WorkerId>, state: Data<AppState
     {
         error!("error {e}");
     };
-    if let Err(e) = Log::insert(&state.pool, status).await {
+    if let Err(e) = Log::insert(&state.pool, status_log).await {
         error!("error {e}");
     };
 }
