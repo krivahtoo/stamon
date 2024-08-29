@@ -27,7 +27,7 @@ pub struct Log {
     pub duration: u32,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct LogForCreate {
     pub service_id: u32,
     pub status: Status,

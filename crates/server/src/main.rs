@@ -16,12 +16,16 @@ use tokio::{signal, sync::broadcast};
 use tower_http::{
     services::{ServeDir, ServeFile},
     timeout::TimeoutLayer as HttpTimeoutLayer,
-    trace::TraceLayer as HttpTraceLayer,
+    trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer as HttpTraceLayer},
+    LatencyUnit,
 };
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, Level};
 use ws::ws_handler;
 
-use crate::{config::env_config, job::Notification, models::service::Service, routes::routes};
+use crate::{
+    config::env_config, job::Notification, models::service::Service, routes::routes,
+    ws::Event as WsEvent,
+};
 
 mod auth;
 mod config;
@@ -36,7 +40,7 @@ type AppState = Arc<AppStateInner>;
 #[derive(Clone, Debug)]
 struct AppStateInner {
     pool: SqlitePool,
-    tx: broadcast::Sender<String>,
+    tx: broadcast::Sender<WsEvent>,
 }
 
 #[tokio::main]
@@ -81,7 +85,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .merge(ws_route)
         .fallback_service(serve_dir)
         .layer((
-            HttpTraceLayer::new_for_http(),
+            HttpTraceLayer::new_for_http()
+                .make_span_with(DefaultMakeSpan::new().include_headers(true))
+                .on_request(DefaultOnRequest::new().level(Level::DEBUG))
+                .on_response(
+                    DefaultOnResponse::new()
+                        .level(Level::INFO)
+                        .latency_unit(LatencyUnit::Micros),
+                ),
             // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
             // requests don't hang forever.
             HttpTimeoutLayer::new(Duration::from_secs(10)),
