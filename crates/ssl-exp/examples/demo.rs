@@ -1,9 +1,7 @@
 use std::env;
 use std::io::{stderr, Write};
 use std::process::exit;
-
 use ssl_exp::SslExpiration;
-
 fn main() {
     let mut exit_code = 0;
     for domain in env::args().skip(1) {
