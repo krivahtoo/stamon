@@ -1,0 +1,40 @@
+name: Format Rust Code
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Install rustfmt
+        run: rustup component add rustfmt
+
+      - name: Format Code
+        run: cargo fmt --all
+
+      - name: Check for changes
+        run: git diff --exit-code || (echo "Code was not formatted properly" && exit 1)
+
+      - name: Commit and Push Changes
+        if: success()
+        run: |
+          git config --local user.name "github-actions"
+          git config --local user.email "actions@github.com"
+          git add -A
+          git commit -m "Format code using rustfmt"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
