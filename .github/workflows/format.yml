@@ -1,9 +1,6 @@
 name: Format Rust Code
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
@@ -13,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }} # Ensures we check out the correct branch
 
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
@@ -26,15 +25,21 @@ jobs:
         run: cargo fmt --all
 
       - name: Check for changes
-        run: git diff --exit-code || (echo "Code was not formatted properly" && exit 1)
+        id: check_diff
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::set-output name=needs_commit::true"
+          else
+            echo "::set-output name=needs_commit::false"
+          fi
 
       - name: Commit and Push Changes
-        if: success()
+        if: steps.check_diff.outputs.needs_commit == 'true'
         run: |
           git config --local user.name "github-actions"
           git config --local user.email "actions@github.com"
           git add -A
           git commit -m "Format code using rustfmt"
-          git push
+          git push origin ${{ github.head_ref }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
