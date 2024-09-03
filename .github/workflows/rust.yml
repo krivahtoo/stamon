@@ -26,6 +26,7 @@ jobs:
         with:
           command: check
           args: --all-features
+           # args: -- -D warnings
 
   fmt:
     name: Rustfmt
