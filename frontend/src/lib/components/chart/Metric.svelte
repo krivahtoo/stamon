@@ -44,6 +44,9 @@
   // @ts-ignore
   const y = [(d) => d.average];
 
+  /** @type {Element} */
+  let boxEl;
+
   /**
    * Adds a new random data point to the data array every 5 seconds.
    */
@@ -65,8 +68,17 @@
         return d;
       });
     }, 2000);
+    const resizeObserver = new ResizeObserver((entries) => {
+      // We're only watching one element
+      const entry = entries.at(0);
+    });
 
-    return () => clearInterval(interval);
+    resizeObserver.observe(boxEl);
+
+    return () => {
+      clearInterval(interval);
+      resizeObserver.unobserve(boxEl);
+    };
   });
 </script>
 
@@ -99,24 +111,26 @@
   </defs>
 </svg>
 
-<VisXYContainer
-  class="vis-xy-container"
-  data={$data}
-  height={100}
-  margin={{ top: 5, right: 10, left: 10, bottom: 0 }}
->
-  <VisAxis domainLine={true} type="y" label="Time (ms)" />
-  <VisArea {x} {y} color="url(#gradient)" />
-  <VisTooltip />
-  <VisLine {x} {y} lineWidth={2} color={lineColors} lineDashArray={[0]} />
-  <VisScatter
-    {x}
-    {y}
-    color="none"
-    size={0}
-    cursor="crosshair"
-    strokeColor={scatterPointStrokeColors}
-    strokeWidth={crosshairStrokeWidths}
-  />
-  <VisCrosshair template={tooltipTemplate} color={crosshairPointColors} />
-</VisXYContainer>
+<div bind:this={boxEl}>
+  <VisXYContainer
+    class="vis-xy-container"
+    data={$data}
+    height={100}
+    margin={{ top: 5, right: 10, left: 10, bottom: 0 }}
+  >
+    <VisAxis domainLine={true} type="y" label="Time (ms)" />
+    <VisArea {x} {y} color="url(#gradient)" />
+    <VisTooltip />
+    <VisLine {x} {y} lineWidth={2} color={lineColors} lineDashArray={[0]} />
+    <VisScatter
+      {x}
+      {y}
+      color="none"
+      size={0}
+      cursor="crosshair"
+      strokeColor={scatterPointStrokeColors}
+      strokeWidth={crosshairStrokeWidths}
+    />
+    <VisCrosshair template={tooltipTemplate} color={crosshairPointColors} />
+  </VisXYContainer>
+</div>
