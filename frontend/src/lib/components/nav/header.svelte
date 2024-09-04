@@ -30,7 +30,7 @@
 <header class="flex h-14 items-center gap-4 border-b dark:border-primary/50 bg-muted/40 px-4 lg:h-[60px] lg:px-6">
   <Sheet.Root>
     <Sheet.Trigger asChild let:builder>
-      <Button variant="outline" size="icon" class="shrink-0 md:hidden" builders={[builder]}>
+      <Button variant="outline" size="icon" class="shrink-0 md:hidden mr-auto" builders={[builder]}>
         <Menu class="h-5 w-5" />
         <span class="sr-only">Toggle navigation menu</span>
       </Button>
@@ -95,7 +95,7 @@
       </div>
     </Sheet.Content>
   </Sheet.Root>
-  <div class="w-full flex-1">
+  <div class="hidden sm:block w-full flex-1">
     <form>
       <div class="relative">
         <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

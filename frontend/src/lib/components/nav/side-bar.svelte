@@ -21,6 +21,8 @@
   import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
 
+  import SideBarCard from './side-bar-card.svelte';
+
   const notifications = [
     {
       title: 'Your call has been confirmed.',
@@ -152,31 +154,7 @@
       </nav>
     </div>
     <div class="mt-auto p-4">
-      <Card.Root
-        data-x-chunk-name="dashboard-02-chunk-0"
-        data-x-chunk-description="A card with a call to action"
-      >
-        <Card.Header class="p-2 pt-0 md:p-4">
-          <Card.Title>Upgrade to Pro</Card.Title>
-          <Card.Description>
-            Unlock all features and get unlimited access to our support team.
-          </Card.Description>
-        </Card.Header>
-        <Card.Content class="p-2 pt-0 md:p-4 md:pt-0">
-          <Button
-            size="sm"
-            class="w-full"
-            on:click={() =>
-              toast.success('Event has been created', {
-                description: 'Sunday, December 03, 2023 at 9:00 AM',
-                action: {
-                  label: 'Undo',
-                  onClick: () => console.info('Undo')
-                }
-              })}>Upgrade</Button
-          >
-        </Card.Content>
-      </Card.Root>
+      <!-- <SideBarCard/> -->
     </div>
   </div>
 </div>
