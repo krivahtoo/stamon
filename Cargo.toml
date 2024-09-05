@@ -11,7 +11,7 @@ members = [
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-authors = ["Noah Cheptoo <krivahtoo@gmail.com>"]
+authors = ["Noah Cheptoo <krivahtoo@gmail.com>", Esther Akinyi <terryiana22@gmail.com>]
 
 [profile.release]
 strip = true  # Automatically strip symbols from the binary.
