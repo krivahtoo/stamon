@@ -19,7 +19,7 @@ importers:
         version: 0.21.4(svelte@4.2.15)
       clsx:
         specifier: ^2.1.0
-        version: 2.1.0
+        version: 2.1.1
       date-fns:
         specifier: ^3.6.0
         version: 3.6.0
@@ -1012,8 +1012,8 @@ packages:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
 
-  clsx@2.1.0:
-    resolution: {integrity: sha512-m3iNNWpd9rl3jvvcBnu70ylMdrXt8Vlq4HYadnU5fwcOtvkSQWPmj7amUcDT2qYI7risszBjI5AUIUox9D16pg==}
+  clsx@2.1.1:
+    resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
     engines: {node: '>=6'}
 
   code-red@1.0.4:
@@ -3593,7 +3593,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  clsx@2.1.0: {}
+  clsx@2.1.1: {}
 
   code-red@1.0.4:
     dependencies:
