@@ -18,7 +18,7 @@ jsonwebtoken = "9.3.0"
 redb = "2.1.0"
 serde = { version = "1.0.203", features = ["derive"] }
 serde_json = "1.0.117"
-sqlx = { version = "0.7.4", features = ["chrono", "sqlite", "macros", "uuid", "migrate", "runtime-tokio"] }
+sqlx = { version = "0.8.0", features = ["chrono", "sqlite", "macros", "uuid", "migrate", "runtime-tokio"] }
 tokio = { version = "1.37.0", features = ["rt", "rt-multi-thread", "macros", "net", "signal"] }
 tower-http = { version = "0.5.2", features = ["fs", "trace", "timeout"] }
 tracing = "0.1.40"
