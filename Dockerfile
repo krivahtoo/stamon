@@ -49,7 +49,7 @@ RUN --mount=type=bind,source=crates,target=crates \
 
 # use a plain alpine image for runtime
 # the alpine version needs to match the builder
-FROM alpine:3.18
+FROM alpine:3.20
 
 # set assets path
 ENV ASSETS_PATH="/assets/"
