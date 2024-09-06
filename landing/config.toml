@@ -1,0 +1,27 @@
+# The URL the site will be built for
+base_url = "/"
+
+title = "Stamon - A lightweight self-hosted status monitoring tool, written in Rust."
+# default_language = "en"
+
+# Whether to automatically compile all Sass files in the sass directory
+compile_sass = true
+
+# Whether to build a search index to be used later on by a JavaScript library
+build_search_index = false
+
+# Configuration of the Markdown rendering
+[markdown]
+# Whether to do syntax highlighting
+highlight_code = true
+highlight_theme = "inspired-github"
+
+[extra]
+logo_name = "stamon"
+logo_path = "stamon-min.svg"
+extra_menu = [
+    { title = "Github", link = "https://github.com/krivahtoo/stamon" }
+]
+# Add page titles here to exclude them from the nav section (case sensitive)
+exclude_menu = []
+repository_url = "https://github.com/krivahtoo/stamon"
