@@ -1,0 +1,156 @@
+{% import "_macros.html" as macros %}
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{{ config.title }}{% endblock title %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    {% block favicon %}
+    <link rel="icon" type="image/png" href="/favicon.png">
+    {% endblock favicon %}
+    {% include "_variables.html" %}
+    {% block fonts %}
+    <link href="https://fonts.googleapis.com/css?family=Alfa+Slab+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Fira+Sans:400,500,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@700&display=swap" rel="stylesheet">
+    {% endblock fonts %}
+    <link rel="stylesheet" href="/normalize.css">
+    <link rel="stylesheet" href="{{ get_url(path="style.css") }}">
+    {% block head %}
+    <link rel="stylesheet" href="{{ get_url(path="carbon.css") }}">
+    {% endblock head %}
+</head>
+
+<body>
+    {% block header %}
+
+    <header class="pos-absolute" style="background-color: transparent">
+        {{ macros::render_header() }}
+    </header>
+
+    <div class="hero">
+        {% block hero %}
+        <script async defer src="https://buttons.github.io/buttons.js"></script>
+        <section class="text-center">
+            <h1 class="heading-text" style="font-size: 50px">
+                Monitor your services
+            </h1>
+            <h3 class="title-text">
+                A lightweight self-hosted status monitoring tool, written in Rust.
+            </h3>
+            <div>
+                <a class="github-button" href="https://github.com/krivahtoo/stamon"
+                  data-color-scheme="no-preference: light_high_contrast; light: light; dark: dark_dimmed;"
+                  data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star krivahtoo/stamon on GitHub">Star</a>
+                <!-- Place this tag where you want the button to render. -->
+                <a class="github-button" href="https://github.com/krivahtoo/stamon/fork"
+                  data-color-scheme="no-preference: light_high_contrast; light: light; dark: dark_dimmed;" data-icon="octicon-repo-forked" data-size="large"
+                  data-show-count="true" aria-label="Fork krivahtoo/stamon on GitHub">Fork</a>
+            </div>
+        </section>
+        <img class="hero-image" style="width: 50%; border-radius: .5rem;" src="{{ get_url(path="screenshot.png") }}">
+
+        <div class="explore-more text"
+            style="display: inline"
+            onclick="document.getElementById('features').scrollIntoView({behavior: 'smooth'})">
+            Explore More
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+              style="position: absolute; top: 0.2rem; left: 8rem; width: 1.5rem;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5" />
+            </svg>
+        </div>
+        <style>
+            .hero section {
+                padding: 0 5rem;
+            }
+
+            @media screen and (max-width: 768px) {
+                .hero section {
+                    padding: 0 2rem;
+                }
+
+                .hero-image {
+                    display: none
+                }
+            }
+        </style>
+        {% endblock hero %}
+    </div>
+
+    {% endblock header %}
+
+    <main>
+        {% block toc %}
+        {% if section.toc %}
+        {% set toc = section.toc %}
+        {% elif page.toc %}
+        {% set toc = page.toc %}
+        {% endif %}
+        {% if toc %}
+        <div class="toc">
+            <div class="toc-sticky">
+                {% for h in toc %}
+                <div class="toc-item">
+                    <a class="subtext" href="{{h.permalink | safe}}">{{ h.title }}</a>
+                </div>
+                {% if h.children %}
+                {% for h2 in h.children %}
+                <div class="toc-item-child">
+                    <a class="subtext" href="{{h2.permalink | safe}}"><small>- {{ h2.title }}</small></a>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endblock toc %}
+
+        <div class="content text">
+            {% block content %}
+            <div id="features" class="heading-text">Overview</div>
+            {{ section.content | safe }}
+            {% endblock content %}
+        </div>
+
+        {% block sidebar %}
+        <div class="sidebar">
+        </div>
+        {% endblock sidebar %}
+    </main>
+
+    {% block footer %}
+    <footer>
+        <small class="subtext">
+          Made with ❤  by <a href="https://github.com/krivahtoo">Noah Cheptoo</a> and <a href="https://github.com/Est-1y">Esther Akinyi</a>
+        </small>
+    </footer>
+    {% endblock footer %}
+</body>
+<script>
+    const scrollHandler = entries => {
+        // Find the first entry which intersecting and ratio > 0.9 to highlight.
+        let entry = entries.find(entry => {
+            return entry.isIntersecting && entry.intersectionRatio > 0.9;
+        });
+        if (!entry) return;
+
+        document.querySelectorAll(".toc a").forEach((item) => {
+            item.classList.remove("active");
+        });
+
+        // let url = new URL(`#${entry.target.id}`);
+        let link = document.querySelector(`.toc a[href$="${decodeURIComponent(`#${entry.target.id}`)}"]`)
+        if (link) {
+            link.classList.add("active");
+            link.scrollIntoView({ behavior: "auto", block: "nearest" });
+        }
+    };
+    // Set -100px root margin to improve highlight experience.
+    const observer = new IntersectionObserver(scrollHandler, { threshold: 1 });
+    let items = document.querySelectorAll('h1,h2,h3,h4,h5,h6');
+    items.forEach(item => observer.observe(item));
+</script>
+
+</html>
