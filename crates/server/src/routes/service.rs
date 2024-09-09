@@ -38,6 +38,37 @@ async fn add_service(
 }
 
 #[debug_handler]
+async fn get_service(
+    //_: Claims,
+    State(state): State<AppState>,
+    Path(service_id): Path<u32>,
+) -> Response {
+    match Service::get(&state.pool, service_id).await {
+        Err(e) => {
+            error!("Error updating service({service_id}): {e}");
+            Response::builder()
+                .status(500)
+                .header("Content-Type", "application/json")
+                .body(json!({ "message": "Internal server error" }).to_string())
+                .unwrap()
+                .into_response()
+        }
+        Ok(Some(s)) => Response::builder()
+            .status(200)
+            .header("Content-Type", "application/json")
+            .body(json!({ "service": s }).to_string())
+            .unwrap()
+            .into_response(),
+        _ => Response::builder()
+            .status(404)
+            .header("Content-Type", "application/json")
+            .body(json!({ "service": "Service not found" }).to_string())
+            .unwrap()
+            .into_response(),
+    }
+}
+
+#[debug_handler]
 async fn update_service(
     //_: Claims,
     State(state): State<AppState>,
@@ -81,6 +112,6 @@ async fn list_services(State(state): State<AppState>) -> Response {
 pub fn routes(state: AppState) -> Router {
     Router::new()
         .route("/service", get(list_services).post(add_service))
-        .route("/service/:id", put(update_service))
+        .route("/service/:id", put(update_service).get(get_service))
         .with_state(state)
 }

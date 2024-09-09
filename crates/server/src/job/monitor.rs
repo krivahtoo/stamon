@@ -2,6 +2,7 @@ use std::{net::IpAddr, str::FromStr, sync::Arc, time::Duration};
 
 use apalis::prelude::{Data, Job, WorkerId};
 use ping_rs::PingError;
+use tokio::sync::broadcast::Sender;
 use tracing::{debug, error, warn};
 
 use crate::{
@@ -9,7 +10,7 @@ use crate::{
         log::{Log, LogForCreate, Status},
         service::{Service, ServiceForUpdate, ServiceType},
     },
-    ws::Event,
+    ws::{Event, Level, Notification},
     AppState,
 };
 
@@ -17,8 +18,8 @@ impl Job for Service {
     const NAME: &'static str = "stamon::Monitor";
 }
 
-#[tracing::instrument(skip(svc), fields(name = svc.name, url = svc.url))]
-async fn ping(svc: Service) -> LogForCreate {
+#[tracing::instrument(skip(svc, tx), fields(name = svc.name, url = svc.url))]
+async fn ping(svc: Service, tx: Sender<Event>) -> LogForCreate {
     let addr = IpAddr::from_str(&svc.url).unwrap();
     let data = [1, 2, 3, 4]; // ping data
     let data_arc = Arc::new(&data[..]);
@@ -52,6 +53,13 @@ async fn ping(svc: Service) -> LogForCreate {
             }
         }
         Err(PingError::OsError(_, msg)) => {
+            if let Err(e) = tx.send(Event::Notification(Notification {
+                message: format!("Error: {}", msg),
+                title: "Network Error".to_string(),
+                level: Level::Error,
+            })) {
+                error!("Failed to send notification: {:?}", e);
+            };
             warn!("Ping failed {}", msg);
             LogForCreate {
                 status: Status::Failed,
@@ -76,11 +84,45 @@ async fn ping(svc: Service) -> LogForCreate {
 
 pub async fn job_monitor(job: Service, wid: Data<WorkerId>, state: Data<AppState>) {
     let status_log = match job.service_type {
-        ServiceType::Ping => ping(job).await,
+        ServiceType::Ping => ping(job.clone(), state.tx.clone()).await,
         _ => todo!(),
     };
-    state.tx.send(Event::Log(status_log.clone())).unwrap();
+    if let Err(e) = state.tx.send(Event::Log(status_log.clone())) {
+        error!("Failed to send notification: {:?}", e);
+    }
     debug!(worker = wid.to_string(), "Service status {}", status_log);
+
+    // Check last status
+    match (job.last_status, status_log.status) {
+        (Status::Down, Status::Up) => {
+            if let Err(e) = state.tx.send(Event::Notification(Notification {
+                message: format!("Service {} back Up", job.name),
+                title: "Back Up".to_string(),
+                level: Level::Success,
+            })) {
+                error!("Failed to send notification: {:?}", e);
+            }
+        }
+        (Status::Up, Status::Down) => {
+            if let Err(e) = state.tx.send(Event::Notification(Notification {
+                message: format!("Service {} is Down", job.name),
+                title: "Service Down".to_string(),
+                level: Level::Warning,
+            })) {
+                error!("Failed to send notification: {:?}", e);
+            }
+        }
+        (Status::Failed, Status::Up | Status::Down) => {
+            if let Err(e) = state.tx.send(Event::Notification(Notification {
+                message: format!("Service {} check success", job.name),
+                title: "Monitor Success".to_string(),
+                level: Level::Info,
+            })) {
+                error!("Failed to send notification: {:?}", e);
+            }
+        }
+        _ => (),
+    };
 
     // save status
     if let Err(e) = Service::update(

@@ -1,4 +1,4 @@
-use apalis::prelude::*;
+use apalis::prelude::{Data, Job, WorkerId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
