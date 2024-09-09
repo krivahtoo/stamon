@@ -15,9 +15,30 @@ use tracing::{debug, info, warn};
 use crate::{models::log::LogForCreate, AppState};
 
 #[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Level {
+    //Message,
+    Success,
+    Error,
+    Info,
+    Warning,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct Notification {
+    pub title: String,
+    pub message: String,
+    pub level: Level,
+}
+
+#[derive(Debug, Clone, Serialize)]
 #[serde(tag = "type", content = "value")]
+#[serde(rename_all = "lowercase")]
 pub enum Event {
+    /// Send a log entry
     Log(LogForCreate),
+    /// Used to send notification that will show as popup
+    Notification(Notification),
 }
 
 /// The handler for the HTTP request (this gets called when the HTTP GET lands at the start

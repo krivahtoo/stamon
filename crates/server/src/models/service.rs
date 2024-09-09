@@ -56,6 +56,19 @@ pub struct ServiceForUpdate {
 }
 
 impl Service {
+    pub async fn get(pool: &SqlitePool, service_id: u32) -> sqlx::Result<Option<Service>> {
+        let service = sqlx::query_as::<_, Service>(
+            r#"SELECT *
+               FROM services
+               WHERE id = ?"#,
+        )
+        .bind(service_id)
+        .fetch_optional(pool)
+        .await?;
+
+        Ok(service)
+    }
+
     pub async fn insert(pool: &SqlitePool, service: ServiceForCreate) -> sqlx::Result<u64> {
         // Default active to true if not provided
         let active = service.active.unwrap_or(true);
@@ -241,6 +254,17 @@ mod tests {
         dbg!(&services);
 
         assert_eq!(services.len(), 4);
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services"))]
+    async fn get_service(pool: SqlitePool) -> sqlx::Result<()> {
+        let service = Service::get(&pool, 1).await?;
+
+        dbg!(&service);
+
+        assert!(service.is_some());
 
         Ok(())
     }
