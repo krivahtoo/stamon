@@ -10,10 +10,11 @@ use apalis::{
     prelude::*,
     sqlite::SqliteStorage,
 };
-use axum::{routing::get, Router};
+use axum::{http::HeaderValue, routing::get, Router};
 use sqlx::{migrate::MigrateDatabase, Sqlite, SqlitePool};
 use tokio::{signal, sync::broadcast};
 use tower_http::{
+    cors::CorsLayer,
     services::{ServeDir, ServeFile},
     timeout::TimeoutLayer as HttpTimeoutLayer,
     trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer as HttpTraceLayer},
@@ -96,6 +97,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
             // requests don't hang forever.
             HttpTimeoutLayer::new(Duration::from_secs(10)),
+            CorsLayer::new()
+                .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
+                .allow_methods(tower_http::cors::Any),
         ));
 
     // run our app with hyper, listening globally on env.port
