@@ -73,11 +73,27 @@ impl Log {
         Ok(result.rows_affected())
     }
 
-    pub async fn list(pool: &SqlitePool, limit: Option<u32>) -> sqlx::Result<Vec<Log>> {
+    pub async fn list_all(pool: &SqlitePool, limit: Option<u32>) -> sqlx::Result<Vec<Log>> {
         let logs = sqlx::query_as::<_, Log>(r#"SELECT * FROM logs ORDER BY id DESC LIMIT ?"#)
             .bind(limit.unwrap_or(100))
             .fetch_all(pool)
             .await?;
+
+        Ok(logs)
+    }
+
+    pub async fn list(
+        pool: &SqlitePool,
+        service_id: u32,
+        limit: Option<u32>,
+    ) -> sqlx::Result<Vec<Log>> {
+        let logs = sqlx::query_as::<_, Log>(
+            r#"SELECT * FROM logs WHERE service_id = ? ORDER BY id DESC LIMIT ?"#,
+        )
+        .bind(service_id)
+        .bind(limit.unwrap_or(100))
+        .fetch_all(pool)
+        .await?;
 
         Ok(logs)
     }
@@ -116,7 +132,7 @@ mod tests {
 
     #[sqlx::test(fixtures("users", "services", "logs"))]
     async fn list_logs(pool: SqlitePool) -> sqlx::Result<()> {
-        let logs = Log::list(&pool, None).await?;
+        let logs = Log::list_all(&pool, None).await?;
 
         dbg!(&logs);
 
@@ -127,7 +143,7 @@ mod tests {
 
     #[sqlx::test(fixtures("users", "services", "logs"))]
     async fn list_logs_limit(pool: SqlitePool) -> sqlx::Result<()> {
-        let logs = Log::list(&pool, Some(2)).await?;
+        let logs = Log::list_all(&pool, Some(2)).await?;
 
         dbg!(&logs);
 
@@ -138,7 +154,20 @@ mod tests {
 
     #[sqlx::test(fixtures("users", "services", "logs"))]
     async fn list_logs_order(pool: SqlitePool) -> sqlx::Result<()> {
-        let logs = Log::list(&pool, Some(2)).await?;
+        let logs = Log::list_all(&pool, Some(2)).await?;
+
+        dbg!(&logs);
+
+        assert!(logs.first().unwrap().id > logs.last().unwrap().id);
+
+        assert_eq!(logs.len(), 2);
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services", "logs"))]
+    async fn list_service_logs(pool: SqlitePool) -> sqlx::Result<()> {
+        let logs = Log::list(&pool, 2, Some(2)).await?;
 
         dbg!(&logs);
 

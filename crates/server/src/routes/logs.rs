@@ -22,7 +22,7 @@ async fn list_logs(
     State(state): State<AppState>,
     pagination: Query<Pagination>,
 ) -> Response {
-    match Log::list(&state.pool, pagination.limit).await {
+    match Log::list_all(&state.pool, pagination.limit).await {
         Ok(logs) => Response::builder()
             .header("Content-Type", "application/json")
             .body(json!({ "logs": logs }).to_string())
