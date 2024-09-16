@@ -8,6 +8,7 @@ use axum::{
 };
 use chrono::{Duration, Utc};
 use jsonwebtoken::{encode, EncodingKey, Header};
+use reqwest::StatusCode;
 use serde_json::json;
 use sqlx::Row;
 use tracing::debug;
@@ -52,7 +53,11 @@ async fn login(State(state): State<AppState>, Json(user_login): Json<UserForLogi
     };
 
     if !is_valid {
-        return Json(json!({"error": "Invalid email or password"})).into_response();
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({"error": "Invalid email or password"})),
+        )
+            .into_response();
     }
 
     let now = Utc::now();
@@ -98,7 +103,7 @@ async fn register(State(state): State<AppState>, Json(user): Json<UserForRegiste
     let count = User::insert(&state.pool, user).await.unwrap();
     debug!("Register {:?}", count);
 
-    Json(json!({"message": "users registered"})).into_response()
+    Json(json!({"message": "user registered"})).into_response()
 }
 
 async fn logout() -> Response {

@@ -1,4 +1,5 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use sqlx::{
@@ -36,6 +37,19 @@ pub struct LogForCreate {
     pub duration: u32,
 }
 
+#[derive(Debug, FromRow, Serialize)]
+pub struct Incident {
+    service_id: u32,
+    service_name: String,
+    service_url: String,
+    status: Status,
+    date: NaiveDate,
+    count: u32,
+    messages: String,
+    start: DateTime<Utc>,
+    end: DateTime<Utc>,
+}
+
 impl Log {
     pub async fn insert(pool: &SqlitePool, log: LogForCreate) -> sqlx::Result<u64> {
         // Construct the base query
@@ -71,6 +85,53 @@ impl Log {
         // Execute the query
         let result = query_builder.execute(pool).await?;
         Ok(result.rows_affected())
+    }
+
+    pub async fn incidents(pool: &SqlitePool, limit: Option<u32>) -> sqlx::Result<Vec<Incident>> {
+        let incidents = sqlx::query_as::<_, Incident>(
+            r#"SELECT
+                s.name AS service_name,
+                s.url AS service_url,
+                l.service_id,
+                l.status,
+                DATE(l.time) AS date,
+                COUNT(*) AS count,
+                GROUP_CONCAT(l.message, '; ') AS messages,
+                MIN(l.time) AS start,
+                MAX(l.time) AS end
+            FROM logs l
+            JOIN services s ON l.service_id = s.id
+            WHERE l.status > 1
+            GROUP BY l.service_id, l.status, date
+            ORDER BY date DESC
+            LIMIT ?;"#,
+        )
+        .bind(limit.unwrap_or(20))
+        .fetch_all(pool)
+        .await?
+        .iter()
+        .map(|i| {
+            let messages = i
+                .messages
+                .split("; ")
+                .unique()
+                .collect::<Vec<&str>>()
+                .join("; ");
+            Incident {
+                messages,
+                service_id: i.service_id,
+                service_name: i.service_name.clone(),
+                service_url: i.service_url.clone(),
+                status: i.status,
+                date: i.date,
+                count: i.count,
+                start: i.start,
+                end: i.end,
+            }
+        })
+        .collect();
+
+        Ok(incidents)
     }
 
     pub async fn list_all(pool: &SqlitePool, limit: Option<u32>) -> sqlx::Result<Vec<Log>> {
@@ -174,6 +235,19 @@ mod tests {
         assert!(logs.first().unwrap().id > logs.last().unwrap().id);
 
         assert_eq!(logs.len(), 2);
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services", "logs"))]
+    async fn list_incidents(pool: SqlitePool) -> sqlx::Result<()> {
+        let incidents = Log::incidents(&pool, None).await?;
+
+        dbg!(&incidents);
+
+        //assert!(incidents.first().unwrap().id > incidents.last().unwrap().id);
+
+        assert_eq!(incidents.len(), 2);
 
         Ok(())
     }

@@ -13,8 +13,9 @@ pub enum UserRole {
 
 #[derive(sqlx::FromRow, Serialize)]
 pub struct User {
-    pub id: i32,
+    pub id: u32,
     pub username: String,
+    #[serde(skip)]
     pub password: String,
     pub role: UserRole,
     pub active: bool,
@@ -65,5 +66,16 @@ impl User {
         // Execute the query
         let result = query_builder.execute(pool).await?;
         Ok(result.rows_affected())
+    }
+
+    pub async fn get(pool: &SqlitePool, user_id: u32) -> sqlx::Result<User> {
+        sqlx::query_as("SELECT * FROM users WHERE id = ?")
+            .bind(user_id)
+            .fetch_one(pool)
+            .await
+    }
+
+    pub async fn list(pool: &SqlitePool) -> sqlx::Result<Vec<User>> {
+        sqlx::query_as("SELECT * FROM users").fetch_all(pool).await
     }
 }

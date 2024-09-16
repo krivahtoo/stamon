@@ -1,31 +1,21 @@
 use axum::{
-    extract::{Query, State},
+    extract::State,
     response::{IntoResponse, Response},
     routing::get,
     Router,
 };
 use axum_macros::debug_handler;
-use serde::Deserialize;
 use serde_json::json;
 use tracing::error;
 
-use crate::{auth::Claims, models::log::Log, AppState};
-
-#[derive(Deserialize)]
-struct Pagination {
-    limit: Option<u32>,
-}
+use crate::{auth::Claims, models::user::User, AppState};
 
 #[debug_handler]
-async fn list_logs(
-    _: Claims,
-    State(state): State<AppState>,
-    pagination: Query<Pagination>,
-) -> Response {
-    match Log::list_all(&state.pool, pagination.limit).await {
-        Ok(logs) => Response::builder()
+async fn get_user(Claims { user_id, .. }: Claims, State(state): State<AppState>) -> Response {
+    match User::get(&state.pool, user_id).await {
+        Ok(user) => Response::builder()
             .header("Content-Type", "application/json")
-            .body(json!({ "logs": logs }).to_string())
+            .body(json!({ "user": user }).to_string())
             .unwrap()
             .into_response(),
         Err(e) => {
@@ -41,15 +31,11 @@ async fn list_logs(
 }
 
 #[debug_handler]
-async fn list_log_incidents(
-    _: Claims,
-    State(state): State<AppState>,
-    pagination: Query<Pagination>,
-) -> Response {
-    match Log::incidents(&state.pool, pagination.limit).await {
-        Ok(incidents) => Response::builder()
+async fn list_users(_: Claims, State(state): State<AppState>) -> Response {
+    match User::list(&state.pool).await {
+        Ok(users) => Response::builder()
             .header("Content-Type", "application/json")
-            .body(json!({ "incidents": incidents }).to_string())
+            .body(json!({ "users": users }).to_string())
             .unwrap()
             .into_response(),
         Err(e) => {
@@ -66,7 +52,7 @@ async fn list_log_incidents(
 
 pub fn routes(state: AppState) -> Router {
     Router::new()
-        .route("/logs", get(list_logs))
-        .route("/logs/incidents", get(list_log_incidents))
+        .route("/users", get(list_users))
+        .route("/user", get(get_user))
         .with_state(state)
 }
