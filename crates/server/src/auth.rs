@@ -21,8 +21,9 @@ use crate::{config::env_config, models::user::UserRole};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
     #[serde(rename = "sub")]
-    pub user_id: i32,
+    pub user_id: u32,
     pub role: UserRole,
+    #[serde(rename = "iat")]
     pub issued_at: usize,
     #[serde(rename = "exp")]
     pub expiry: usize,
@@ -71,8 +72,8 @@ pub enum AuthError {
 impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
-            AuthError::MissingCredentials => (StatusCode::BAD_REQUEST, "Missing credentials"),
-            AuthError::InvalidToken => (StatusCode::BAD_REQUEST, "Invalid token"),
+            AuthError::MissingCredentials => (StatusCode::FORBIDDEN, "Missing credentials"),
+            AuthError::InvalidToken => (StatusCode::FORBIDDEN, "Invalid token"),
         };
         let body = Json(json!({
             "error": error_message,

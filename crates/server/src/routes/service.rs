@@ -25,10 +25,11 @@ struct Pagination {
 
 #[debug_handler]
 async fn add_service(
-    _: Claims,
+    Claims { user_id, .. }: Claims,
     State(state): State<AppState>,
-    Json(service): Json<ServiceForCreate>,
+    Json(mut service): Json<ServiceForCreate>,
 ) -> Response {
+    service.user_id = Some(user_id);
     if let Err(e) = Service::insert(&state.pool, service).await {
         error!("Error adding service: {e}");
         return Response::builder()
@@ -48,7 +49,7 @@ async fn add_service(
 
 #[debug_handler]
 async fn get_service(
-    //_: Claims,
+    _: Claims,
     State(state): State<AppState>,
     Path(service_id): Path<u32>,
 ) -> Response {
@@ -71,7 +72,7 @@ async fn get_service(
         _ => Response::builder()
             .status(404)
             .header("Content-Type", "application/json")
-            .body(json!({ "service": "Service not found" }).to_string())
+            .body(json!({ "message": "Service not found" }).to_string())
             .unwrap()
             .into_response(),
     }
@@ -79,7 +80,7 @@ async fn get_service(
 
 #[debug_handler]
 async fn update_service(
-    //_: Claims,
+    _: Claims,
     State(state): State<AppState>,
     Path(service_id): Path<u32>,
     Json(service): Json<ServiceForUpdate>,

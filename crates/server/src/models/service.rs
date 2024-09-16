@@ -30,7 +30,8 @@ pub struct Service {
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct ServiceForCreate {
-    pub user_id: u32,
+    #[serde(skip)]
+    pub user_id: Option<u32>,
     pub active: Option<bool>,
     pub name: String,
     pub interval: u16,
@@ -53,6 +54,15 @@ pub struct ServiceForUpdate {
     pub service_type: Option<ServiceType>,
     pub retry: Option<u16>,
     pub retry_interval: Option<u16>,
+}
+
+#[derive(Debug, Default, Serialize)]
+pub struct Stats {
+    count: u32,
+    active: u32,
+    up: u32,
+    down: u32,
+    failed: u32,
 }
 
 impl Service {
@@ -102,6 +112,56 @@ impl Service {
         // Execute the query
         let result = query_builder.execute(pool).await?;
         Ok(result.rows_affected())
+    }
+
+    pub async fn get_stats(pool: &SqlitePool) -> sqlx::Result<Stats> {
+        let (count,) = sqlx::query_as::<_, (u32,)>(r#"SELECT COUNT(*) FROM services"#)
+            .fetch_one(pool)
+            .await?;
+
+        let (active,) = sqlx::query_as::<_, (u32,)>(
+            r#"SELECT COUNT(*)
+                FROM services
+                WHERE active = true
+                "#,
+        )
+        .fetch_one(pool)
+        .await?;
+
+        let (up,) = sqlx::query_as::<_, (u32,)>(
+            r#"SELECT COUNT(*)
+                FROM services
+                WHERE active = true AND last_status = 1
+                "#,
+        )
+        .fetch_one(pool)
+        .await?;
+
+        let (down,) = sqlx::query_as::<_, (u32,)>(
+            r#"SELECT COUNT(*)
+                FROM services
+                WHERE active = true AND last_status = 2
+                "#,
+        )
+        .fetch_one(pool)
+        .await?;
+
+        let (failed,) = sqlx::query_as::<_, (u32,)>(
+            r#"SELECT COUNT(*)
+                FROM services
+                WHERE active = true AND last_status = 3
+                "#,
+        )
+        .fetch_one(pool)
+        .await?;
+
+        Ok(Stats {
+            count,
+            active,
+            up,
+            failed,
+            down,
+        })
     }
 
     pub async fn all_active(pool: &SqlitePool) -> sqlx::Result<Vec<Service>> {
@@ -229,7 +289,7 @@ mod tests {
         let count = Service::insert(
             &pool,
             ServiceForCreate {
-                user_id: 1,
+                user_id: Some(1),
                 active: Some(false),
                 name: "foo".into(),
                 interval: 0,
