@@ -1,17 +1,20 @@
+import { toDate, formatRelative, formatDistanceToNow } from 'date-fns';
+
 /**
  * Returns a function that generates a color string with the specified opacity.
  * @param {string} [opacity="1"] - The opacity of the color.
  * @returns {function(): string} - A function that returns a color string.
  */
 export function color(opacity = "1") {
-	return () => `hsl(var(--primary) / ${opacity})`;
+  return () => `hsl(var(--primary) / ${opacity})`;
 }
 
 /**
- * @typedef {Object} Data
- * @property {number} average - The average value.
- * @property {number} today - The value for today.
- * @property {number} id - The ID.
+ * @typedef {Object} Log
+ * @property {number} service_id - The id of the service.
+ * @property {number} status - The status.
+ * @property {Date} time - Timestamp.
+ * @property {number} duration - Time taken.
  */
 
 /**
@@ -22,7 +25,7 @@ export function color(opacity = "1") {
  * @returns {string} - The color string.
  */
 export function lineColors(_, i) {
-	return ["hsl(var(--primary))", "hsl(var(--primary) / 0.25)"][i];
+  return ["hsl(var(--primary))", "hsl(var(--primary) / 0.25)"][i];
 }
 
 /**
@@ -33,7 +36,7 @@ export function lineColors(_, i) {
  * @returns {string} - The color string.
  */
 export function scatterPointColors(_, i) {
-	return ["hsl(0, 0%, 100%)", "hsl(var(--primary) / 0.25)"][i];
+  return ["hsl(0, 0%, 100%)", "hsl(var(--primary) / 0.25)"][i];
 }
 
 /**
@@ -44,7 +47,7 @@ export function scatterPointColors(_, i) {
  * @returns {string} - The stroke color string.
  */
 export function scatterPointStrokeColors(_, i) {
-	return ["hsl(var(--primary))", "hsl(var(--primary) / 0.25)"][i];
+  return ["hsl(var(--primary))", "hsl(var(--primary) / 0.25)"][i];
 }
 
 /**
@@ -55,7 +58,7 @@ export function scatterPointStrokeColors(_, i) {
  * @returns {string} - The color string.
  */
 export function crosshairPointColors(_, i) {
-	return ["hsl(var(--primary))", "hsl(var(--primary) / 0.25)"][i];
+  return ["hsl(var(--primary))", "hsl(var(--primary) / 0.25)"][i];
 }
 
 /**
@@ -66,32 +69,33 @@ export function crosshairPointColors(_, i) {
  * @returns {number} - The stroke width.
  */
 export function crosshairStrokeWidths(_, i) {
-	return [2, 1][i];
+  return [2, 1][i];
 }
 
 /**
  * Generates an HTML template for a tooltip.
- * @param {Data} d - The data to display in the tooltip.
+ * @param {Log} d - The log entry which has data to display in the tooltip.
  * @returns {string} - The HTML string for the tooltip.
  */
 export function tooltipTemplate(d) {
-	return `
+  const time = toDate(d.time);
+  return `
 <div class="rounded-lg border dark:border-primary/50 bg-background p-2 shadow-sm">
-  <div class="grid grid-cols-2 gap-2">
+  <div class="grid grid-cols-1 gap-2">
     <div class="flex flex-col">
       <span class="text-[0.70rem] uppercase text-muted-foreground">
-        Average
+        Latency
       </span>
       <span class="font-bold text-muted-foreground">
-        ${d.average}ms
+        ${d.duration} ms
       </span>
     </div>
     <div class="flex flex-col">
       <span class="text-[0.70rem] uppercase text-muted-foreground">
-        Today
+        Time
       </span>
       <span class="font-bold text-foreground">
-        ${d.id}
+        ${formatDistanceToNow(time, { includeSeconds: true })} ago
       </span>
     </div>
   </div>

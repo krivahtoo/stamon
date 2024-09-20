@@ -1,22 +1,15 @@
 <script>
-  import { EyeOff, ArrowDown, ArrowUp, SortAsc, ChevronsUpDown, SortDesc, Eraser } from 'lucide-svelte';
-  import { writable } from 'svelte/store';
+  import EyeOff from 'lucide-svelte/icons/eye-off';
+  import ArrowDownAZ from 'lucide-svelte/icons/arrow-down-a-z';
+  import ArrowUpAZ from 'lucide-svelte/icons/arrow-up-a-z';
+  import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
+  import Eraser from 'lucide-svelte/icons/eraser';
   import { cn } from '$lib/utils.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 
   /**
-   * @typedef {Object} Monitor
-   * @property {number} id - The ID.
-   * @property {boolean} active - The monitor active status.
-   * @property {string} name - The monitor name.
-   * @property {string} url - The monitor URL.
-   * @property {string} monitor_type - The monitor type.
-   * @property {number} retry - The number of retries.
-   * @property {number} retry_interval - The retry interval in seconds.
-   */
-  /**
-   * @typedef {import("svelte-headless-table").TableViewModel<Monitor>} TableViewModel
+   * @typedef {import("svelte-headless-table").TableViewModel<import('$lib/store/services').Service>} TableViewModel
    */
 
   /**
@@ -97,9 +90,9 @@
         >
           <slot />
           {#if props.sort.order === 'desc'}
-            <SortDesc class="ml-2 h-4 w-4" />
+            <ArrowUpAZ class="ml-2 h-4 w-4" />
           {:else if props.sort.order === 'asc'}
-            <SortAsc class="ml-2 h-4 w-4" />
+            <ArrowDownAZ class="ml-2 h-4 w-4" />
           {:else}
             <ChevronsUpDown class="ml-2 h-4 w-4" />
           {/if}
@@ -107,11 +100,11 @@
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="start">
         <DropdownMenu.Item on:click={handleAscSort}>
-          <SortAsc class="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+          <ArrowDownAZ class="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
           Asc
         </DropdownMenu.Item>
         <DropdownMenu.Item on:click={handleDescSort}>
-          <SortDesc class="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+          <ArrowUpAZ class="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
           Desc
         </DropdownMenu.Item>
         <DropdownMenu.Separator />

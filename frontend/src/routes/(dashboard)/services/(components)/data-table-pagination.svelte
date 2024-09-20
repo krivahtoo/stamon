@@ -1,21 +1,13 @@
 <script>
-  import { ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft } from "lucide-svelte";
-  import { writable } from "svelte/store";
+  import ChevronRight from "lucide-svelte/icons/chevron-right";
+  import ChevronLeft from "lucide-svelte/icons/chevron-left";
+  import ChevronsRight from "lucide-svelte/icons/chevrons-right";
+  import ChevronsLeft from "lucide-svelte/icons/chevrons-left";
   import * as Select from "$lib/components/ui/select/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
 
   /**
-   * @typedef {Object} Monitor
-   * @property {number} id - The ID.
-   * @property {boolean} active - The monitor active status.
-   * @property {string} name - The monitor name.
-   * @property {string} url - The monitor URL.
-   * @property {string} monitor_type - The monitor type.
-   * @property {number} retry - The number of retries.
-   * @property {number} retry_interval - The retry interval in seconds.
-   */
-  /**
-   * @typedef {import("svelte-headless-table").TableViewModel<Monitor>} TableViewModel
+   * @typedef {import("svelte-headless-table").TableViewModel<import('$lib/store/services').Service>} TableViewModel
    */
 
   /** @type {TableViewModel} */

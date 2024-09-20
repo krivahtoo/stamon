@@ -1,156 +1,85 @@
 <script>
   import { page } from '$app/stores';
+  import { cubicInOut } from 'svelte/easing';
+  import { crossfade } from 'svelte/transition';
 
-  import { Button } from '$lib/components/ui/button/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
-  import { Switch } from '$lib/components/ui/switch/index.js';
-  import * as Card from '$lib/components/ui/card/index.js';
-  import * as Popover from '$lib/components/ui/popover/index';
-  import Home from 'lucide-svelte/icons/home';
-  import Bell from 'lucide-svelte/icons/bell';
-  import {
-    Layers3,
-    Users,
-    LineChart,
-    Monitor,
-    Activity,
-    BellRing,
-    Check,
-    MessageSquareText
-  } from 'lucide-svelte';
-  import { onMount } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import Activity from 'lucide-svelte/icons/activity';
+  import stats from '$lib/store/stats.js';
+  import { cn } from '$lib/utils.js';
 
   import SideBarCard from './side-bar-card.svelte';
+  import NotificationPopover from './notification-popover.svelte';
 
-  const notifications = [
-    {
-      title: 'Your call has been confirmed.',
-      description: '1 hour ago'
-    },
-    {
-      title: 'You have a new message!',
-      description: '1 hour ago'
-    },
-    {
-      title: 'Your subscription is expiring soon!',
-      description: '2 hours ago'
-    }
-  ];
+  /**
+   * @typedef {Object} NavItem
+   * @property {string} name - Name to show in the navbar
+   * @property {string} path - navication item path
+   * @property {import('svelte').ComponentType} icon - navication item icon
+   */
+
+  /** @type {NavItem[]} */
+  export let navItems = [];
 
   // Subscribe to the page path
   $: activeUrl = $page?.url?.pathname;
+
+  const [send, receive] = crossfade({
+    duration: 250,
+    easing: cubicInOut
+  });
 </script>
 
-<div class="hidden border-r dark:border-primary/50 bg-muted/40 md:block">
+<div class="hidden border-r bg-muted/40 dark:border-primary/50 md:block">
   <div class="flex h-full max-h-screen flex-col gap-2">
-    <div class="flex h-14 items-center border-b dark:border-primary/50 px-4 lg:h-[60px] lg:px-6">
+    <div class="flex h-14 items-center border-b px-4 dark:border-primary/50 lg:h-[60px] lg:px-6">
       <a href="/" class="flex items-center gap-2 font-semibold">
         <Activity class="h-6 w-6" />
         <span class="">Stamon</span>
       </a>
-      <Popover.Root>
-        <Popover.Trigger asChild let:builder>
-          <Button builders={[builder]} variant="outline" size="icon" class="ml-auto h-8 w-8">
-            <Bell class="h-4 w-4" />
-            <span class="sr-only">Toggle notifications</span>
-          </Button>
-        </Popover.Trigger>
-        <Popover.Content>
-          <Card.Root class="w-[380px]">
-            <Card.Header>
-              <Card.Title>Notifications</Card.Title>
-              <Card.Description>You have {notifications.length} unread messages.</Card.Description>
-            </Card.Header>
-            <Card.Content class="grid gap-4">
-              <div class=" flex items-center space-x-4 rounded-md border p-4">
-                <BellRing />
-                <div class="flex-1 space-y-1">
-                  <p class="text-sm font-medium leading-none">Push Notifications</p>
-                  <p class="text-sm text-muted-foreground">Send notifications to device.</p>
-                </div>
-                <Switch />
-              </div>
-              <div>
-                {#each notifications as notification, idx (idx)}
-                  <div class="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                    <span class="flex h-2 w-2 translate-y-1 rounded-full bg-sky-500" />
-                    <div class="space-y-1">
-                      <p class="text-sm font-medium leading-none">
-                        {notification.title}
-                      </p>
-                      <p class="text-sm text-muted-foreground">
-                        {notification.description}
-                      </p>
-                    </div>
-                  </div>
-                {/each}
-              </div>
-            </Card.Content>
-            <Card.Footer>
-              <Button class="w-full">
-                <Check class="mr-2 h-4 w-4" /> Mark all as read
-              </Button>
-            </Card.Footer>
-          </Card.Root>
-        </Popover.Content>
-      </Popover.Root>
+      <NotificationPopover />
     </div>
     <div class="flex-1">
       <nav class="grid items-start px-2 text-sm font-medium lg:px-4">
-        <a
-          href="/"
-          class="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary {activeUrl ===
-          '/'
-            ? 'bg-background/40 text-primary'
-            : 'text-muted-foreground'}"
-        >
-          <Home class="h-4 w-4" />
-          Dashboard
-        </a>
-        <a
-          href="/monitors"
-          class="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary {activeUrl ===
-          '/monitors/'
-            ? 'bg-background/40 text-primary'
-            : 'text-muted-foreground'}"
-        >
-          <Layers3 class="h-4 w-4" />
-          Monitors
-          <Badge class="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-            6
-          </Badge>
-        </a>
-        <a
-          href="/status-pages"
-          class="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary {activeUrl ===
-          '/status-pages/'
-            ? 'bg-background/40 text-primary'
-            : 'text-muted-foreground'}"
-        >
-          <Monitor class="h-4 w-4" />
-          Status Pages
-        </a>
-        <a
-          href="/notification"
-          class="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary {activeUrl ===
-          '/notification/'
-            ? 'bg-background/40 text-primary'
-            : 'text-muted-foreground'}"
-        >
-          <MessageSquareText class="h-4 w-4" />
-          Notification Providers
-        </a>
-        <a
-          href="/users/"
-          class="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary {activeUrl ===
-          '/users/'
-            ? 'bg-background/40 text-primary'
-            : 'text-muted-foreground'}"
-        >
-          <Users class="h-4 w-4" />
-          Team
-        </a>
+        {#each navItems as item, idx (idx)}
+          {@const isActive = activeUrl === item.path}
+          <a
+            href={item.path}
+            class={cn(
+              !isActive && 'hover:text-primary',
+              'relative justify-start hover:bg-transparent'
+            )}
+            data-sveltekit-noscroll
+            data-sveltekit-replacestate
+          >
+            {#if isActive}
+              <div
+                class="absolute inset-0 rounded-md bg-background/40"
+                in:send={{ key: 'active-sidebar-item' }}
+                out:receive={{ key: 'active-sidebar-item' }}
+              />
+            {/if}
+            <div
+              class={cn(
+                isActive && 'text-primary',
+                !isActive && 'text-muted-foreground hover:text-primary',
+                'relative flex items-center gap-3 rounded-lg px-3 py-2 transition-all'
+              )}
+            >
+              <svelte:component this={item.icon} class="h-4 w-4" />
+              {item.name}
+              {#if item.name == 'Services'}
+                {#if $stats.active}
+                  <Badge
+                    class="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+                  >
+                    {$stats.active}
+                  </Badge>
+                {/if}
+              {/if}
+            </div>
+          </a>
+        {/each}
       </nav>
     </div>
     <div class="mt-auto p-4">

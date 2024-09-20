@@ -1,5 +1,5 @@
 <script>
-  import { get, readable } from 'svelte/store';
+  import { get } from 'svelte/store';
   import { Render, Subscribe, createRender, createTable } from 'svelte-headless-table';
   import {
     addColumnFilters,
@@ -11,6 +11,8 @@
   } from 'svelte-headless-table/plugins';
 
   import { goto } from '$app/navigation';
+  import services from '$lib/store/services.js';
+  import DataTableStatusCell from '$lib/components/table/status-cell.svelte';
 
   import * as Table from '$lib/components/ui/table/index.js';
   import DataTableStatusBar from './(components)/data-table-status-bar.svelte';
@@ -19,122 +21,9 @@
   import DataTablePagination from './(components)/data-table-pagination.svelte';
   import DataTableToolbar from './(components)/data-table-toolbar.svelte';
   import DataTableColumnHeader from './(components)/data-table-column-header.svelte';
+  import { fly } from 'svelte/transition';
 
-  /**
-   * @typedef {Object} Monitor
-   * @property {number} id - The ID.
-   * @property {boolean} active - The monitor active status.
-   * @property {string} name - The monitor name.
-   * @property {string} url - The monitor URL.
-   * @property {string} monitor_type - The monitor type.
-   * @property {number} retry - The number of retries.
-   * @property {number} retry_interval - The retry interval in seconds.
-   */
-
-  /** @type {import('svelte-headless-table').ReadOrWritable<Monitor[]>} */
-  export const data = readable([
-    {
-      id: 1,
-      active: true,
-      name: 'Google DNS',
-      url: '8.8.8.8',
-      monitor_type: 'ping',
-      retry: 3,
-      retry_interval: 60
-    },
-    {
-      id: 2,
-      active: true,
-      name: 'Cloudflare DNS',
-      url: '1.1.1.1',
-      monitor_type: 'ping',
-      retry: 3,
-      retry_interval: 60
-    },
-    {
-      id: 3,
-      active: true,
-      name: 'Cloudflare DNS',
-      url: '1.1.1.1',
-      monitor_type: 'ping',
-      retry: 3,
-      retry_interval: 60
-    },
-    {
-      id: 4,
-      active: true,
-      name: 'Cloudflare DNS',
-      url: '1.1.1.1',
-      monitor_type: 'ping',
-      retry: 3,
-      retry_interval: 60
-    },
-    {
-      id: 5,
-      active: true,
-      name: 'Cloudflare DNS',
-      url: '1.1.1.1',
-      monitor_type: 'ping',
-      retry: 3,
-      retry_interval: 60
-    },
-    {
-      id: 6,
-      active: true,
-      name: 'Cloudflare DNS',
-      url: '1.1.1.1',
-      monitor_type: 'ping',
-      retry: 3,
-      retry_interval: 60
-    },
-    {
-      id: 7,
-      active: true,
-      name: 'Cloudflare DNS',
-      url: '1.1.1.1',
-      monitor_type: 'ping',
-      retry: 3,
-      retry_interval: 60
-    },
-    {
-      id: 8,
-      active: true,
-      name: 'Cloudflare DNS',
-      url: '1.1.1.1',
-      monitor_type: 'ping',
-      retry: 3,
-      retry_interval: 60
-    },
-    {
-      id: 9,
-      active: true,
-      name: 'Google DNS',
-      url: '8.8.8.8',
-      monitor_type: 'ping',
-      retry: 3,
-      retry_interval: 60
-    },
-    {
-      id: 10,
-      active: true,
-      name: 'Google DNS',
-      url: '8.8.8.8',
-      monitor_type: 'ping',
-      retry: 3,
-      retry_interval: 60
-    },
-    {
-      id: 11,
-      active: true,
-      name: 'Google DNS',
-      url: '8.8.8.8',
-      monitor_type: 'ping',
-      retry: 3,
-      retry_interval: 60
-    }
-  ]);
-
-  const table = createTable(data, {
+  const table = createTable(services, {
     select: addSelectedRows(),
     sort: addSortBy({
       toggleOrder: ['asc', 'desc']
@@ -180,12 +69,29 @@
       id: 'name'
     }),
     table.column({
-      header: 'Status',
+      header: 'Recent Status',
       accessor: 'id',
       cell: ({ value, row }) => {
         if (row.isData()) {
           return createRender(DataTableStatusBar, {
-            monitorId: value
+            serviceId: value
+          });
+        }
+        return value;
+      },
+      plugins: {
+        sort: {
+          disable: true
+        }
+      }
+    }),
+    table.column({
+      header: 'Status',
+      accessor: 'last_status',
+      cell: ({ value, row }) => {
+        if (row.isData()) {
+          return createRender(DataTableStatusCell, {
+            statusId: value || 0
           });
         }
         return value;
@@ -198,8 +104,8 @@
     }),
     table.column({
       header: 'Type',
-      accessor: 'monitor_type',
-      id: 'monitor_type',
+      accessor: 'service_type',
+      id: 'service_type',
       plugins: {
         colFilter: {
           fn: ({ filterValue, value }) => {
@@ -224,7 +130,7 @@
       cell: ({ row }) => {
         if (row.isData() && row.original) {
           return createRender(DataTableRowActions, {
-            monitor: row.original
+            service: row.original
           });
         }
         return '';
@@ -242,7 +148,7 @@
   const { headerRows, pageRows, tableAttrs, tableBodyAttrs } = tableModel;
 </script>
 
-<div class="h-full space-y-4">
+<div in:fly={{ y: 20, duration: 200 }} class="h-full space-y-4">
   <DataTableToolbar />
   <div class="overflow-hidden rounded-md border bg-background dark:border-primary/50">
     <Table.Root {...$tableAttrs}>
@@ -277,10 +183,10 @@
                     <Table.Cell
                       on:click={() => {
                         if (cell.id !== 'select' && cell.id !== 'actions') {
-                          goto(`/monitors/${row.original.id}`);
+                          goto(`/services/${row.original.id}`);
                         }
                       }}
-                      class="py-1 cursor-pointer"
+                      class="cursor-pointer py-1"
                       {...attrs}
                     >
                       <Render of={cell.render()} />
@@ -292,7 +198,10 @@
           {/each}
         {:else}
           <Table.Row>
-            <Table.Cell colspan={columns.length} class="h-24 text-center">No results.</Table.Cell>
+            <Table.Cell colspan={columns.length} class="h-24 text-center">
+              No services here.<br />
+              Add a new service
+            </Table.Cell>
           </Table.Row>
         {/if}
       </Table.Body>

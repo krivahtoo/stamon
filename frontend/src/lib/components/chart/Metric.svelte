@@ -18,31 +18,50 @@
   } from './helpers.js';
   import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
+  import { toDate, formatRelative, format } from 'date-fns';
 
   /**
-   * @typedef {Object} Data
-   * @property {number} average - The average value.
-   * @property {number} today - The value for today.
-   * @property {number} id - The ID.
+   * @typedef {Object} Log
+   * @property {number} service_id - The id of the service.
+   * @property {number} status - The status.
+   * @property {string} time - Timestamp.
+   * @property {number} duration - Time taken.
    */
 
-  /** @type {import('svelte/store').Writable<Data[]>} */
-  let data = writable([]);
+  /** @type {import('svelte/store').Writable<Log[]>} */
+  export let data = writable([]);
+
+  /** @type {number} */
+  export let interval = 60
 
   /**
    * Returns the ID of the data point.
-   * @param {Data} d - The data point.
-   * @returns {number} - The ID.
+   * @param {Log} d - The data point.
+   * @returns {number} - The timestamp.
    */
-  const x = (d) => d.id;
+  const x = (d) => {
+    const time = toDate(d.time);
+    return time.getTime() / interval;
+  };
+
+  /**
+   * Returns the ID of the data point.
+   * @param {number} tick - The data point.
+   * @param {number} i - The data index.
+   * @returns {string} - Formated time.
+   */
+  const tickFormat = (tick, i) => {
+    const time = toDate(tick * interval);
+    return `${formatRelative(time, new Date())}`;
+  };
 
   /**
    * Returns an array of functions that return the today and average values of the data point.
-   * @param {Data} d - The data point.
+   * @param {Log} d - The data point.
    * @returns {number[]} - The today and average values.
    */
   // @ts-ignore
-  const y = [(d) => d.average];
+  const y = [(d) => d.duration];
 
   /** @type {Element} */
   let boxEl;
@@ -51,23 +70,6 @@
    * Adds a new random data point to the data array every 5 seconds.
    */
   onMount(() => {
-    const interval = setInterval(() => {
-      data.update((d) => {
-        const lastId = d.length ? d[d.length - 1].id : 0;
-        const newData = {
-          id: lastId + 1,
-          average: Math.floor(Math.random() * 1000),
-          today: Math.floor(Math.random() * 1000)
-        };
-
-        d.push(newData);
-
-        if (d.length > 60) {
-          d.shift();
-        }
-        return d;
-      });
-    }, 2000);
     const resizeObserver = new ResizeObserver((entries) => {
       // We're only watching one element
       const entry = entries.at(0);
@@ -76,7 +78,6 @@
     resizeObserver.observe(boxEl);
 
     return () => {
-      clearInterval(interval);
       resizeObserver.unobserve(boxEl);
     };
   });
@@ -115,10 +116,11 @@
   <VisXYContainer
     class="vis-xy-container"
     data={$data}
-    height={100}
+    height={200}
     margin={{ top: 5, right: 10, left: 10, bottom: 0 }}
   >
-    <VisAxis domainLine={true} type="y" label="Time (ms)" />
+    <VisAxis domainLine={true} type="y" label="Latency (ms)" />
+    <VisAxis type="x" label="Time" {tickFormat} />
     <VisArea {x} {y} color="url(#gradient)" />
     <VisTooltip />
     <VisLine {x} {y} lineWidth={2} color={lineColors} lineDashArray={[0]} />
@@ -131,6 +133,6 @@
       strokeColor={scatterPointStrokeColors}
       strokeWidth={crosshairStrokeWidths}
     />
-    <VisCrosshair template={tooltipTemplate} color={crosshairPointColors} />
+    <VisCrosshair {x} {y} template={tooltipTemplate} color={crosshairPointColors} />
   </VisXYContainer>
 </div>

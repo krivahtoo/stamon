@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
   import { cubicInOut } from 'svelte/easing';
   import { crossfade } from 'svelte/transition';
   import { cn } from '$lib/utils.js';
@@ -31,14 +31,14 @@
   });
 </script>
 
-<nav class={cn('flex space-x-2 md:flex-col lg:space-x-4 lg:space-y-1', className)}>
+<nav class={cn('flex space-x-2 md:flex-col md:space-x-0 lg:space-y-1', className)}>
   {#each items as item}
     {@const isActive = $page.url.pathname === item.href}
 
     <Button
       href={item.href}
       variant="ghost"
-      class={cn(!isActive && 'hover:underline', 'relative justify-start hover:bg-transparent')}
+      class={cn(!isActive && 'hover:text-primary', 'relative justify-start hover:bg-transparent')}
       data-sveltekit-noscroll
       data-sveltekit-replacestate
     >
