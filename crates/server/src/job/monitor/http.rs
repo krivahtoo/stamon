@@ -15,6 +15,7 @@ pub async fn get(svc: Service, tx: Sender<Event>) -> LogForCreate {
     match reqwest::get(&svc.url).await {
         Ok(_) => LogForCreate {
             status: Status::Up,
+            service_id: svc.id,
             time,
             ..Default::default()
         },
@@ -22,6 +23,7 @@ pub async fn get(svc: Service, tx: Sender<Event>) -> LogForCreate {
             error!("Failed to get: {:?}", e);
             LogForCreate {
                 status: Status::Down,
+                service_id: svc.id,
                 message: Some(format!("{e}")),
                 time,
                 ..Default::default()
