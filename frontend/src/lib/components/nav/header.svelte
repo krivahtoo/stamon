@@ -2,29 +2,39 @@
   import {
     CircleUser,
     Menu,
-    Home,
-    Package2,
     Search,
     Sun,
     Moon,
-    ShoppingCart,
-    LineChart,
-    Users,
-    Package,
     Languages,
     Settings,
     LogOut,
     UserRoundCog
   } from 'lucide-svelte';
+  import Activity from 'lucide-svelte/icons/activity';
 
   import { resetMode, setMode } from 'mode-watcher';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
-  import { Badge } from '$lib/components/ui/badge/index.js';
   import * as Sheet from '$lib/components/ui/sheet/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
-  import * as Avatar from '$lib/components/ui/avatar/index.js';
+  import user from '$lib/store/user.js';
+  import { goto } from '$app/navigation';
+
+  /**
+   * @typedef {Object} NavItem
+   * @property {string} name - Name to show in the navbar
+   * @property {string} path - navication item path
+   * @property {import('svelte').ComponentType} icon - navication item icon
+   */
+
+  /** @type {NavItem[]} */
+  export let navItems = [];
+
+  function logout() {
+    user.set(null)
+    goto('/login')
+  }
 </script>
 
 <header class="flex h-14 items-center gap-4 border-b dark:border-primary/50 bg-muted/40 px-4 lg:h-[60px] lg:px-6">
@@ -38,47 +48,18 @@
     <Sheet.Content side="left" class="flex flex-col">
       <nav class="grid gap-2 text-lg font-medium">
         <a href="/" class="flex items-center gap-2 text-lg font-semibold">
-          <Package2 class="h-6 w-6" />
+          <Activity class="h-6 w-6" />
           <span class="sr-only">Stamon</span>
         </a>
-        <a
-          href="/"
-          class="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
-        >
-          <Home class="h-5 w-5" />
-          Dashboard
-        </a>
-        <a
-          href="/"
-          class="mx-[-0.65rem] flex items-center gap-4 rounded-xl bg-muted px-3 py-2 text-foreground hover:text-foreground"
-        >
-          <ShoppingCart class="h-5 w-5" />
-          Orders
-          <Badge class="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-            6
-          </Badge>
-        </a>
-        <a
-          href="/"
-          class="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
-        >
-          <Package class="h-5 w-5" />
-          Products
-        </a>
-        <a
-          href="/"
-          class="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
-        >
-          <Users class="h-5 w-5" />
-          Customers
-        </a>
-        <a
-          href="/"
-          class="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
-        >
-          <LineChart class="h-5 w-5" />
-          Analytics
-        </a>
+        {#each navItems as item, idx (idx)}
+          <a
+            href={item.path}
+            class="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+          >
+            <svelte:component this={item.icon} class="h-5 w-5" />
+            {item.name}
+          </a>
+        {/each}
       </nav>
       <div class="mt-auto">
         <Card.Root>
@@ -149,8 +130,8 @@
     <DropdownMenu.Content align="end">
       <DropdownMenu.Label>
         <div class="flex flex-col space-y-1">
-          <p class="text-sm font-medium leading-none">krivah</p>
-          <p class="text-xs leading-none text-muted-foreground">Admin</p>
+          <p class="text-sm font-medium leading-none">{$user?.username}</p>
+          <p class="text-xs leading-none text-muted-foreground">{$user?.role}</p>
         </div>
       </DropdownMenu.Label>
       <DropdownMenu.Separator />
@@ -163,7 +144,7 @@
         Settings
       </DropdownMenu.Item>
       <DropdownMenu.Separator />
-      <DropdownMenu.Item>
+      <DropdownMenu.Item on:click={logout}>
         <LogOut class="text-foreground-alt mr-2 size-5" />
         Logout
       </DropdownMenu.Item>

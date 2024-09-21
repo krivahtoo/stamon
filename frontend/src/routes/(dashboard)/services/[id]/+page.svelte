@@ -9,9 +9,26 @@
   import { Metric } from '$lib/components/chart/index.js';
   import { Separator } from '$lib/components/ui/separator/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
+  import { writable } from 'svelte/store';
+  import { onMount } from 'svelte';
+
+  /**
+   * @typedef {Object} Log
+   * @property {number} service_id - The id of the service.
+   * @property {number} status - The status.
+   * @property {string} time - Timestamp.
+   * @property {number} duration - Time taken.
+   */
+
+  /** @type {import('svelte/store').Writable<Log[]>} */
+  let logs = writable([]);
 
   /** @type {import('./$types').PageData} */
   export let data;
+
+  onMount(() => {
+    logs.set(data.logs);
+  })
 </script>
 
 <div class="flex items-center">
@@ -25,15 +42,15 @@
     <span class="sr-only lg:not-sr-only">Back</span>
   </Button>
   <div class="space-y-0.5">
-    <h2 class="text-2xl font-bold tracking-tight">{ data.name }</h2>
-    <p class="text-muted-foreground">Manage your account settings and set e-mail preferences.</p>
+    <h2 class="text-2xl font-bold tracking-tight">{data.service.name}</h2>
+    <p class="text-muted-foreground">Below is an overview of {data.service.name} service.</p>
   </div>
 </div>
 <Separator class="my-1" />
 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
   <Card.Root>
     <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-      <Card.Title class="text-sm font-medium">Avarage Duration</Card.Title>
+      <Card.Title class="text-sm font-medium">Avarage Latency</Card.Title>
       <Timer class="h-4 w-4 text-muted-foreground" />
     </Card.Header>
     <Card.Content>
@@ -43,22 +60,22 @@
   </Card.Root>
   <Card.Root>
     <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-      <Card.Title class="text-sm font-medium">Subscriptions</Card.Title>
+      <Card.Title class="text-sm font-medium">Uptime</Card.Title>
       <Users class="h-4 w-4 text-muted-foreground" />
     </Card.Header>
     <Card.Content>
-      <div class="text-2xl font-bold">+2350</div>
-      <p class="text-xs text-muted-foreground">+180.1% from last month</p>
+      <div class="text-2xl font-bold">99.9%</div>
+      <p class="text-xs text-muted-foreground">99.1% last month</p>
     </Card.Content>
   </Card.Root>
   <Card.Root>
     <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-      <Card.Title class="text-sm font-medium">Sales</Card.Title>
+      <Card.Title class="text-sm font-medium">Current Status</Card.Title>
       <CreditCard class="h-4 w-4 text-muted-foreground" />
     </Card.Header>
     <Card.Content>
-      <div class="text-2xl font-bold">+12,234</div>
-      <p class="text-xs text-muted-foreground">+19% from last month</p>
+      <div class="text-2xl font-bold">Up</div>
+      <p class="text-xs text-muted-foreground">Last change a month ago</p>
     </Card.Content>
   </Card.Root>
   <Card.Root>
@@ -77,22 +94,22 @@
   <Card.Header class="flex">
     <Card.Title>Ping</Card.Title>
     <Card.Description class="flex flex-row">
-      <div class="">Your excercise minutes are ahead of where you normally are.</div>
+      <div class="">Avarage latency for the last few requests.</div>
       <Select.Root>
-        <Select.Trigger id="status" aria-label="Select status" class="ml-auto w-auto pr-2">
-          <Select.Value placeholder="Select status" />
+        <Select.Trigger id="status" aria-label="Select range" class="ml-auto w-auto pr-2">
+          <Select.Value placeholder="Select range" />
         </Select.Trigger>
         <Select.Content class="w-auto">
-          <Select.Item value="draft" label="Draft">Draft</Select.Item>
-          <Select.Item value="published" label="Active">Active</Select.Item>
-          <Select.Item value="archived" label="Archived">Archived</Select.Item>
+          <Select.Item value="draft" label="Draft">6 hours</Select.Item>
+          <Select.Item value="published" label="Active">12 hours</Select.Item>
+          <Select.Item value="archived" label="Archived">24 hours</Select.Item>
         </Select.Content>
       </Select.Root>
     </Card.Description>
   </Card.Header>
   <Card.Content class="pb-4">
     <div class="h-fit w-11/12 lg:w-full">
-      <Metric />
+      <Metric data={logs} interval={data.service.interval} />
     </div>
   </Card.Content>
 </Card.Root>

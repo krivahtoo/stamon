@@ -1,5 +1,7 @@
 <script>
-  import { get, readable } from 'svelte/store';
+  import { get, readable, writable } from 'svelte/store';
+  import { onMount } from 'svelte';
+  import { fly } from 'svelte/transition';
   import { Render, Subscribe, createRender, createTable } from 'svelte-headless-table';
   import {
     addColumnFilters,
@@ -7,11 +9,12 @@
     addPagination,
     addSelectedRows,
     addSortBy,
-    addTableFilter
+    addTableFilter,
+    addResizedColumns
   } from 'svelte-headless-table/plugins';
-  import { parseISO } from 'date-fns';
 
-  import { goto } from '$app/navigation';
+  import stats from '$lib/store/stats.js';
+  import { cfetch } from '$lib/utils.js';
 
   import * as Table from '$lib/components/ui/table/index.js';
   import Activity from 'lucide-svelte/icons/activity';
@@ -19,34 +22,28 @@
   import Timer from 'lucide-svelte/icons/timer';
   import Users from 'lucide-svelte/icons/users';
   import * as Card from '$lib/components/ui/card/index.js';
-  import * as Select from '$lib/components/ui/select/index.js';
+
+  import MessageCell from './(components)/message-cell.svelte';
+  import DurationCell from './(components)/duration-cell.svelte';
+  import DateCell from './(components)/date-cell.svelte';
+  import { goto } from '$app/navigation';
+  import { toast } from 'svelte-sonner';
 
   /**
-   * @typedef {Object} Monitor
-   * @property {number} id - The ID.
-   * @property {string} name - The monitor name.
-   * @property {string} status - The monitor URL.
-   * @property {string} message - The number of retries.
-   * @property {string} time - The monitor type.
+   * @typedef {Object} Incident
+   * @property {number} service_id - The service id.
+   * @property {string} service_name - The service name.
+   * @property {string} service_url - The url for the service.
+   * @property {number} status - The incident log status.
+   * @property {string} date - The date of the incident.
+   * @property {string} messages - The error messages.
+   * @property {number} count - Number of checks.
+   * @property {string} start - The start of the incident.
+   * @property {string} end - The end of the incident.
    */
 
-  /** @type {import('svelte-headless-table').ReadOrWritable<Monitor[]>} */
-  export const data = readable([
-    {
-      id: 1,
-      name: 'Google DNS',
-      status: 'Down',
-      message: 'Connection failed',
-      time: '2024-07-19 20:09:31'
-    },
-    {
-      id: 2,
-      name: 'Cloudflare',
-      status: 'Down',
-      message: 'Server returned 500',
-      time: '2024-07-19 20:09:31'
-    }
-  ]);
+  /** @type {import('svelte/store').Writable<Incident[]>} */
+  export const data = writable([]);
 
   const table = createTable(data, {
     select: addSelectedRows(),
@@ -60,23 +57,43 @@
       }
     }),
     colFilter: addColumnFilters(),
-    hide: addHiddenColumns()
+    hide: addHiddenColumns(),
+    resize: addResizedColumns()
   });
 
   const columns = table.createColumns([
     table.column({
       header: 'Service Name',
-      accessor: 'name',
+      accessor: 'service_name',
       id: 'name'
     }),
     table.column({
       header: 'Message',
-      accessor: 'message',
-      id: 'message'
+      accessor: 'messages',
+      id: 'message',
+      cell: ({ value, row }) => {
+        if (row.isData()) {
+          return createRender(MessageCell, {
+            message: value,
+            statusId: row.original.status
+          });
+        }
+        return value;
+      }
     }),
     table.column({
-      header: 'Status',
-      accessor: 'status',
+      header: 'Duration',
+      accessor: 'start',
+      id: 'duration',
+      cell: ({ row }) => {
+        if (row.isData()) {
+          return createRender(DurationCell, {
+            start: row.original.start,
+            end: row.original.end
+          });
+        }
+        return '';
+      },
       plugins: {
         sort: {
           disable: true
@@ -84,9 +101,22 @@
       }
     }),
     table.column({
-      header: 'Time',
-      accessor: 'time',
-      id: 'time',
+      header: 'Checks count',
+      accessor: 'count',
+      id: 'count'
+    }),
+    table.column({
+      header: 'Date',
+      accessor: 'date',
+      id: 'date',
+      cell: ({ value, row }) => {
+        if (row.isData()) {
+          return createRender(DateCell, {
+            date: value
+          });
+        }
+        return value;
+      },
       plugins: {
         colFilter: {
           fn: ({ filterValue, value }) => {
@@ -108,6 +138,25 @@
   const tableModel = table.createViewModel(columns);
 
   const { headerRows, pageRows, tableAttrs, tableBodyAttrs } = tableModel;
+
+  onMount(() => {
+    cfetch('/logs/incidents')
+      .then(async (res) => {
+        if (res.ok) {
+          const json_data = await res.json();
+          data.set(json_data.incidents);
+        } else {
+          if (res.status === 401) {
+            goto('/login');
+          }
+        }
+      })
+      .catch((e) => {
+        toast.error('Failed to get incidents', {
+          description: `${e}`
+        });
+      });
+  });
 </script>
 
 <svelte:head>
@@ -115,14 +164,14 @@
   <meta name="description" content="Svelte demo app" />
 </svelte:head>
 
-<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+<div in:fly={{ x: 20, duration: 200 }} class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
   <Card.Root class="border-green-500/50 bg-green-500/10 dark:bg-green-500/20">
     <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
       <Card.Title class="text-sm font-medium">Up Services</Card.Title>
       <Timer class="h-4 w-4 text-muted-foreground" />
     </Card.Header>
     <Card.Content>
-      <div class="text-2xl font-bold">12</div>
+      <div class="text-2xl font-bold">{$stats.up}</div>
       <p class="text-xs text-muted-foreground">+20.1% from last month</p>
     </Card.Content>
   </Card.Root>
@@ -132,7 +181,7 @@
       <Users class="h-4 w-4 text-muted-foreground" />
     </Card.Header>
     <Card.Content>
-      <div class="text-2xl font-bold">3</div>
+      <div class="text-2xl font-bold">{$stats.down}</div>
       <p class="text-xs text-muted-foreground">+180.1% from last month</p>
     </Card.Content>
   </Card.Root>
@@ -142,23 +191,23 @@
       <CreditCard class="h-4 w-4 text-muted-foreground" />
     </Card.Header>
     <Card.Content>
-      <div class="text-2xl font-bold">1</div>
+      <div class="text-2xl font-bold">{$stats.failed}</div>
       <p class="text-xs text-muted-foreground">+19% from last month</p>
     </Card.Content>
   </Card.Root>
   <Card.Root class="border-primary/50 bg-primary/10 dark:bg-primary/20">
     <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-      <Card.Title class="text-sm font-medium">Paused Services</Card.Title>
+      <Card.Title class="text-sm font-medium">Active Services</Card.Title>
       <Activity class="h-4 w-4 text-muted-foreground" />
     </Card.Header>
     <Card.Content>
-      <div class="text-2xl font-bold">3</div>
+      <div class="text-2xl font-bold">{$stats.active}</div>
       <p class="text-xs text-muted-foreground">+201 since last hour</p>
     </Card.Content>
   </Card.Root>
 </div>
 
-<div class="h-full space-y-4">
+<div in:fly={{ y: 20, duration: 200 }} class="h-full space-y-4">
   <div class="flex flex-col justify-between space-y-2 md:flex-row md:items-center">
     <h2 class="text-2xl font-bold tracking-tight">Incidents</h2>
     <p class="text-muted-foreground">Here's a list of recent incidents!</p>
