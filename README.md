@@ -19,8 +19,11 @@
 
 
 > [!WARNING]
-> Stamon is in active development and is not usable yet.
+> Stamon is in active development and is not usable yet, but you are welcomed to try it out. ;-)
 >
+
+![2024-09-19-180624_1366x665_scrot](https://github.com/user-attachments/assets/13d63921-0316-4182-af01-3c0786769f8d)
+
 
 ## Features
 
