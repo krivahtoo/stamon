@@ -32,7 +32,7 @@
         href="/"
         class="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
       >
-        <Activity class="h-4 w-4 transition-all group-hover:scale-110" />
+        <Activity class="h-4 w-4 transition-all group-hover:scale-125" />
         <span class="sr-only">Stamon</span>
       </a>
       {#each navItems as item, idx (idx)}
