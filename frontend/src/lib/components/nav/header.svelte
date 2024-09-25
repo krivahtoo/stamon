@@ -19,6 +19,8 @@
   import * as Sheet from '$lib/components/ui/sheet/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import user from '$lib/store/user.js';
+  import { token } from '$lib/store/auth.js';
+  import { cfetch } from '$lib/utils.js';
   import { goto } from '$app/navigation';
 
   /**
@@ -32,15 +34,20 @@
   export let navItems = [];
 
   function logout() {
-    user.set(null)
-    goto('/login')
+    cfetch('/logout').finally(() => {
+      token.set(null);
+      user.set(null);
+      goto('/login');
+    });
   }
 </script>
 
-<header class="flex h-14 items-center gap-4 border-b dark:border-primary/50 bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+<header
+  class="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 dark:border-primary/50 lg:h-[60px] lg:px-6"
+>
   <Sheet.Root>
     <Sheet.Trigger asChild let:builder>
-      <Button variant="outline" size="icon" class="shrink-0 md:hidden mr-auto" builders={[builder]}>
+      <Button variant="outline" size="icon" class="mr-auto shrink-0 md:hidden" builders={[builder]}>
         <Menu class="h-5 w-5" />
         <span class="sr-only">Toggle navigation menu</span>
       </Button>
@@ -76,7 +83,7 @@
       </div>
     </Sheet.Content>
   </Sheet.Root>
-  <div class="hidden sm:block w-full flex-1">
+  <div class="hidden w-full flex-1 sm:block">
     <form>
       <div class="relative">
         <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -135,7 +142,7 @@
         </div>
       </DropdownMenu.Label>
       <DropdownMenu.Separator />
-      <DropdownMenu.Item>
+      <DropdownMenu.Item href="/settings/account">
         <UserRoundCog class="text-foreground-alt mr-2 size-5" />
         Account
       </DropdownMenu.Item>

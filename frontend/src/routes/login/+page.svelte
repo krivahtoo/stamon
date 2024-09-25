@@ -13,6 +13,7 @@
   import { cfetch } from '$lib/utils.js';
   import { onMount } from 'svelte';
   import { z } from 'zod';
+  import { toast } from 'svelte-sonner';
 
   /** @type {string[]} */
   let errors = [];
@@ -34,8 +35,8 @@
   };
 
   const baseSchema = z.object({
-    username: z.string().min(4),
-    password: z.string().min(6)
+    username: z.string().min(4, { message: 'Username must contain at least 4 character(s)' }),
+    password: z.string().min(6, { message: 'Password must contain at least 6 character(s)' })
   });
 
   /** @type {import('./$types').Snapshot<string>} */
@@ -52,6 +53,7 @@
       // handle error then return
       // console.log(valid_res.error.flatten());
       fieldErrors = { ...{ username: [], password: [] }, ...valid_res.error.flatten().fieldErrors };
+      is_loading = false;
     } else {
       try {
         let res = await cfetch('/login', {
@@ -79,6 +81,10 @@
         }
       } catch (e) {
         // console.log(e);
+        toast.error('Network error', {
+          description:
+            'Failed to connect to server. Please check your internet connection and try again.'
+        });
         errors = [`${e}`];
       } finally {
         newUser.password = '';
@@ -163,11 +169,16 @@
             </Label>
           </div>
         </div>
-        <Button type="submit" disabled={!newUser.username || !newUser.password || is_loading} class="w-full">
+        <Button
+          type="submit"
+          disabled={!newUser.username || !newUser.password || is_loading}
+          class="w-full"
+        >
           {#if is_loading}
             <LoaderCircle class="mr-2 h-4 w-4 animate-spin" />
+          {:else}
+            Login
           {/if}
-          Login
         </Button>
       </div>
     </form>

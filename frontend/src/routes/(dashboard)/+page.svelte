@@ -1,5 +1,5 @@
 <script>
-  import { get, readable, writable } from 'svelte/store';
+  import { get, writable } from 'svelte/store';
   import { onMount } from 'svelte';
   import { fly } from 'svelte/transition';
   import { Render, Subscribe, createRender, createTable } from 'svelte-headless-table';
@@ -18,9 +18,9 @@
 
   import * as Table from '$lib/components/ui/table/index.js';
   import Activity from 'lucide-svelte/icons/activity';
-  import CreditCard from 'lucide-svelte/icons/credit-card';
   import Timer from 'lucide-svelte/icons/timer';
-  import Users from 'lucide-svelte/icons/users';
+  import CircleArrowUp from 'lucide-svelte/icons/circle-arrow-up';
+  import CircleArrowDown from 'lucide-svelte/icons/circle-arrow-down';
   import * as Card from '$lib/components/ui/card/index.js';
 
   import MessageCell from './(components)/message-cell.svelte';
@@ -168,7 +168,7 @@
   <Card.Root class="border-green-500/50 bg-green-500/10 dark:bg-green-500/20">
     <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
       <Card.Title class="text-sm font-medium">Up Services</Card.Title>
-      <Timer class="h-4 w-4 text-muted-foreground" />
+      <CircleArrowUp class="h-4 w-4 text-muted-foreground" />
     </Card.Header>
     <Card.Content>
       <div class="text-2xl font-bold">{$stats.up}</div>
@@ -178,7 +178,7 @@
   <Card.Root class="border-red-500/50 bg-red-500/10 dark:bg-red-500/20">
     <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
       <Card.Title class="text-sm font-medium">Down</Card.Title>
-      <Users class="h-4 w-4 text-muted-foreground" />
+      <CircleArrowDown class="h-4 w-4 text-muted-foreground" />
     </Card.Header>
     <Card.Content>
       <div class="text-2xl font-bold">{$stats.down}</div>
@@ -188,7 +188,7 @@
   <Card.Root class="border-yellow-500/50 bg-yellow-500/10 dark:bg-yellow-500/20">
     <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
       <Card.Title class="text-sm font-medium">Pending</Card.Title>
-      <CreditCard class="h-4 w-4 text-muted-foreground" />
+      <Timer class="h-4 w-4 text-muted-foreground" />
     </Card.Header>
     <Card.Content>
       <div class="text-2xl font-bold">{$stats.failed}</div>
@@ -219,7 +219,7 @@
           <Subscribe rowAttrs={headerRow.attrs()} let:rowAttrs>
             <Table.Row {...rowAttrs}>
               {#each headerRow.cells as cell (cell.id)}
-                <Subscribe attrs={cell.attrs()} let:attrs props={cell.props()} let:props>
+                <Subscribe attrs={cell.attrs()} let:attrs props={cell.props()}>
                   <Table.Head class="py-1" {...attrs}>
                     {#if cell.id !== 'select' && cell.id !== 'actions'}
                       <Render of={cell.render()} />
