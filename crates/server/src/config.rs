@@ -14,7 +14,8 @@ pub struct EnvConfig {
 
 impl EnvConfig {
     pub fn new() -> Result<EnvConfig, Box<dyn std::error::Error>> {
-        let data_path = PathBuf::from(std::env::var("DATA_PATH")?);
+        let data_path =
+            PathBuf::from(std::env::var("DATA_PATH").map_err(|e| format!("DATA_PATH: {e}"))?);
 
         if !data_path.exists() {
             std::fs::create_dir_all(&data_path)?;
@@ -27,7 +28,7 @@ impl EnvConfig {
             "sqlite://{}/stamon.db",
             data_path.as_os_str().to_str().unwrap()
         );
-        let jwt_secret = std::env::var("JWT_SECRET")?;
+        let jwt_secret = std::env::var("JWT_SECRET").map_err(|e| format!("JWT_SECRET: {e}"))?;
 
         Ok(EnvConfig {
             data_path,

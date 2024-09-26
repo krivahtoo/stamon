@@ -2,7 +2,7 @@
 # Build
 #################
 
-FROM node:18-alpine3.18 as frontend
+FROM node:18-alpine3.18 AS frontend
 
 RUN npm install -g pnpm
 
@@ -16,7 +16,7 @@ RUN pnpm build
 ## Rust
 
 # Start with a rust alpine image
-FROM rust:1.77.2-alpine3.18 as build
+FROM rust:1.77.2-alpine3.18 AS build
 
 # This is important, see https://github.com/rust-lang/docker-rust/issues/85
 ENV RUSTFLAGS="-C target-feature=-crt-static"
@@ -53,6 +53,11 @@ FROM alpine:3.18
 
 # set assets path
 ENV ASSETS_PATH="/assets/"
+# set data path
+ENV DATA_PATH="/app/data"
+
+# Create a volume for persistent data storage
+VOLUME /app/data
 
 # install the runtime dependencies
 RUN apk add --no-cache libgcc
@@ -65,4 +70,7 @@ COPY --from=frontend /app/build /assets
 
 # set the entrypoint
 ENTRYPOINT ["/bin/server"]
+
+# Document that the container listens on port 3000
+# Note: This doesn't actually publish the port. Use -p flag with docker run or ports in docker-compose.yml
 EXPOSE 3000
