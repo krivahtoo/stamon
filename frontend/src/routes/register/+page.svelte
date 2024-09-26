@@ -22,7 +22,6 @@
   let show_pass = false;
   $: type = show_pass ? 'text' : 'password';
 
-  let confirm = '';
   let newUser = {
     username: '',
     password: '',
@@ -163,7 +162,7 @@
             id="confirm-password"
             class={fieldErrors.confirm.length > 0 ? 'border-red-300' : ''}
             type="password"
-            bind:value={confirm}
+            bind:value={newUser.confirm}
             placeholder="Re-type the pass.."
           />
           {#each fieldErrors.confirm as er}
@@ -186,7 +185,7 @@
         </div>
         <Button
           type="submit"
-          disabled={!newUser.username || !newUser.password || !confirm || is_loading}
+          disabled={!newUser.username || !newUser.password || !newUser.confirm || is_loading}
           class="w-full"
         >
           {#if is_loading}
