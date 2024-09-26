@@ -1,6 +1,6 @@
 <script>
-  import { Checkbox } from "$lib/components/ui/checkbox/index.js";
-  import { writable } from "svelte/store";
+  import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+  import { writable } from 'svelte/store';
 
   /**
    * @typedef {import("svelte/store").Writable<boolean>} Writable

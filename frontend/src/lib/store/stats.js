@@ -15,5 +15,5 @@ export default writable({
   failed: 0,
   up: 0,
   down: 0,
-  active: 0,
+  active: 0
 });

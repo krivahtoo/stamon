@@ -2,7 +2,7 @@ export const StatusValue = {
   Pending: 0,
   Up: 1,
   Down: 2,
-  Failed: 3,
+  Failed: 3
 };
 
 /**
@@ -17,21 +17,21 @@ export const statuses = [
   {
     value: StatusValue.Pending,
     label: 'Pending',
-    variant: 'outline',
+    variant: 'outline'
   },
   {
     value: StatusValue.Up,
     label: 'Up',
-    variant: 'default',
+    variant: 'default'
   },
   {
     value: StatusValue.Down,
     label: 'Down',
-    variant: 'destructive',
+    variant: 'destructive'
   },
   {
     value: StatusValue.Failed,
     label: 'Failed',
-    variant: 'secondary',
-  },
+    variant: 'secondary'
+  }
 ];

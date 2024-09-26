@@ -5,7 +5,6 @@
   import { page } from '$app/stores';
   import { Button } from '$lib/components/ui/button/index.js';
 
-
   /**
    * @type {string | undefined | null}
    */

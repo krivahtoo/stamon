@@ -7,7 +7,7 @@
   import Activity from 'lucide-svelte/icons/activity';
   import Header from '$lib/components/nav/header.svelte';
   import { navItems } from '$lib/data/nav.js';
-    import { fly } from 'svelte/transition';
+  import { fly } from 'svelte/transition';
 
   const sidebarNavItems = [
     {
@@ -26,7 +26,10 @@
 </script>
 
 <div class="flex min-h-screen w-full flex-col bg-muted/40">
-  <aside in:fly={{ x: -10, duration: 200 }} class="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background md:flex">
+  <aside
+    in:fly={{ x: -10, duration: 200 }}
+    class="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background md:flex"
+  >
     <nav class="flex flex-col items-center gap-4 px-2 sm:py-5">
       <a
         href="/"
