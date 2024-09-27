@@ -24,34 +24,72 @@
 
 ![2024-09-19-180624_1366x665_scrot](https://github.com/user-attachments/assets/13d63921-0316-4182-af01-3c0786769f8d)
 
-
-## Features
+## ✨ Features
 
 - **Real-Time**: Keep track of your services and resources with up-to-the-second updates.
 - **Lightweight**: Minimal resource usage, ideal for environments with limited resources.
 - *More coming soon...*
 
-# Build
+## 🚀 Quick Start
 
-## Frontend
+Although some features are missing the basic monitoring is working as expected. You can try it out and open an issue if you encounter any issue or any feature you would like to be added to stamon.
+
+### 🚢 Docker
+
+#### `docker run`
+
+```sh
+docker run -it -e JWT_SECRET="hello-world" -p 3000:3000 k4htoo/stamon
+```
+
+#### `docker compose`
+
+```yaml
+services:
+  stamon:
+    image: k4htoo/stamon
+
+    environment:
+      JWT_SECRET: "A_very_secure_secret"
+    ports:
+      - "3000:3000"
+```
+Then
+```sh
+docker compose up stamon
+```
+
+Then visit http://localhost:3000.
+
+## 🏗️ Development
 
 ```shell
 cd ./frontend
-pnpm build
+pnpm dev
 ```
 
-## Back-end
+Then on other terminal start the backend
 
 ```shell
-cargo build
+cargo run
 ```
 
-# Contributors
+Then visit http://localhost:5173
+
+## 📝 Contributing
+
+Thank you very much for considering contributing to this project!
+
+We appreciate any form of contribution:
+  - New issues (feature requests, bug reports, questions, ideas, ...)
+  - Pull requests (documentation improvements, code improvements, new features, ...)
+
+## 👷 Contributors
 <a href="https://github.com/krivahtoo/stamon/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=krivahtoo/stamon" alt="Contributors to krivahtoo/stamon" />
 </a>
 
 Made with [contrib.rocks](https://contrib.rocks).
 
-# License
+## 📜 License
 This project is licensed under the [MIT](./LICENSE) license.
