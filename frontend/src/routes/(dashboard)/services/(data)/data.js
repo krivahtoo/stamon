@@ -9,22 +9,22 @@
 export const statuses = [
   {
     value: 0,
-    label: "Pending",
-    variant: 'outline',
+    label: 'Pending',
+    variant: 'outline'
   },
   {
     value: 1,
-    label: "Up",
-    variant: 'default',
+    label: 'Up',
+    variant: 'default'
   },
   {
     value: 2,
-    label: "Down",
-    variant: 'destructive',
+    label: 'Down',
+    variant: 'destructive'
   },
   {
     value: 3,
-    label: "Failed",
-    variant: 'secondary',
-  },
+    label: 'Failed',
+    variant: 'secondary'
+  }
 ];

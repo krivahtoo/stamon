@@ -5,7 +5,7 @@ import { toDate, formatRelative, formatDistanceToNow } from 'date-fns';
  * @param {string} [opacity="1"] - The opacity of the color.
  * @returns {function(): string} - A function that returns a color string.
  */
-export function color(opacity = "1") {
+export function color(opacity = '1') {
   return () => `hsl(var(--primary) / ${opacity})`;
 }
 
@@ -25,7 +25,7 @@ export function color(opacity = "1") {
  * @returns {string} - The color string.
  */
 export function lineColors(_, i) {
-  return ["hsl(var(--primary))", "hsl(var(--primary) / 0.25)"][i];
+  return ['hsl(var(--primary))', 'hsl(var(--primary) / 0.25)'][i];
 }
 
 /**
@@ -36,7 +36,7 @@ export function lineColors(_, i) {
  * @returns {string} - The color string.
  */
 export function scatterPointColors(_, i) {
-  return ["hsl(0, 0%, 100%)", "hsl(var(--primary) / 0.25)"][i];
+  return ['hsl(0, 0%, 100%)', 'hsl(var(--primary) / 0.25)'][i];
 }
 
 /**
@@ -47,7 +47,7 @@ export function scatterPointColors(_, i) {
  * @returns {string} - The stroke color string.
  */
 export function scatterPointStrokeColors(_, i) {
-  return ["hsl(var(--primary))", "hsl(var(--primary) / 0.25)"][i];
+  return ['hsl(var(--primary))', 'hsl(var(--primary) / 0.25)'][i];
 }
 
 /**
@@ -58,7 +58,7 @@ export function scatterPointStrokeColors(_, i) {
  * @returns {string} - The color string.
  */
 export function crosshairPointColors(_, i) {
-  return ["hsl(var(--primary))", "hsl(var(--primary) / 0.25)"][i];
+  return ['hsl(var(--primary))', 'hsl(var(--primary) / 0.25)'][i];
 }
 
 /**

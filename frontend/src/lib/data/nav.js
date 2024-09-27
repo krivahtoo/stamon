@@ -8,28 +8,28 @@ export const navItems = [
   {
     name: 'Dashboard',
     path: '/',
-    icon: Home,
+    icon: Home
   },
   {
     name: 'Services',
     // final '/' is important for hightlighting
     // current active navitem
     path: '/services/',
-    icon: Layers3,
+    icon: Layers3
   },
   {
     name: 'Status Pages',
     path: '/status-pages/',
-    icon: Monitor,
+    icon: Monitor
   },
   {
     name: 'Notification Providers',
     path: '/notifications/',
-    icon: MessageSquareText,
+    icon: MessageSquareText
   },
   {
     name: 'Team',
     path: '/users/',
-    icon: Users,
-  },
+    icon: Users
+  }
 ];

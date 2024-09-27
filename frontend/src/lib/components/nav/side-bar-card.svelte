@@ -36,10 +36,6 @@
     </Card.Description>
   </Card.Header>
   <Card.Content class="p-2 pt-0 md:p-4 md:pt-0">
-    <Button
-      size="sm"
-      class="w-full"
-      on:click={callbackFn}>{buttonText}</Button
-    >
+    <Button size="sm" class="w-full" on:click={callbackFn}>{buttonText}</Button>
   </Card.Content>
 </Card.Root>

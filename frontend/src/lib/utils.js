@@ -20,7 +20,7 @@ export function cfetch(path, options = { credentials: 'same-origin' }) {
   const url = `${endpoint}${path}`;
   let headers = { ...options?.headers };
   if (dev && get(token)) {
-    headers = { ...headers, "Authorization": `Bearer ${get(token)}`}
+    headers = { ...headers, Authorization: `Bearer ${get(token)}` };
   }
   options = { ...options, headers };
   return fetch(url, options);

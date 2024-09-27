@@ -28,7 +28,7 @@
 
   onMount(() => {
     logs.set(data.logs);
-  })
+  });
 </script>
 
 <div class="flex items-center">

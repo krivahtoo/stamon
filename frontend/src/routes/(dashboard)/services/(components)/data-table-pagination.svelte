@@ -1,10 +1,10 @@
 <script>
-  import ChevronRight from "lucide-svelte/icons/chevron-right";
-  import ChevronLeft from "lucide-svelte/icons/chevron-left";
-  import ChevronsRight from "lucide-svelte/icons/chevrons-right";
-  import ChevronsLeft from "lucide-svelte/icons/chevrons-left";
-  import * as Select from "$lib/components/ui/select/index.js";
-  import { Button } from "$lib/components/ui/button/index.js";
+  import ChevronRight from 'lucide-svelte/icons/chevron-right';
+  import ChevronLeft from 'lucide-svelte/icons/chevron-left';
+  import ChevronsRight from 'lucide-svelte/icons/chevrons-right';
+  import ChevronsLeft from 'lucide-svelte/icons/chevrons-left';
+  import * as Select from '$lib/components/ui/select/index.js';
+  import { Button } from '$lib/components/ui/button/index.js';
 
   /**
    * @typedef {import("svelte-headless-table").TableViewModel<import('$lib/store/services').Service>} TableViewModel
@@ -25,11 +25,11 @@
     {Object.keys($selectedDataIds).length} of {$rows.length} row(s) selected.
   </div>
   <div class="flex items-center space-x-6 lg:space-x-8">
-    <div class="hidden md:flex items-center space-x-2">
+    <div class="hidden items-center space-x-2 md:flex">
       <p class="text-sm font-medium">Rows per page</p>
       <Select.Root
         onSelectedChange={(selected) => pageSize.set(Number(selected?.value))}
-        selected={{ value: 10, label: "10" }}
+        selected={{ value: 10, label: '10' }}
       >
         <Select.Trigger class="h-8 w-[70px]">
           <Select.Value placeholder="Select page size" />

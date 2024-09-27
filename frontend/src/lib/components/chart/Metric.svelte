@@ -32,7 +32,7 @@
   export let data = writable([]);
 
   /** @type {number} */
-  export let interval = 60
+  export let interval = 60;
 
   /**
    * Returns the ID of the data point.
