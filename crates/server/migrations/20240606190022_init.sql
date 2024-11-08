@@ -22,9 +22,14 @@ CREATE TABLE services (
     service_type TEXT NOT NULL,
     retry INTEGER NOT NULL DEFAULT 3,
     retry_interval INTEGER NOT NULL,
+    invert BOOLEAN NOT NULL DEFAULT 0,
+    expected_code INTEGER,
+    expected_payload TEXT,
 
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE INDEX IF NOT EXISTS svc_idx ON services(last_status);
 
 -- logs table: Logs the status changes of services
 CREATE TABLE logs (

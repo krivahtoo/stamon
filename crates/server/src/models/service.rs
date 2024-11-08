@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, SqlitePool, Type};
 
+use crate::{build_query_bind, build_update_query};
+
 use super::log::Status;
 
 #[derive(Debug, Clone, Type, Default, Serialize, Deserialize)]
@@ -26,6 +28,9 @@ pub struct Service {
     pub service_type: ServiceType,
     pub retry: u32,
     pub retry_interval: u32,
+    pub invert: bool,
+    pub expected_code: Option<u32>,
+    pub expected_payload: Option<String>,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -40,6 +45,9 @@ pub struct ServiceForCreate {
     pub service_type: ServiceType,
     pub retry: u16,
     pub retry_interval: u16,
+    pub invert: Option<bool>,
+    pub expected_code: Option<u32>,
+    pub expected_payload: Option<String>,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -54,6 +62,9 @@ pub struct ServiceForUpdate {
     pub service_type: Option<ServiceType>,
     pub retry: Option<u16>,
     pub retry_interval: Option<u16>,
+    pub invert: Option<bool>,
+    pub expected_code: Option<u32>,
+    pub expected_payload: Option<String>,
 }
 
 #[derive(Debug, Default, Serialize)]
@@ -193,42 +204,20 @@ impl Service {
         let mut query = String::from("UPDATE services SET ");
         let mut has_updates = false;
 
-        if update_data.active.is_some() {
-            query.push_str("active = ?, ");
-            has_updates = true;
-        }
-        if update_data.name.is_some() {
-            query.push_str("name = ?, ");
-            has_updates = true;
-        }
-        if update_data.interval.is_some() {
-            query.push_str("interval = ?, ");
-            has_updates = true;
-        }
-        if update_data.url.is_some() {
-            query.push_str("url = ?, ");
-            has_updates = true;
-        }
-        if update_data.payload.is_some() {
-            query.push_str("payload = ?, ");
-            has_updates = true;
-        }
-        if update_data.last_status.is_some() {
-            query.push_str("last_status = ?, ");
-            has_updates = true;
-        }
-        if update_data.service_type.is_some() {
-            query.push_str("service_type = ?, ");
-            has_updates = true;
-        }
-        if update_data.retry.is_some() {
-            query.push_str("retry = ?, ");
-            has_updates = true;
-        }
-        if update_data.retry_interval.is_some() {
-            query.push_str("retry_interval = ?, ");
-            has_updates = true;
-        }
+        build_update_query!(query, has_updates, update_data, {
+            active,
+            name,
+            interval,
+            url,
+            payload,
+            last_status,
+            service_type,
+            retry,
+            retry_interval,
+            invert,
+            expected_code,
+            expected_payload
+        });
 
         // Remove the trailing comma and space
         if has_updates {
@@ -241,33 +230,20 @@ impl Service {
 
         let mut query_builder = sqlx::query(&query);
 
-        if let Some(active) = update_data.active {
-            query_builder = query_builder.bind(active);
-        }
-        if let Some(name) = update_data.name {
-            query_builder = query_builder.bind(name);
-        }
-        if let Some(interval) = update_data.interval {
-            query_builder = query_builder.bind(interval);
-        }
-        if let Some(url) = update_data.url {
-            query_builder = query_builder.bind(url);
-        }
-        if let Some(payload) = update_data.payload {
-            query_builder = query_builder.bind(payload);
-        }
-        if let Some(last_status) = update_data.last_status {
-            query_builder = query_builder.bind(last_status);
-        }
-        if let Some(service_type) = update_data.service_type {
-            query_builder = query_builder.bind(service_type as u8);
-        }
-        if let Some(retry) = update_data.retry {
-            query_builder = query_builder.bind(retry);
-        }
-        if let Some(retry_interval) = update_data.retry_interval {
-            query_builder = query_builder.bind(retry_interval);
-        }
+        build_query_bind!(query_builder, update_data, {
+            active,
+            name,
+            interval,
+            url,
+            payload,
+            last_status,
+            service_type,
+            retry,
+            retry_interval,
+            invert,
+            expected_code,
+            expected_payload
+        });
 
         // bind to service_id
         query_builder = query_builder.bind(service_id);
@@ -298,6 +274,7 @@ mod tests {
                 service_type: ServiceType::Ping,
                 retry: 0,
                 retry_interval: 0,
+                ..Default::default()
             },
         )
         .await?;
@@ -325,6 +302,17 @@ mod tests {
         dbg!(&service);
 
         assert!(service.is_some());
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services"))]
+    async fn get_stats(pool: SqlitePool) -> sqlx::Result<()> {
+        let stats = Service::get_stats(&pool).await?;
+
+        dbg!(&stats);
+
+        assert_eq!(stats.active, 4);
 
         Ok(())
     }
