@@ -92,7 +92,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .on_response(
                     DefaultOnResponse::new()
                         .level(Level::INFO)
-                        .latency_unit(LatencyUnit::Micros),
+                        .latency_unit(LatencyUnit::Millis),
                 ),
             // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
             // requests don't hang forever.

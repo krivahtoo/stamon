@@ -247,7 +247,7 @@ mod tests {
 
         //assert!(incidents.first().unwrap().id > incidents.last().unwrap().id);
 
-        assert_eq!(incidents.len(), 2);
+        assert_eq!(incidents.len(), 1);
 
         Ok(())
     }

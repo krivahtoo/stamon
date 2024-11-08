@@ -103,6 +103,10 @@
       } else {
         user.set(null);
         token.set(null);
+        let res = await cfetch('/check');
+        if (res.status === 404) {
+          goto('/register');
+        }
       }
     } catch {
       user.set(null);

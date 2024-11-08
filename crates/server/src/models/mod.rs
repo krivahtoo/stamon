@@ -24,3 +24,30 @@ pub async fn setup(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::migrate!().run(pool).await?;
     Ok(())
 }
+
+#[macro_export]
+macro_rules! build_query_bind {
+    ($query_builder:ident, $update_data:ident, {
+        $($field:ident),*
+    }) => {
+        $(
+            if let Some(value) = $update_data.$field {
+                $query_builder = $query_builder.bind(value);
+            }
+        )*
+    };
+}
+
+#[macro_export]
+macro_rules! build_update_query {
+    ($query:ident, $has_updates:ident, $update_data:ident, {
+        $($field:ident),*
+    }) => {
+        $(
+            if $update_data.$field.is_some() {
+                $query.push_str(concat!(stringify!($field), " = ?, "));
+                $has_updates = true
+            }
+        )*
+    };
+}

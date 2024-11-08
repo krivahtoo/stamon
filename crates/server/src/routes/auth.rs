@@ -11,7 +11,7 @@ use jsonwebtoken::{encode, EncodingKey, Header};
 use reqwest::StatusCode;
 use serde_json::json;
 use sqlx::Row;
-use tracing::debug;
+use tracing::{debug, error};
 
 use crate::{
     auth::Claims,
@@ -25,11 +25,16 @@ use crate::{
 
 #[debug_handler]
 async fn login(State(state): State<AppState>, Json(user_login): Json<UserForLogin>) -> Response {
-    let users_exists: bool = sqlx::query("SELECT EXISTS(SELECT 1 FROM users)")
+    let users_exists: bool = match sqlx::query("SELECT EXISTS(SELECT 1 FROM users)")
         .fetch_one(&state.pool)
         .await
-        .unwrap()
-        .get(0);
+    {
+        Ok(row) => row.get(0),
+        Err(e) => {
+            error!("{e}");
+            false
+        }
+    };
 
     if !users_exists {
         debug!("No user registered");
@@ -90,17 +95,36 @@ async fn login(State(state): State<AppState>, Json(user_login): Json<UserForLogi
 
 #[debug_handler]
 async fn register(State(state): State<AppState>, Json(user): Json<UserForRegister>) -> Response {
-    let users_exists: bool = sqlx::query("SELECT EXISTS(SELECT 1 FROM users)")
+    let users_exists: bool = match sqlx::query("SELECT EXISTS(SELECT 1 FROM users)")
         .fetch_one(&state.pool)
         .await
-        .unwrap()
-        .get(0);
+    {
+        Ok(row) => row.get(0),
+        Err(e) => {
+            error!("{e}");
+            false
+        }
+    };
 
     if users_exists {
-        return Redirect::to("/login").into_response();
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(json!({"error": "Cannot register"})),
+        )
+            .into_response();
     }
 
-    let count = User::insert(&state.pool, user).await.unwrap();
+    let count = match User::insert(&state.pool, user).await {
+        Ok(c) => c,
+        Err(e) => {
+            error!("{e}");
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": "Registration failed"})),
+            )
+                .into_response();
+        }
+    };
     debug!("Register {:?}", count);
 
     Json(json!({"message": "user registered"})).into_response()
@@ -118,8 +142,36 @@ async fn logout() -> Response {
         .into_response()
 }
 
+async fn check(State(state): State<AppState>) -> Response {
+    let users_exists: bool = match sqlx::query("SELECT EXISTS(SELECT 1 FROM users)")
+        .fetch_one(&state.pool)
+        .await
+    {
+        Ok(row) => row.get(0),
+        Err(e) => {
+            error!("Failed to check for existing users: {e}");
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": "Service temporarily unavailable"})),
+            )
+                .into_response();
+        }
+    };
+
+    if !users_exists {
+        debug!("No user registered");
+        return (
+            StatusCode::NOT_FOUND,
+            Json(json!({"error": "No user registered"})),
+        )
+            .into_response();
+    }
+    Json(json!({"message": "Already setup"})).into_response()
+}
+
 pub fn routes(state: AppState) -> Router {
     Router::new()
+        .route("/check", get(check))
         .route("/logout", get(logout))
         .route("/login", post(login))
         .route("/register", post(register))
