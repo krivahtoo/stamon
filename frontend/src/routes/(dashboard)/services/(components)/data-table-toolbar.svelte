@@ -24,6 +24,9 @@
    * @property {number} retry_interval - The number of retries.
    * @property {number} interval - The number of retries.
    * @property {number} timeout - The retry interval in seconds.
+   * @property {boolean} invert - Invert the expected result.
+   * @property {number} expected_code - The expected HTTP status code.
+   * @property {string} expected_payload - The expected HTTP response body.
    */
 
   /** @type {NewService} */
@@ -34,7 +37,10 @@
     retry: 1,
     retry_interval: 30,
     interval: 60,
-    timeout: 20
+    timeout: 20,
+    invert: false,
+    expected_code: 2,
+    expected_payload: ''
   };
 
   /** @type {import('../$types').Snapshot<NewService>} */
@@ -44,6 +50,12 @@
   };
 
   function addService() {
+    // fix data types
+    newService.retry = Number(newService.retry);
+    newService.retry_interval = Number(newService.retry_interval);
+    newService.interval = Number(newService.interval);
+    newService.timeout = Number(newService.timeout);
+    newService.expected_code = Number(newService.expected_code);
     console.log(newService);
     const promise = new Promise((resolve, reject) =>
       cfetch('/services', {

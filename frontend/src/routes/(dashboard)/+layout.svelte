@@ -4,12 +4,15 @@
   import { onMount } from 'svelte';
   import { fly } from 'svelte/transition';
   import user from '$lib/store/user.js';
-  import { connect } from '$lib/store/logs';
   import Home from 'lucide-svelte/icons/home';
   import Layers3 from 'lucide-svelte/icons/layers-3';
   import Users from 'lucide-svelte/icons/users';
   import Monitor from 'lucide-svelte/icons/monitor';
   import MessageSquareText from 'lucide-svelte/icons/message-square-text';
+  import { get } from 'svelte/store';
+  import { cfetch } from '$lib/utils.js';
+  import services from '$lib/store/services.js';
+  import stats from '$lib/store/stats.js';
 
   let navItems = [
     {
@@ -41,10 +44,29 @@
     }
   ];
 
-  onMount(() => {
+  onMount(async () => {
     if ($user) {
+      const { ws } = await import('$lib/store/ws');
       // Initialize websocket connection and initial states
-      connect();
+      if (get(ws.status) === 'CLOSED') {
+        ws.open();
+      }
+      //
+      cfetch('/services').then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+          // console.log(data);
+          services.set(data.services);
+        }
+      });
+
+      cfetch('/stats').then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+          // console.log(data);
+          stats.set(data.stats);
+        }
+      });
     }
   });
 </script>

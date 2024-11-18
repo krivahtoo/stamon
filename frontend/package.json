@@ -21,6 +21,7 @@
     "@sveltejs/adapter-static": "^3.0.1",
     "@sveltejs/kit": "^2.0.0",
     "@sveltejs/vite-plugin-svelte": "^3.0.0",
+    "@sveu/browser": "^1.0.1",
     "@types/eslint": "^8.56.0",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.56.0",
