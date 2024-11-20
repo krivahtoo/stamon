@@ -2,6 +2,8 @@
 # Build
 #################
 
+## Node
+
 FROM node:18-alpine3.18 AS frontend
 
 RUN npm install -g pnpm
