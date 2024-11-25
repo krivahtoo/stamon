@@ -1,6 +1,5 @@
 <script>
   import { onMount } from 'svelte';
-  import { dev } from '$app/environment';
   import { cfetch } from '$lib/utils.js';
   import { toDate, formatRFC7231 } from 'date-fns';
 

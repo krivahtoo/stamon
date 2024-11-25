@@ -5,7 +5,7 @@ import { token } from './store/auth.js';
 import { dev } from '$app/environment';
 import { get } from 'svelte/store';
 
-/** @param {...string} inputs tailwind classes to merge. */
+/** @param {...import('clsx').ClassValue} inputs tailwind classes to merge. */
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }

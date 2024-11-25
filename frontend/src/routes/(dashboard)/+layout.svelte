@@ -2,7 +2,6 @@
   import Header from '$lib/components/nav/header.svelte';
   import SideBar from '$lib/components/nav/side-bar.svelte';
   import { onMount } from 'svelte';
-  import { fly } from 'svelte/transition';
   import user from '$lib/store/user.js';
   import Home from 'lucide-svelte/icons/home';
   import Layers3 from 'lucide-svelte/icons/layers-3';
@@ -72,13 +71,16 @@
 </script>
 
 {#if $user}
-  <div class="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+  <div class="grid h-screen w-full overflow-auto md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
     <SideBar {navItems} />
 
     <div class="flex flex-col">
       <Header {navItems} />
 
-      <main class="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+      <main
+        class="flex max-h-[calc(100vh-60px)] flex-1 flex-col gap-4 overflow-y-auto overscroll-y-contain p-4 lg:gap-6 lg:p-6"
+        style="will-change: transform; view-transition-name: page;"
+      >
         <slot></slot>
       </main>
     </div>

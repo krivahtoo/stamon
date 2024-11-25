@@ -1,16 +1,14 @@
 <script>
-  import {
-    CircleUser,
-    Menu,
-    Search,
-    Sun,
-    Moon,
-    Languages,
-    Settings,
-    LogOut,
-    UserRoundCog
-  } from 'lucide-svelte';
   import Activity from 'lucide-svelte/icons/activity';
+  import CircleUser from 'lucide-svelte/icons/circle-user';
+  import Menu from 'lucide-svelte/icons/menu';
+  import Search from 'lucide-svelte/icons/search';
+  import Sun from 'lucide-svelte/icons/sun';
+  import Moon from 'lucide-svelte/icons/moon';
+  import Languages from 'lucide-svelte/icons/languages';
+  import Settings from 'lucide-svelte/icons/settings';
+  import LogOut from 'lucide-svelte/icons/log-out';
+  import UserRoundCog from 'lucide-svelte/icons/user-round-cog';
 
   import { resetMode, setMode } from 'mode-watcher';
   import { Button } from '$lib/components/ui/button/index.js';
@@ -40,10 +38,19 @@
       goto('/login');
     });
   }
+
+  /**
+   * @param {HTMLElement} element
+   * @param {Event} _
+   */
+  function focus(element, _) {
+    if (element !== document.activeElement) element.focus();
+  }
 </script>
 
 <header
   class="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 dark:border-primary/50 lg:h-[60px] lg:px-6"
+  style="view-transition-name: header;"
 >
   <Sheet.Root>
     <Sheet.Trigger asChild let:builder>
@@ -90,7 +97,8 @@
         <Input
           type="search"
           placeholder="Search monitors..."
-          class="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
+          class="w-full appearance-none bg-background pl-8 shadow-none transition-all md:w-1/3 md:focus:w-2/3 lg:w-1/4 lg:focus:w-1/3"
+          typing={focus}
         />
       </div>
     </form>
