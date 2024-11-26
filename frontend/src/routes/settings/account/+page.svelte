@@ -2,13 +2,7 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
-  import { Label } from '$lib/components/ui/label/index.js';
   import { Checkbox } from '$lib/components/ui/checkbox/index.js';
-  import CircleAlert from 'lucide-svelte/icons/circle-alert';
-  import * as Alert from '$lib/components/ui/alert/index.js';
-
-  let show_pass = false;
-  $: type = show_pass ? 'text' : 'password';
 </script>
 
 <svelte:head>

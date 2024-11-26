@@ -18,7 +18,7 @@
   } from './helpers.js';
   import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
-  import { toDate, formatRelative, format } from 'date-fns';
+  import { toDate, formatRelative } from 'date-fns';
 
   /**
    * @typedef {Object} Log
@@ -123,7 +123,7 @@
     <VisAxis type="x" label="Time" {tickFormat} />
     <VisArea {x} {y} color="url(#gradient)" />
     <VisTooltip />
-    <VisLine {x} {y} lineWidth={2} color={lineColors} lineDashArray={[0]} />
+    <VisLine {x} {y} lineWidth={2} color={lineColors} lineDashArray={[0]} fallbackValue={0} />
     <VisScatter
       {x}
       {y}

@@ -1,10 +1,10 @@
 <script>
+  import EllipsisVertical from 'lucide-svelte/icons/ellipsis-vertical';
+  import { toast } from 'svelte-sonner';
+
   import { Button } from '$lib/components/ui/button/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
-
-  import { EllipsisVertical } from 'lucide-svelte';
-  import { toast } from 'svelte-sonner';
   import { cfetch } from '$lib/utils.js';
 
   /** @type {import('$lib/store/services').Service} */

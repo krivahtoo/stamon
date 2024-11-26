@@ -21,6 +21,18 @@
   /** @type {NavItem[]} */
   export let navItems = [];
 
+  /**
+   * @typedef {Object} CardItem
+   * @property {string} title - The title of the card
+   * @property {string} description - The description of the card
+   * @property {string} buttonHref - The href of the card
+   * @property {string} buttonText - The text of the button
+   * @property {() => void} callback - The callback to call when the card is clicked
+   */
+
+  /** @type {CardItem[]} */
+  export let cardItems = [];
+
   // Subscribe to the page path
   $: activeUrl = $page?.url?.pathname;
 
@@ -30,7 +42,10 @@
   });
 </script>
 
-<div class="hidden border-r bg-muted/40 dark:border-primary/50 md:block">
+<div
+  class="hidden max-h-screen border-r bg-muted/40 dark:border-primary/50 md:block"
+  style="view-transition-name: side-bar;"
+>
   <div class="flex h-full max-h-screen flex-col gap-2">
     <div class="flex h-14 items-center border-b px-4 dark:border-primary/50 lg:h-[60px] lg:px-6">
       <a href="/" class="flex items-center gap-2 font-semibold">
@@ -46,7 +61,9 @@
           <a
             href={item.path}
             class={cn(
-              !isActive && 'hover:text-primary',
+              {
+                'hover:text-primary': !isActive
+              },
               'relative justify-start hover:bg-transparent'
             )}
             data-sveltekit-noscroll
@@ -61,8 +78,10 @@
             {/if}
             <div
               class={cn(
-                isActive && 'text-primary',
-                !isActive && 'text-muted-foreground hover:text-primary',
+                {
+                  'text-primary': isActive,
+                  'text-muted-foreground hover:text-primary': !isActive
+                },
                 'relative flex items-center gap-3 rounded-lg px-3 py-2 transition-all'
               )}
             >
@@ -82,8 +101,16 @@
         {/each}
       </nav>
     </div>
-    <div class="mt-auto p-4">
-      <!-- <SideBarCard/> -->
+    <div class="mt-auto space-y-1 p-4">
+      {#each cardItems as card, idx (idx)}
+        <SideBarCard
+          title={card.title}
+          description={card.description}
+          buttonHref={card.buttonHref}
+          buttonText={card.buttonText}
+          callback={card.callback}
+        />
+      {/each}
     </div>
   </div>
 </div>

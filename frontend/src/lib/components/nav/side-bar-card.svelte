@@ -13,8 +13,11 @@
   /** @type {string} */
   export let buttonText = 'Upgrade';
 
+  /** @type {string|undefined} */
+  export let buttonHref = undefined;
+
   /** @type {() => void} */
-  export let callbackFn = () => {
+  export let callback = () => {
     toast.error('Event has been created', {
       description: 'Sunday, December 03, 2023 at 9:00 AM',
       action: {
@@ -36,6 +39,6 @@
     </Card.Description>
   </Card.Header>
   <Card.Content class="p-2 pt-0 md:p-4 md:pt-0">
-    <Button size="sm" class="w-full" on:click={callbackFn}>{buttonText}</Button>
+    <Button size="sm" class="w-full" on:click={callback} href={buttonHref}>{buttonText}</Button>
   </Card.Content>
 </Card.Root>

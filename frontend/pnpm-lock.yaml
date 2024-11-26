@@ -57,9 +57,6 @@ importers:
       '@playwright/test':
         specifier: ^1.28.1
         version: 1.46.1
-      '@sveltejs/adapter-auto':
-        specifier: ^3.0.0
-        version: 3.2.4(@sveltejs/kit@2.5.26(@sveltejs/vite-plugin-svelte@3.1.2(svelte@4.2.19)(vite@5.4.3))(svelte@4.2.19)(vite@5.4.3))
       '@sveltejs/adapter-static':
         specifier: ^3.0.1
         version: 3.0.4(@sveltejs/kit@2.5.26(@sveltejs/vite-plugin-svelte@3.1.2(svelte@4.2.19)(vite@5.4.3))(svelte@4.2.19)(vite@5.4.3))
@@ -69,7 +66,16 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: ^3.0.0
         version: 3.1.2(svelte@4.2.19)(vite@5.4.3)
+      '@sveu/actions':
+        specifier: ^1.1.0
+        version: 1.1.0
       '@sveu/browser':
+        specifier: ^1.0.1
+        version: 1.0.1
+      '@sveu/extend':
+        specifier: ^1.0.0
+        version: 1.0.0(fuse.js@7.0.0)
+      '@sveu/shared':
         specifier: ^1.0.1
         version: 1.0.1
       '@types/eslint':
@@ -87,6 +93,9 @@ importers:
       eslint-plugin-svelte:
         specifier: ^2.35.1
         version: 2.43.0(eslint@8.57.0)(svelte@4.2.19)
+      fuse.js:
+        specifier: ^7.0.0
+        version: 7.0.0
       postcss:
         specifier: ^8.4.32
         version: 8.4.45
@@ -746,11 +755,6 @@ packages:
   '@sodaru/yup-to-json-schema@2.0.1':
     resolution: {integrity: sha512-lWb0Wiz8KZ9ip/dY1eUqt7fhTPmL24p6Hmv5Fd9pzlzAdw/YNcWZr+tiCT4oZ4Zyxzi9+1X4zv82o7jYvcFxYA==}
 
-  '@sveltejs/adapter-auto@3.2.4':
-    resolution: {integrity: sha512-a64AKYbfTUrVwU0xslzv1Jf3M8bj0IwhptaXmhgIkjXspBXhD0od9JiItQHchijpLMGdEDcYBlvqySkEawv6mQ==}
-    peerDependencies:
-      '@sveltejs/kit': ^2.0.0
-
   '@sveltejs/adapter-static@3.0.4':
     resolution: {integrity: sha512-Qm4GAHCnRXwfWG9/AtnQ7mqjyjTs7i0Opyb8H2KH9rMR7fLxqiPx/tXeoE6HHo66+72CjyOb4nFH3lrejY4vzA==}
     peerDependencies:
@@ -780,8 +784,40 @@ packages:
       svelte: ^4.0.0 || ^5.0.0-next.0
       vite: ^5.0.0
 
+  '@sveu/actions@1.1.0':
+    resolution: {integrity: sha512-7ddzLS+wopbat/rTm7KSNnpBqLTXvz8890EqGEcifuF7bf0BMAWXsWyfI/lPzUmDLwm6SutzQdPmh4/eh3GEew==}
+
   '@sveu/browser@1.0.1':
     resolution: {integrity: sha512-Mz6Vx7erVabjL+yIM/9h9lqRjEbCiIRKjH9KD1VuR3xTTJdMiljoeWph9B+shg0n2VLhY2tz8PvTu6H3eqhF8g==}
+
+  '@sveu/extend@1.0.0':
+    resolution: {integrity: sha512-7o8i9h+V1hXiZrBXuK+ITclLG6Pg7icYF+Nif6xx9oW0XnLj/+d0ZT9+rnRf1gmvuls1ASIOTjXFyIyr9+5s1g==}
+    peerDependencies:
+      async-validator: '*'
+      change-case: '*'
+      firebase: '*'
+      fuse.js: '*'
+      idb-keyval: '*'
+      jwt-decode: '*'
+      qrcode: '*'
+      sortablejs: '*'
+    peerDependenciesMeta:
+      async-validator:
+        optional: true
+      change-case:
+        optional: true
+      firebase:
+        optional: true
+      fuse.js:
+        optional: true
+      idb-keyval:
+        optional: true
+      jwt-decode:
+        optional: true
+      qrcode:
+        optional: true
+      sortablejs:
+        optional: true
 
   '@sveu/shared@1.0.1':
     resolution: {integrity: sha512-waMJ+UXD5NV/M7L6lmXigY9Ry9TwhcBz+QDbYsDcq92bL7nlRUeh3ckvvAnxw1Nzw0T2JeEgmvZZblHuAHJL9Q==}
@@ -1605,6 +1641,10 @@ packages:
 
   function-bind@1.1.2:
     resolution: {integrity: sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==}
+
+  fuse.js@7.0.0:
+    resolution: {integrity: sha512-14F4hBIxqKvD4Zz/XjDc3y94mNZN6pRv3U13Udo0lNLCWRBUsrMv2xwcF/y/Z5sV6+FQW+/ow68cHpm4sunt8Q==}
+    engines: {node: '>=10'}
 
   geojson-vt@3.2.1:
     resolution: {integrity: sha512-EvGQQi/zPrDA6zr6BnJD/YhwAkBP8nnJ9emh3EnHQKVMfg/MRVtPbMYdgVy/IaEmn4UfagD2a6fafPDL5hbtwg==}
@@ -3299,11 +3339,6 @@ snapshots:
   '@sodaru/yup-to-json-schema@2.0.1':
     optional: true
 
-  '@sveltejs/adapter-auto@3.2.4(@sveltejs/kit@2.5.26(@sveltejs/vite-plugin-svelte@3.1.2(svelte@4.2.19)(vite@5.4.3))(svelte@4.2.19)(vite@5.4.3))':
-    dependencies:
-      '@sveltejs/kit': 2.5.26(@sveltejs/vite-plugin-svelte@3.1.2(svelte@4.2.19)(vite@5.4.3))(svelte@4.2.19)(vite@5.4.3)
-      import-meta-resolve: 4.1.0
-
   '@sveltejs/adapter-static@3.0.4(@sveltejs/kit@2.5.26(@sveltejs/vite-plugin-svelte@3.1.2(svelte@4.2.19)(vite@5.4.3))(svelte@4.2.19)(vite@5.4.3))':
     dependencies:
       '@sveltejs/kit': 2.5.26(@sveltejs/vite-plugin-svelte@3.1.2(svelte@4.2.19)(vite@5.4.3))(svelte@4.2.19)(vite@5.4.3)
@@ -3349,9 +3384,20 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@sveu/actions@1.1.0':
+    dependencies:
+      '@sveu/browser': 1.0.1
+      '@sveu/shared': 1.0.1
+
   '@sveu/browser@1.0.1':
     dependencies:
       '@sveu/shared': 1.0.1
+
+  '@sveu/extend@1.0.0(fuse.js@7.0.0)':
+    dependencies:
+      '@sveu/shared': 1.0.1
+    optionalDependencies:
+      fuse.js: 7.0.0
 
   '@sveu/shared@1.0.1': {}
 
@@ -4355,6 +4401,8 @@ snapshots:
     optional: true
 
   function-bind@1.1.2: {}
+
+  fuse.js@7.0.0: {}
 
   geojson-vt@3.2.1: {}
 

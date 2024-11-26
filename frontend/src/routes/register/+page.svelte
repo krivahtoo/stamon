@@ -125,6 +125,7 @@
             class={fieldErrors.username.length > 0 ? 'border-red-300' : ''}
             bind:value={newUser.username}
             placeholder="Enter username..."
+            on:change={() => (fieldErrors.username = [])}
             required
           />
           {#each fieldErrors.username as er}
@@ -150,6 +151,7 @@
             class={fieldErrors.password.length > 0 ? 'border-red-300' : ''}
             {type}
             bind:value={newUser.password}
+            on:change={() => (fieldErrors.password = [])}
             placeholder="Enter new pass.."
           />
           {#each fieldErrors.password as er}
@@ -161,8 +163,9 @@
           <Input
             id="confirm-password"
             class={fieldErrors.confirm.length > 0 ? 'border-red-300' : ''}
-            type="password"
+            {type}
             bind:value={newUser.confirm}
+            on:change={() => (fieldErrors.confirm = [])}
             placeholder="Re-type the pass.."
           />
           {#each fieldErrors.confirm as er}

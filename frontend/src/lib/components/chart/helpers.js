@@ -1,4 +1,6 @@
-import { toDate, formatRelative, formatDistanceToNow } from 'date-fns';
+import { toDate } from 'date-fns';
+import { rtf } from '@sveu/shared';
+import { get } from 'svelte/store';
 
 /**
  * Returns a function that generates a color string with the specified opacity.
@@ -78,7 +80,7 @@ export function crosshairStrokeWidths(_, i) {
  * @returns {string} - The HTML string for the tooltip.
  */
 export function tooltipTemplate(d) {
-  const time = toDate(d.time);
+  const time = rtf(d.time instanceof Date ? d.time : toDate(d.time));
   return `
 <div class="rounded-lg border dark:border-primary/50 bg-background p-2 shadow-sm">
   <div class="grid grid-cols-1 gap-2">
@@ -95,7 +97,7 @@ export function tooltipTemplate(d) {
         Time
       </span>
       <span class="font-bold text-foreground">
-        ${formatDistanceToNow(time, { includeSeconds: true })} ago
+        ${get(time)}
       </span>
     </div>
   </div>

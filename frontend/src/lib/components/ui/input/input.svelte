@@ -1,7 +1,9 @@
 <script>
   import { cn } from '$lib/utils.js';
+  import { startTyping } from '@sveu/actions';
   let className = undefined;
   export let value = undefined;
+  export let typing = undefined;
   export { className as class };
   export let readonly = undefined;
 </script>
@@ -28,5 +30,6 @@
   on:paste
   on:input
   on:wheel
+  use:startTyping={typing}
   {...$$restProps}
 />

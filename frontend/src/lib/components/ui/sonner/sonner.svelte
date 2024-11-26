@@ -1,7 +1,10 @@
 <script>
   import { Toaster as Sonner } from 'svelte-sonner';
   import { mode } from 'mode-watcher';
-  import { TriangleAlert, Info, CircleCheckBig, CircleX } from 'lucide-svelte';
+  import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
+  import Info from 'lucide-svelte/icons/info';
+  import CircleCheckBig from 'lucide-svelte/icons/circle-check-big';
+  import CircleX from 'lucide-svelte/icons/circle-x';
 </script>
 
 <Sonner
