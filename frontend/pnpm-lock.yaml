@@ -34,7 +34,7 @@ importers:
         version: 0.4.1(svelte@4.2.19)
       svelte-sonner:
         specifier: ^0.3.24
-        version: 0.3.27(svelte@4.2.19)
+        version: 0.3.28(svelte@4.2.19)
       sveltekit-superforms:
         specifier: ^2.12.5
         version: 2.17.0(@sveltejs/kit@2.8.4(@sveltejs/vite-plugin-svelte@3.1.2(svelte@4.2.19)(vite@5.4.3))(svelte@4.2.19)(vite@5.4.3))(svelte@4.2.19)
@@ -2605,8 +2605,8 @@ packages:
     peerDependencies:
       svelte: ^4.0.0
 
-  svelte-sonner@0.3.27:
-    resolution: {integrity: sha512-+PvbuePNTyTNCepCWqKcFeu+Lo27yYuwfSc7zJvrWjCRMJrWAmccPg3j7jO1W13QoN3TySXU5Trb956VBQiM5Q==}
+  svelte-sonner@0.3.28:
+    resolution: {integrity: sha512-K3AmlySeFifF/cKgsYNv5uXqMVNln0NBAacOYgmkQStLa/UoU0LhfAACU6Gr+YYC8bOCHdVmFNoKuDbMEsppJg==}
     peerDependencies:
       svelte: ^3.0.0 || ^4.0.0 || ^5.0.0-next.1
 
@@ -5274,7 +5274,7 @@ snapshots:
       svelte: 4.2.19
       svelte-subscribe: 2.0.1(svelte@4.2.19)
 
-  svelte-sonner@0.3.27(svelte@4.2.19):
+  svelte-sonner@0.3.28(svelte@4.2.19):
     dependencies:
       svelte: 4.2.19
 
