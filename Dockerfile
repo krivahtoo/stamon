@@ -18,7 +18,7 @@ RUN pnpm build
 ## Rust
 
 # Start with a rust alpine image
-FROM rust:1.77.2-alpine3.18 AS build
+FROM rust:1.78.0-alpine3.18 AS build
 
 # This is important, see https://github.com/rust-lang/docker-rust/issues/85
 ENV RUSTFLAGS="-C target-feature=-crt-static"
