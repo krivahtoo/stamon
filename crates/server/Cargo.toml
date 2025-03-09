@@ -31,3 +31,4 @@ chrono-tz = { version = "0.9.0", features = ["serde"] }
 rand_core = { version = "0.6.4", features = ["std"] }
 serde_repr = "0.1.19"
 itertools = "0.13.0"
+listenfd = "1.0.2"
