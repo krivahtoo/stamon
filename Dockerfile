@@ -4,7 +4,7 @@
 
 ## Node
 
-FROM node:18-alpine3.18 AS frontend
+FROM node:18-alpine3.21 AS frontend
 
 RUN npm install -g pnpm
 
@@ -18,7 +18,7 @@ RUN pnpm build
 ## Rust
 
 # Start with a rust alpine image
-FROM rust:1.78.0-alpine3.18 AS build
+FROM rust:1.85.0-alpine3.21 AS build
 
 # This is important, see https://github.com/rust-lang/docker-rust/issues/85
 ENV RUSTFLAGS="-C target-feature=-crt-static"
@@ -51,7 +51,7 @@ RUN --mount=type=bind,source=crates,target=crates \
 
 # use a plain alpine image for runtime
 # the alpine version needs to match the builder
-FROM alpine:3.18
+FROM alpine:3.21
 
 # set assets path
 ENV ASSETS_PATH="/assets/"
