@@ -2,12 +2,12 @@ use apalis::prelude::{Data, Job, WorkerId};
 use tracing::{debug, error};
 
 use crate::{
+    AppState,
     models::{
         log::{Log, Status},
         service::{Service, ServiceForUpdate, ServiceType},
     },
     ws::{Event, Level, Notification},
-    AppState,
 };
 
 mod http;

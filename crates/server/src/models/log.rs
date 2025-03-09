@@ -3,8 +3,8 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use sqlx::{
-    prelude::{FromRow, Type},
     SqlitePool,
+    prelude::{FromRow, Type},
 };
 
 #[derive(Debug, Clone, Copy, Type, Default, Deserialize_repr, Serialize_repr)]

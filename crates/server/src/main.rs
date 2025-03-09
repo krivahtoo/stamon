@@ -1,16 +1,16 @@
 use std::{net::SocketAddr, sync::Arc, time::Duration};
 
-use axum::{http::HeaderValue, routing::get, Router};
-use sqlx::{migrate::MigrateDatabase, Sqlite, SqlitePool};
-use tokio::sync::broadcast;
+use axum::{Router, http::HeaderValue, routing::get};
+use sqlx::{Sqlite, SqlitePool, migrate::MigrateDatabase};
+use tokio::{net::TcpListener, sync::broadcast};
 use tower_http::{
+    LatencyUnit,
     cors::{Any, CorsLayer},
     services::{ServeDir, ServeFile},
     timeout::TimeoutLayer as HttpTimeoutLayer,
     trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer as HttpTraceLayer},
-    LatencyUnit,
 };
-use tracing::{error, info, Level};
+use tracing::{Level, error, info};
 use ws::ws_handler;
 
 use crate::{config::env_config, routes::routes, ws::Event as WsEvent};
@@ -95,10 +95,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // run our app with hyper, listening globally on env.port
     let http = async {
-        let listener = tokio::net::TcpListener::bind(("0.0.0.0", env.port))
-            .await
-            .unwrap_or_else(|e| panic!("Can't bind to port {}: {e}", env.port));
-        info!("listening on port {}", env.port);
+        let mut listenfd = listenfd::ListenFd::from_env();
+        let listener = match listenfd.take_tcp_listener(0)? {
+            Some(listener) => {
+                info!("Starting server in developer mode");
+                TcpListener::from_std(listener)
+            }
+            None => TcpListener::bind(("0.0.0.0", env.port)).await,
+        }?;
+        info!(
+            "listening on port {}",
+            listener.local_addr().unwrap().port()
+        );
         axum::serve(
             listener,
             // this is required for ws to work, I don't know why.

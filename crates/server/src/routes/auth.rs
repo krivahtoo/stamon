@@ -1,26 +1,25 @@
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use axum::{
-    debug_handler,
+    Json, Router, debug_handler,
     extract::State,
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
-    Json, Router,
 };
 use chrono::{Duration, Utc};
-use jsonwebtoken::{encode, EncodingKey, Header};
+use jsonwebtoken::{EncodingKey, Header, encode};
 use reqwest::StatusCode;
 use serde_json::json;
 use sqlx::Row;
 use tracing::{debug, error};
 
 use crate::{
+    AppState,
     auth::Claims,
     config::env_config,
     models::{
-        user::{User, UserRole},
         UserForLogin, UserForRegister,
+        user::{User, UserRole},
     },
-    AppState,
 };
 
 #[debug_handler]

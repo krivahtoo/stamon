@@ -1,10 +1,10 @@
-use axum::{extract::State, http::StatusCode, routing::get, Json, Router};
-use serde_json::{json, Value};
+use axum::{Json, Router, extract::State, http::StatusCode, routing::get};
+use serde_json::{Value, json};
 use tracing::{debug, error};
 
 use crate::{
-    models::service::{Service, Stats},
     AppState,
+    models::service::{Service, Stats},
 };
 
 mod auth;

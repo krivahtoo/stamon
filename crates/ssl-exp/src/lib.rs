@@ -122,9 +122,11 @@ mod tests {
 
     #[test]
     fn test_ssl_not_expired() {
-        assert!(!SslExpiration::from_domain_name("google.com")
-            .unwrap()
-            .is_expired());
+        assert!(
+            !SslExpiration::from_domain_name("google.com")
+                .unwrap()
+                .is_expired()
+        );
         let days = SslExpiration::from_domain_name("google.com")
             .unwrap()
             .days();
@@ -157,8 +159,10 @@ mod tests {
 
     #[test]
     fn test_ssl_expired() {
-        assert!(SslExpiration::from_domain_name("expired-rsa-dv.ssl.com")
-            .unwrap()
-            .is_expired());
+        assert!(
+            SslExpiration::from_domain_name("expired-rsa-dv.ssl.com")
+                .unwrap()
+                .is_expired()
+        );
     }
 }
