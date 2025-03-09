@@ -2,17 +2,17 @@ use std::{net::SocketAddr, ops::ControlFlow};
 
 use axum::{
     extract::{
-        ws::{Message, WebSocket},
         ConnectInfo, State, WebSocketUpgrade,
+        ws::{Message, WebSocket},
     },
     response::IntoResponse,
 };
-use axum_extra::{headers::UserAgent, TypedHeader};
+use axum_extra::{TypedHeader, headers::UserAgent};
 use futures::{SinkExt, StreamExt};
 use serde::Serialize;
 use tracing::{debug, info, warn};
 
-use crate::{models::log::LogForCreate, AppState};
+use crate::{AppState, models::log::LogForCreate};
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "lowercase")]

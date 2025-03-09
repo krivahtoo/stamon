@@ -1,14 +1,14 @@
 use axum::{
+    Router,
     extract::State,
     response::{IntoResponse, Response},
     routing::get,
-    Router,
 };
 use axum_macros::debug_handler;
 use serde_json::json;
 use tracing::error;
 
-use crate::{auth::Claims, models::user::User, AppState};
+use crate::{AppState, auth::Claims, models::user::User};
 
 #[debug_handler]
 async fn get_user(Claims { user_id, .. }: Claims, State(state): State<AppState>) -> Response {

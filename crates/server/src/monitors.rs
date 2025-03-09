@@ -3,9 +3,9 @@ use std::{str::FromStr, time::Duration};
 use apalis::{
     cron::{CronStream, Schedule},
     layers::{
+        TimeoutLayer,
         retry::{RetryLayer, RetryPolicy},
         tracing::TraceLayer,
-        TimeoutLayer,
     },
     prelude::{Event, Monitor, WorkerBuilder, WorkerFactoryFn},
     sqlite::SqliteStorage,
@@ -14,9 +14,10 @@ use apalis::{
 use tracing::{debug, error, info};
 
 use crate::{
+    AppState,
     job::{self, Notification},
     models::service::Service,
-    service, utils, AppState,
+    service, utils,
 };
 
 pub async fn monitors(state: &AppState) -> Result<(), Box<dyn std::error::Error>> {

@@ -1,15 +1,15 @@
 use axum::{
+    Router,
     extract::{Query, State},
     response::{IntoResponse, Response},
     routing::get,
-    Router,
 };
 use axum_macros::debug_handler;
 use serde::Deserialize;
 use serde_json::json;
 use tracing::error;
 
-use crate::{auth::Claims, models::log::Log, AppState};
+use crate::{AppState, auth::Claims, models::log::Log};
 
 #[derive(Deserialize)]
 struct Pagination {

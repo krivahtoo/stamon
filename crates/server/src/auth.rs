@@ -1,17 +1,16 @@
-use argon2::{password_hash::SaltString, Argon2, PasswordHasher};
+use argon2::{Argon2, PasswordHasher, password_hash::SaltString};
 use axum::{
-    async_trait,
+    RequestPartsExt, async_trait,
     extract::FromRequestParts,
-    http::{request::Parts, StatusCode},
+    http::{StatusCode, request::Parts},
     response::{IntoResponse, Json, Response},
-    RequestPartsExt,
 };
 use axum_extra::{
-    extract::CookieJar,
-    headers::{authorization::Bearer, Authorization},
     TypedHeader,
+    extract::CookieJar,
+    headers::{Authorization, authorization::Bearer},
 };
-use jsonwebtoken::{decode, DecodingKey, Validation};
+use jsonwebtoken::{DecodingKey, Validation, decode};
 use rand_core::OsRng;
 use serde::{Deserialize, Serialize};
 use serde_json::json;

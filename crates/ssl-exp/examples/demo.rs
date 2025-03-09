@@ -1,6 +1,6 @@
 use ssl_exp::SslExpiration;
 use std::env;
-use std::io::{stderr, Write};
+use std::io::{Write, stderr};
 use std::process::exit;
 
 fn main() {

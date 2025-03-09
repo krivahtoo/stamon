@@ -1,8 +1,8 @@
 use axum::{
+    Json, Router,
     extract::{Path, Query, State},
     response::{IntoResponse, Response},
     routing::{get, put},
-    Json, Router,
 };
 use axum_macros::debug_handler;
 use serde::Deserialize;
@@ -10,12 +10,12 @@ use serde_json::json;
 use tracing::error;
 
 use crate::{
+    AppState,
     auth::Claims,
     models::{
         log::Log,
         service::{Service, ServiceForCreate, ServiceForUpdate},
     },
-    AppState,
 };
 
 #[derive(Deserialize)]
