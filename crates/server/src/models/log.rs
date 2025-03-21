@@ -53,7 +53,7 @@ pub struct Incident {
 impl Log {
     pub async fn insert(pool: &SqlitePool, log: LogForCreate) -> sqlx::Result<u64> {
         // Construct the base query
-        let mut query = "INSERT INTO logs (service_id, status, duration".to_string();
+        let mut query = "INSERT INTO Logs (service_id, status, duration".to_string();
         if log.message.is_some() {
             query.push_str(", message");
         }
@@ -99,8 +99,8 @@ impl Log {
                 GROUP_CONCAT(l.message, '; ') AS messages,
                 MIN(l.time) AS start,
                 MAX(l.time) AS end
-            FROM logs l
-            JOIN services s ON l.service_id = s.id
+            FROM Logs l
+            JOIN Services s ON l.service_id = s.id
             WHERE l.status > 1
             GROUP BY l.service_id, l.status, date
             ORDER BY date DESC
@@ -135,7 +135,7 @@ impl Log {
     }
 
     pub async fn list_all(pool: &SqlitePool, limit: Option<u32>) -> sqlx::Result<Vec<Log>> {
-        let logs = sqlx::query_as::<_, Log>(r#"SELECT * FROM logs ORDER BY id DESC LIMIT ?"#)
+        let logs = sqlx::query_as::<_, Log>(r#"SELECT * FROM Logs ORDER BY id DESC LIMIT ?"#)
             .bind(limit.unwrap_or(100))
             .fetch_all(pool)
             .await?;
@@ -149,7 +149,7 @@ impl Log {
         limit: Option<u32>,
     ) -> sqlx::Result<Vec<Log>> {
         let logs = sqlx::query_as::<_, Log>(
-            r#"SELECT * FROM logs WHERE service_id = ? ORDER BY id DESC LIMIT ?"#,
+            r#"SELECT * FROM Logs WHERE service_id = ? ORDER BY id DESC LIMIT ?"#,
         )
         .bind(service_id)
         .bind(limit.unwrap_or(100))

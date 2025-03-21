@@ -1,4 +1,4 @@
-INSERT INTO logs (service_id, status, message, time, duration) VALUES
+INSERT INTO Logs (service_id, status, message, time, duration) VALUES
 (1, 1, 'Service started successfully', '2024-07-27 10:00:00', 120),
 (2, 2, 'Service encountered an error', '2024-07-27 10:05:00', 45),
 (1, 0, 'Service paused', '2024-07-27 10:10:00', 30),

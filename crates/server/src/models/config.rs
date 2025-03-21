@@ -18,7 +18,7 @@ impl Config {
         category: Option<String>,
     ) -> sqlx::Result<u64> {
         // Construct the base query
-        let mut query = "INSERT INTO config (name, value, last_updated".to_string();
+        let mut query = "INSERT INTO Configs (name, value, last_updated".to_string();
         if category.is_some() {
             query.push_str(", category");
         }

@@ -80,7 +80,7 @@ impl Service {
     pub async fn get(pool: &SqlitePool, service_id: u32) -> sqlx::Result<Option<Service>> {
         let service = sqlx::query_as::<_, Service>(
             r#"SELECT *
-               FROM services
+               FROM Services
                WHERE id = ?"#,
         )
         .bind(service_id)
@@ -95,7 +95,7 @@ impl Service {
         let active = service.active.unwrap_or(true);
 
         // Construct the base query
-        let mut query = "INSERT INTO services (user_id, active, name, interval, url, service_type, retry, retry_interval".to_string();
+        let mut query = "INSERT INTO Services (user_id, active, name, interval, url, service_type, retry, retry_interval".to_string();
         if service.payload.is_some() {
             query.push_str(", payload");
         }
@@ -126,13 +126,13 @@ impl Service {
     }
 
     pub async fn get_stats(pool: &SqlitePool) -> sqlx::Result<Stats> {
-        let (count,) = sqlx::query_as::<_, (u32,)>(r#"SELECT COUNT(*) FROM services"#)
+        let (count,) = sqlx::query_as::<_, (u32,)>(r#"SELECT COUNT(*) FROM Services"#)
             .fetch_one(pool)
             .await?;
 
         let (active,) = sqlx::query_as::<_, (u32,)>(
             r#"SELECT COUNT(*)
-                FROM services
+                FROM Services
                 WHERE active = true
                 "#,
         )
@@ -141,7 +141,7 @@ impl Service {
 
         let (up,) = sqlx::query_as::<_, (u32,)>(
             r#"SELECT COUNT(*)
-                FROM services
+                FROM Services
                 WHERE active = true AND last_status = 1
                 "#,
         )
@@ -150,7 +150,7 @@ impl Service {
 
         let (down,) = sqlx::query_as::<_, (u32,)>(
             r#"SELECT COUNT(*)
-                FROM services
+                FROM Services
                 WHERE active = true AND last_status = 2
                 "#,
         )
@@ -159,7 +159,7 @@ impl Service {
 
         let (failed,) = sqlx::query_as::<_, (u32,)>(
             r#"SELECT COUNT(*)
-                FROM services
+                FROM Services
                 WHERE active = true AND last_status = 3
                 "#,
         )
@@ -178,7 +178,7 @@ impl Service {
     pub async fn all_active(pool: &SqlitePool) -> sqlx::Result<Vec<Service>> {
         let services = sqlx::query_as::<_, Service>(
             r#"SELECT *
-            FROM services
+            FROM Services
             WHERE active = true
             "#,
         )
@@ -189,7 +189,7 @@ impl Service {
     }
 
     pub async fn all(pool: &SqlitePool) -> sqlx::Result<Vec<Service>> {
-        let services = sqlx::query_as::<_, Service>(r#"SELECT * FROM services"#)
+        let services = sqlx::query_as::<_, Service>(r#"SELECT * FROM Services"#)
             .fetch_all(pool)
             .await?;
 
@@ -201,7 +201,7 @@ impl Service {
         service_id: u32,
         update_data: ServiceForUpdate,
     ) -> sqlx::Result<u64> {
-        let mut query = String::from("UPDATE services SET ");
+        let mut query = String::from("UPDATE Services SET ");
         let mut has_updates = false;
 
         build_update_query!(query, has_updates, update_data, {

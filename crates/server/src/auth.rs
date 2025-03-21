@@ -1,6 +1,9 @@
-use argon2::{Argon2, PasswordHasher, password_hash::SaltString};
+use argon2::{
+    Argon2, PasswordHasher,
+    password_hash::{SaltString, rand_core::OsRng},
+};
 use axum::{
-    RequestPartsExt, async_trait,
+    RequestPartsExt,
     extract::FromRequestParts,
     http::{StatusCode, request::Parts},
     response::{IntoResponse, Json, Response},
@@ -11,7 +14,6 @@ use axum_extra::{
     headers::{Authorization, authorization::Bearer},
 };
 use jsonwebtoken::{DecodingKey, Validation, decode};
-use rand_core::OsRng;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -28,7 +30,6 @@ pub struct Claims {
     pub expiry: usize,
 }
 
-#[async_trait]
 impl<S> FromRequestParts<S> for Claims
 where
     S: Send + Sync,
