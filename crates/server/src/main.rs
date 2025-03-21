@@ -17,7 +17,9 @@ use crate::{config::env_config, routes::routes, ws::Event as WsEvent};
 
 mod auth;
 mod config;
+mod extractors;
 mod job;
+mod middlewares;
 mod models;
 mod monitors;
 mod routes;
