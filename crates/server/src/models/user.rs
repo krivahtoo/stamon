@@ -15,7 +15,7 @@ pub enum UserRole {
 pub struct User {
     pub id: u32,
     pub username: String,
-    #[serde(skip)]
+    #[serde(skip_serializing)]
     pub password: String,
     pub role: UserRole,
     pub active: bool,
@@ -42,7 +42,7 @@ impl User {
         let role = user.role.unwrap_or(UserRole::Viewer);
 
         // Construct the base query
-        let mut query = "INSERT INTO users (username, password, role, active".to_string();
+        let mut query = "INSERT INTO Users (username, password, role, active".to_string();
         if user.timezone.is_some() {
             query.push_str(", timezone");
         }
@@ -69,13 +69,13 @@ impl User {
     }
 
     pub async fn get(pool: &SqlitePool, user_id: u32) -> sqlx::Result<User> {
-        sqlx::query_as("SELECT * FROM users WHERE id = ?")
+        sqlx::query_as("SELECT * FROM Users WHERE id = ?")
             .bind(user_id)
             .fetch_one(pool)
             .await
     }
 
     pub async fn list(pool: &SqlitePool) -> sqlx::Result<Vec<User>> {
-        sqlx::query_as("SELECT * FROM users").fetch_all(pool).await
+        sqlx::query_as("SELECT * FROM Users").fetch_all(pool).await
     }
 }

@@ -1,6 +1,6 @@
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use axum::{
-    Json, Router, debug_handler,
+    Router, debug_handler,
     extract::State,
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
@@ -16,6 +16,7 @@ use crate::{
     AppState,
     auth::Claims,
     config::env_config,
+    extractors::json::Json,
     models::{
         UserForLogin, UserForRegister,
         user::{User, UserRole},
@@ -53,7 +54,7 @@ async fn login(State(state): State<AppState>, Json(user_login): Json<UserForLogi
         let parsed_hash = PasswordHash::new(&user.password).unwrap();
         Argon2::default()
             .verify_password(user_login.password.as_bytes(), &parsed_hash)
-            .map_or(false, |_| true)
+            .is_ok_and(|_| true)
     };
 
     if !is_valid {

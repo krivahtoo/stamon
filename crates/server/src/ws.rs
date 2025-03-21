@@ -67,7 +67,11 @@ pub async fn ws_handler(
 #[tracing::instrument(name = "ws", skip(socket, state))]
 async fn handle_socket(mut socket: WebSocket, who: SocketAddr, state: AppState) {
     // send a ping (unsupported by some browsers) just to kick things off and get a response
-    if socket.send(Message::Ping(vec![1, 2, 3])).await.is_ok() {
+    if socket
+        .send(Message::Ping(vec![1, 2, 3].into()))
+        .await
+        .is_ok()
+    {
         debug!("Pinged {who}...");
     } else {
         warn!("Could not send ping {who}!");
@@ -89,7 +93,7 @@ async fn handle_socket(mut socket: WebSocket, who: SocketAddr, state: AppState) 
         while let Ok(msg) = rx.recv().await {
             // In any websocket error, break loop.
             if sender
-                .send(Message::Text(serde_json::to_string(&msg).unwrap()))
+                .send(Message::Text(serde_json::to_string(&msg).unwrap().into()))
                 .await
                 .is_err()
             {

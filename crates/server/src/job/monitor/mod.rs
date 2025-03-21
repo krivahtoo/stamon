@@ -61,18 +61,18 @@ pub async fn job_monitor(job: Service, wid: Data<WorkerId>, state: Data<AppState
     };
 
     // save status
-    if let Err(e) = Service::update(
-        &state.pool,
-        status_log.service_id,
-        ServiceForUpdate {
-            last_status: Some(status_log.status),
-            ..Default::default()
-        },
-    )
-    .await
-    {
-        error!("error {e}");
-    };
+    //if let Err(e) = Service::update(
+    //    &state.pool,
+    //    status_log.service_id,
+    //    ServiceForUpdate {
+    //        last_status: Some(status_log.status),
+    //        ..Default::default()
+    //    },
+    //)
+    //.await
+    //{
+    //    error!("error {e}");
+    //};
     if let Err(e) = Log::insert(&state.pool, status_log).await {
         error!("error {e}");
     };

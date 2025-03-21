@@ -1,5 +1,5 @@
 -- users table: Stores users who might receive notifications
-CREATE TABLE users (
+CREATE TABLE Users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL,
     password TEXT NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE users (
 );
 
 -- services table: Stores monitored service
-CREATE TABLE services (
+CREATE TABLE Services (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     active BOOLEAN NOT NULL DEFAULT 1,
@@ -26,13 +26,13 @@ CREATE TABLE services (
     expected_code INTEGER,
     expected_payload TEXT,
 
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES Users(id)
 );
 
-CREATE INDEX IF NOT EXISTS svc_idx ON services(last_status);
+CREATE INDEX IF NOT EXISTS svc_idx ON Services(last_status);
 
 -- logs table: Logs the status changes of services
-CREATE TABLE logs (
+CREATE TABLE Logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     service_id INTEGER NOT NULL,
     status INTEGER NOT NULL,
@@ -40,23 +40,23 @@ CREATE TABLE logs (
     time DATETIME DEFAULT CURRENT_TIMESTAMP,
     duration INTEGER NOT NULL,
 
-    FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
+    FOREIGN KEY (service_id) REFERENCES Services(id) ON DELETE CASCADE
 );
 
 -- notifications table: Stores notification logs related to status changes
-CREATE TABLE notifications (
+CREATE TABLE Notifications (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     service_id INTEGER NOT NULL,
     log_id INTEGER NOT NULL,
     message TEXT,
     sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,
-    FOREIGN KEY (log_id) REFERENCES logs(id)
+    FOREIGN KEY (service_id) REFERENCES Services(id) ON DELETE CASCADE,
+    FOREIGN KEY (log_id) REFERENCES Logs(id)
 );
 
 -- configuration table: Stores configuration settings
-CREATE TABLE configs (
+CREATE TABLE Configs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     value TEXT NOT NULL,
