@@ -1,18 +1,16 @@
 +++
 title = "Install"
-description = "Learn how to install and set up Stamon on your system."
+description = "Installing stamon"
 weight = 2
 +++
 
-# 🚀 Installation
-
-This guide will walk you through installing **Stamon**, a lightweight, self-hosted status monitoring tool written in Rust.
+This guide will walk you through installing **stamon**, a lightweight, self-hosted status monitoring tool written in Rust.
 
 ---
 
-## 📥 Prerequisites
+# 📥 Prerequisites
 
-Before installing **Stamon**, make sure you have the following dependencies installed:
+Before installing **stamon**, make sure you have the following dependencies installed:
 
 - **Docker** (for containerized deployment) → [Install Docker](https://docs.docker.com/get-docker/)
 - **Rust** (for manual installation) → [Install Rust](https://www.rust-lang.org/tools/install)
@@ -20,17 +18,17 @@ Before installing **Stamon**, make sure you have the following dependencies inst
 
 ---
 
-## 🐳 Install via Docker (Recommended)
+# 🐳 Install via Docker (Recommended)
 
 The easiest way to get **Stamon** up and running is using Docker.
 
-### **Run with Docker CLI**
+## **Run with Docker CLI**
 
 ```sh
 docker run -it -e JWT_SECRET="hello-world" -p 3000:3000 k4htoo/stamon
 ```
 
-### **Run with Docker Compose**
+## **Run with Docker Compose**
 
 Create a `docker-compose.yml` file:
 
@@ -53,18 +51,18 @@ docker compose up -d
 
 Now visit <http://localhost:3000>.
 
-## ⚙️ Manual Installation (Rust)
+# ⚙️ Manual Installation (Rust)
 
 For those who prefer running **Stamon** without Docker:
 
-### 1. Clone the Repository
+## 1. Clone the Repository
 
 ```sh
 git clone https://github.com/krivahtoo/stamon.git
 cd stamon
 ```
 
-### 2. Build and Run
+## 2. Build and Run
 
 ```sh
 cargo build --release
@@ -73,17 +71,17 @@ cargo build --release
 
 By default, the server runs on **port 3000**.
 
-## 🏗️ Development Setup
+# 🏗️ Development Setup
 
 To set up a development environment:
 
-### Backend
+## Backend
 
 ```sh
 cargo run
 ```
 
-### Frontend
+## Frontend
 
 ```sh
 cd frontend
@@ -93,7 +91,7 @@ pnpm dev
 
 Then visit <http://localhost:5173>.
 
-### 📝 Configuration
+## 📝 Configuration
 
 You can customize Stamon using environment variables:
 
