@@ -50,9 +50,8 @@ async fn list_users(_: Claims, State(state): State<AppState>) -> Response {
     }
 }
 
-pub fn routes(state: AppState) -> Router {
+pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/users", get(list_users))
         .route("/user", get(get_user))
-        .with_state(state)
 }

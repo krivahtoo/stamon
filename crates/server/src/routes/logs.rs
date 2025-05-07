@@ -64,9 +64,8 @@ async fn list_log_incidents(
     }
 }
 
-pub fn routes(state: AppState) -> Router {
+pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/logs", get(list_logs))
         .route("/logs/incidents", get(list_log_incidents))
-        .with_state(state)
 }

@@ -169,11 +169,10 @@ async fn check(State(state): State<AppState>) -> Response {
     Json(json!({"message": "Already setup"})).into_response()
 }
 
-pub fn routes(state: AppState) -> Router {
+pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/check", get(check))
         .route("/logout", get(logout))
         .route("/login", post(login))
         .route("/register", post(register))
-        .with_state(state)
 }
