@@ -1,6 +1,7 @@
 use std::{net::SocketAddr, sync::Arc, time::Duration};
 
-use axum::{Router, http::HeaderValue, routing::get};
+use axum::{Router, http::HeaderValue, middleware, routing::get};
+use middlewares::log::request_logger;
 use sqlx::{Sqlite, SqlitePool, migrate::MigrateDatabase};
 use tokio::{net::TcpListener, sync::broadcast};
 use tower_http::{
@@ -71,12 +72,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let state = Arc::new(AppStateInner { pool, tx });
     let ws_route = Router::new()
         .route("/ws", get(ws_handler))
+        .nest("/api", routes())
         .with_state(state.clone());
     let app = Router::new()
-        .nest("/api", routes(state.clone()))
         .merge(ws_route)
         .fallback_service(serve_dir)
+        .layer(middleware::from_fn(request_logger))
         .layer((
+            /*
             HttpTraceLayer::new_for_http()
                 .make_span_with(DefaultMakeSpan::new().include_headers(true))
                 .on_request(DefaultOnRequest::new().level(Level::DEBUG))
@@ -85,6 +88,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .level(Level::INFO)
                         .latency_unit(LatencyUnit::Millis),
                 ),
+            */
             // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
             // requests don't hang forever.
             HttpTimeoutLayer::new(Duration::from_secs(10)),

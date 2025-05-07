@@ -144,10 +144,9 @@ async fn list_service_logs(
     }
 }
 
-pub fn routes(state: AppState) -> Router {
+pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/services", get(list_services).post(add_service))
-        .route("/services/:id", put(update_service).get(get_service))
-        .route("/services/:id/logs", get(list_service_logs))
-        .with_state(state)
+        .route("/services/{id}", put(update_service).get(get_service))
+        .route("/services/{id}/logs", get(list_service_logs))
 }

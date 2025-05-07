@@ -245,8 +245,6 @@ mod tests {
 
         dbg!(&incidents);
 
-        //assert!(incidents.first().unwrap().id > incidents.last().unwrap().id);
-
         assert_eq!(incidents.len(), 1);
 
         Ok(())

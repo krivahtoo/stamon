@@ -29,7 +29,7 @@ pub struct Service {
     pub retry: u32,
     pub retry_interval: u32,
     pub invert: bool,
-    pub expected_code: Option<u32>,
+    pub expected_code: Option<u16>,
     pub expected_payload: Option<String>,
 }
 
@@ -63,7 +63,7 @@ pub struct ServiceForUpdate {
     pub retry: Option<u16>,
     pub retry_interval: Option<u16>,
     pub invert: Option<bool>,
-    pub expected_code: Option<u32>,
+    pub expected_code: Option<u16>,
     pub expected_payload: Option<String>,
 }
 
