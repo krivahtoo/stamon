@@ -1,14 +1,10 @@
-use apalis::prelude::{Data, Job, WorkerId};
+use apalis::prelude::{Data, WorkerId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Notification {
     pub to: String,
     pub text: String,
-}
-
-impl Job for Notification {
-    const NAME: &'static str = "stamon::Notification";
 }
 
 pub async fn notify(job: Notification, wid: Data<WorkerId>) {

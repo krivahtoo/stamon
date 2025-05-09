@@ -1,16 +1,16 @@
 use std::{str::FromStr, time::Duration};
 
 use apalis::{
-    cron::{CronStream, Schedule},
     layers::{
-        TimeoutLayer,
+        WorkerBuilderExt,
         retry::{RetryLayer, RetryPolicy},
         tracing::TraceLayer,
     },
     prelude::{Event, Monitor, WorkerBuilder, WorkerFactoryFn},
-    sqlite::SqliteStorage,
-    utils::TokioExecutor,
 };
+use apalis_cron::{CronStream, Schedule};
+use apalis_sql::sqlite::SqliteStorage;
+use tower::load_shed::LoadShedLayer;
 use tracing::{debug, error, info};
 
 use crate::{
@@ -27,31 +27,30 @@ pub async fn monitors(state: &AppState) -> Result<(), Box<dyn std::error::Error>
 
     let schedule = Schedule::from_str("* * * * * *")?;
     let cron_timer = WorkerBuilder::new("uptime-timer")
+        .enable_tracing()
+        .layer(LoadShedLayer::new())
+        .rate_limit(2, Duration::from_secs(1))
+        .catch_panic()
         .data(service::TimerService::new(state.pool.clone()))
-        .stream(CronStream::new(schedule).into_stream())
-        // curtesy of https://github.com/geofmureithi/apalis/issues/297
-        .chain(|s| {
-            s.layer(TimeoutLayer::new(Duration::from_secs(60)))
-                .layer(TraceLayer::new())
-        })
+        .backend(CronStream::new(schedule))
         .build_fn(service::run_timer_cron_service);
 
     let notify_worker = WorkerBuilder::new("notification-worker")
         .layer(TraceLayer::new())
-        .with_storage(notification_storage.clone())
+        .backend(notification_storage)
         .build_fn(job::notify);
 
     let monitor_worker = WorkerBuilder::new("monitor-worker")
         .data(state.clone())
         .layer(RetryLayer::new(RetryPolicy::retries(3)))
         .layer(TraceLayer::new())
-        .with_storage(monitor_storage)
+        .backend(monitor_storage)
         .build_fn(job::job_monitor);
 
-    Monitor::<TokioExecutor>::new()
-        .register_with_count(1, cron_timer)
-        .register_with_count(1, notify_worker)
-        .register_with_count(2, monitor_worker)
+    Monitor::new()
+        .register(cron_timer)
+        .register(notify_worker)
+        .register(monitor_worker)
         .shutdown_timeout(Duration::from_secs(10))
         .on_event(|e| {
             let worker_id = e.id();
@@ -59,8 +58,10 @@ pub async fn monitors(state: &AppState) -> Result<(), Box<dyn std::error::Error>
                 Event::Start => {
                     info!(target: "worker", worker = %worker_id, "started");
                 }
-                Event::Engage => {
-                    debug!(target: "worker", worker = %worker_id, "engaged");
+                Event::Engage(task_id) => {
+                    if worker_id.name() != "uptime-timer" {
+                        debug!(target: "worker", worker = %worker_id, task = %task_id, "engaged");
+                    }
                 }
                 Event::Idle => {
                     debug!(target: "worker", worker = %worker_id, "idle");
@@ -74,6 +75,7 @@ pub async fn monitors(state: &AppState) -> Result<(), Box<dyn std::error::Error>
                 Event::Stop => {
                     info!(target: "worker", worker = %worker_id, "stopped");
                 }
+                _ => {}
             }
         })
         .run_with_signal(async {
