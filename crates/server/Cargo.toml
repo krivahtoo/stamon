@@ -15,7 +15,6 @@ bincode = "2.0.1"
 chrono = { version = "0.4.38", features = ["serde"] }
 futures = "0.3.30"
 jsonwebtoken = "9.3.0"
-redb = "2.1.0"
 serde = { version = "1.0.203", features = ["derive"] }
 serde_json = "1.0.117"
 sqlx = { version = "0.8.3", features = ["chrono", "sqlite", "macros", "uuid", "migrate", "runtime-tokio"] }
@@ -23,11 +22,11 @@ tokio = { version = "1.37.0", features = ["rt", "rt-multi-thread", "macros", "ne
 tower-http = { version = "0.6.2", features = ["fs", "trace", "timeout", "cors"] }
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
-apalis = { version = "0.5.3", features = ["sqlite", "retry", "timeout", "cron"] }
+apalis = { version = "0.7.1", features = ["catch-panic", "limit", "retry", "timeout"] }
 ping-rs = "0.1.2"
 reqwest = { version = "0.12.4", features = ["json"] }
 tower-cookies = "0.11.0"
-tower = "0.5.2"
+tower = { version = "0.5.2", features = ["load-shed"] }
 chrono-tz = { version = "0.10.1", features = ["serde"] }
 serde_repr = "0.1.19"
 itertools = "0.14.0"
@@ -35,3 +34,6 @@ listenfd = "1.0.2"
 modql = { version = "0.4.1", features = ["with-sea-query"] }
 sea-query = { version = "0.32.3", features = ["with-chrono"] }
 sea-query-binder = { version = "0.7.0", features = ["sqlx-sqlite", "sqlx-postgres", "with-chrono", "with-uuid"] }
+hickory-resolver = "0.25.2"
+apalis-sql = { version = "0.7.1", features = ["sqlite"] }
+apalis-cron = "0.7.1"

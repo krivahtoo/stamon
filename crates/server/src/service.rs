@@ -1,9 +1,7 @@
 use std::ops::Deref;
 
-use apalis::{
-    prelude::{Data, Storage, TaskId, WorkerId},
-    sqlite::SqliteStorage,
-};
+use apalis::prelude::*;
+use apalis_sql::sqlite::SqliteStorage;
 use chrono::{DateTime, Timelike, Utc};
 use sqlx::sqlite::SqlitePool;
 use tracing::error;
@@ -58,10 +56,11 @@ impl Timer {
 pub async fn run_timer_cron_service(
     job: Timer,
     svc: Data<TimerService>,
-    wid: WorkerId,
-    id: Data<TaskId>,
+    worker: Worker<Context>,
+    id: TaskId,
 ) -> bool {
     let timer = job.to_rfc3339();
+    let wid = worker.id();
     match svc.execute(job).await {
         Ok(_) => true,
         Err(e) => {
