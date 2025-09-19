@@ -249,4 +249,137 @@ mod tests {
 
         Ok(())
     }
+
+    #[sqlx::test(fixtures("users", "services"))]
+    async fn insert_log_with_message(pool: SqlitePool) -> sqlx::Result<()> {
+        let count = Log::insert(
+            &pool,
+            LogForCreate {
+                service_id: 1,
+                status: Status::Up,
+                message: Some("Service is healthy".to_string()),
+                time: None, // Should use current time
+                duration: 150,
+            },
+        )
+        .await?;
+
+        assert_eq!(count, 1);
+
+        // Verify the log was created
+        let logs = Log::list(&pool, 1, Some(1)).await?;
+        assert_eq!(logs.len(), 1);
+        assert_eq!(logs[0].service_id, 1);
+        assert!(matches!(logs[0].status, Status::Up));
+        assert_eq!(logs[0].message, Some("Service is healthy".to_string()));
+        assert_eq!(logs[0].duration, 150);
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services"))]
+    async fn insert_log_without_message(pool: SqlitePool) -> sqlx::Result<()> {
+        let count = Log::insert(
+            &pool,
+            LogForCreate {
+                service_id: 2,
+                status: Status::Down,
+                message: None,
+                time: Some(Utc::now()),
+                duration: 0,
+            },
+        )
+        .await?;
+
+        assert_eq!(count, 1);
+
+        // Verify the log was created without message
+        let logs = Log::list(&pool, 2, Some(1)).await?;
+        assert_eq!(logs.len(), 1);
+        assert_eq!(logs[0].service_id, 2);
+        assert!(matches!(logs[0].status, Status::Down));
+        assert!(logs[0].message.is_none());
+        assert_eq!(logs[0].duration, 0);
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services"))]
+    async fn test_status_enum_values(pool: SqlitePool) -> sqlx::Result<()> {
+        // Test all status variants
+        let statuses = [Status::Pending, Status::Up, Status::Down, Status::Failed];
+
+        for (i, status) in statuses.iter().enumerate() {
+            let count = Log::insert(
+                &pool,
+                LogForCreate {
+                    service_id: 1,
+                    status: *status,
+                    message: Some(format!("Test status {}", i)),
+                    time: None,
+                    duration: i as u32 * 10,
+                },
+            )
+            .await?;
+
+            assert_eq!(count, 1);
+        }
+
+        // Verify all logs were created
+        let logs = Log::list(&pool, 1, Some(10)).await?;
+        assert_eq!(logs.len(), 4);
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services", "logs"))]
+    async fn list_logs_with_limit(pool: SqlitePool) -> sqlx::Result<()> {
+        let logs = Log::list(&pool, 2, Some(1)).await?;
+
+        // Should return only 1 log due to limit
+        assert_eq!(logs.len(), 1);
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services", "logs"))]
+    async fn list_logs_no_limit(pool: SqlitePool) -> sqlx::Result<()> {
+        let logs = Log::list(&pool, 2, None).await?;
+
+        // Should return all logs for service 2 (3 logs in fixtures)
+        assert_eq!(logs.len(), 3);
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services", "logs"))]
+    async fn list_all_logs(pool: SqlitePool) -> sqlx::Result<()> {
+        let logs = Log::list_all(&pool, None).await?;
+
+        // Should return all logs in database (5 logs in fixtures)
+        assert_eq!(logs.len(), 5);
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services", "logs"))]
+    async fn list_incidents_with_limit(pool: SqlitePool) -> sqlx::Result<()> {
+        let incidents = Log::incidents(&pool, Some(1)).await?;
+
+        // Should respect the limit
+        assert!(incidents.len() <= 1);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn list_logs_empty_database(pool: SqlitePool) -> sqlx::Result<()> {
+        let logs = Log::list_all(&pool, None).await?;
+        assert_eq!(logs.len(), 0);
+
+        let incidents = Log::incidents(&pool, None).await?;
+        assert_eq!(incidents.len(), 0);
+
+        Ok(())
+    }
 }

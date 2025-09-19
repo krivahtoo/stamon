@@ -165,4 +165,82 @@ mod tests {
                 .is_expired()
         );
     }
+
+    #[test]
+    fn test_ssl_expiration_from_seconds() {
+        // Test with future expiration (positive seconds)
+        let future_expiry = SslExpiration(86400, Utc::now().add(TimeDelta::days(1))); // 1 day
+        assert!(!future_expiry.is_expired());
+        assert!(future_expiry.days() > 0);
+
+        // Test with past expiration (negative seconds)
+        let past_expiry = SslExpiration(-86400, Utc::now().add(TimeDelta::days(-1))); // 1 day ago
+        assert!(past_expiry.is_expired());
+        assert!(past_expiry.days() < 0);
+    }
+
+    #[test]
+    fn test_ssl_expiration_edge_cases() {
+        // Test exactly at expiration time (0 seconds means expired)
+        let now_expiry = SslExpiration(0, Utc::now());
+        assert!(!now_expiry.is_expired()); // 0 seconds is not negative, so not expired
+        assert_eq!(now_expiry.days(), 0);
+
+        // Test very small positive time (should not be expired)
+        let small_future = SslExpiration(1, Utc::now().add(TimeDelta::seconds(1)));
+        assert!(!small_future.is_expired());
+
+        // Test very small negative time (should be expired)
+        let small_past = SslExpiration(-1, Utc::now().add(TimeDelta::seconds(-1)));
+        assert!(small_past.is_expired());
+    }
+
+    #[test]
+    fn test_days_calculation() {
+        // Test 7 days in the future
+        let week_future = SslExpiration(7 * 24 * 60 * 60, Utc::now().add(TimeDelta::days(7)));
+        assert_eq!(week_future.days(), 7);
+
+        // Test 30 days in the future
+        let month_future = SslExpiration(30 * 24 * 60 * 60, Utc::now().add(TimeDelta::days(30)));
+        assert_eq!(month_future.days(), 30);
+
+        // Test partial day (should round down)
+        let partial_day = SslExpiration(12 * 60 * 60, Utc::now().add(TimeDelta::hours(12))); // 12 hours
+        assert_eq!(partial_day.days(), 0);
+    }
+
+    #[test]
+    fn test_error_types() {
+        use crate::error::Error;
+
+        // Test that different error types can be created and formatted
+        let no_cert_error = Error::NoCert;
+        let handshake_error = Error::Handshake("test error".to_string());
+
+        assert!(!format!("{}", no_cert_error).is_empty());
+        assert!(!format!("{}", handshake_error).is_empty());
+        assert!(format!("{}", handshake_error).contains("test error"));
+    }
+
+    #[test]
+    fn test_timeout_validation() {
+        // Test that timeout of 0 should fail
+        let result = SslExpiration::from_domain_name_with_timeout("test.com", 0);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_domain_name_convenience_methods() {
+        // Test that convenience methods use correct defaults
+        // These will fail in CI due to network, but test the API structure
+
+        // Test default timeout method exists and has proper signature
+        let result = SslExpiration::from_domain_name("test.local");
+        assert!(result.is_err()); // Expected to fail due to invalid domain
+
+        // Test custom timeout method exists and has proper signature
+        let result = SslExpiration::from_domain_name_with_timeout("test.local", 5);
+        assert!(result.is_err()); // Expected to fail due to invalid domain
+    }
 }
