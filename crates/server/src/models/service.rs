@@ -316,4 +316,103 @@ mod tests {
 
         Ok(())
     }
+
+    #[sqlx::test(fixtures("users"))]
+    async fn insert_service_with_payload(pool: SqlitePool) -> sqlx::Result<()> {
+        let count = Service::insert(
+            &pool,
+            ServiceForCreate {
+                user_id: Some(1),
+                active: Some(true),
+                name: "Test Service".into(),
+                interval: 60,
+                url: "https://test.example.com".into(),
+                payload: Some("{\"test\": \"data\"}".into()),
+                service_type: ServiceType::Http,
+                retry: 3,
+                retry_interval: 30,
+                ..Default::default()
+            },
+        )
+        .await?;
+
+        assert_eq!(count, 1);
+
+        // Verify the service was created with payload
+        let service = Service::get(&pool, 1).await?;
+        assert!(service.is_some());
+        let service = service.unwrap();
+        assert_eq!(service.name, "Test Service");
+        assert_eq!(service.payload, Some("{\"test\": \"data\"}".into()));
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users"))]
+    async fn insert_service_without_payload(pool: SqlitePool) -> sqlx::Result<()> {
+        let count = Service::insert(
+            &pool,
+            ServiceForCreate {
+                user_id: Some(1),
+                active: None, // Should default to true
+                name: "Simple Service".into(),
+                interval: 120,
+                url: "https://simple.example.com".into(),
+                payload: None,
+                service_type: ServiceType::Ping,
+                retry: 1,
+                retry_interval: 60,
+                ..Default::default()
+            },
+        )
+        .await?;
+
+        assert_eq!(count, 1);
+
+        // Verify the service was created without payload and with default active=true
+        let service = Service::get(&pool, 1).await?;
+        assert!(service.is_some());
+        let service = service.unwrap();
+        assert_eq!(service.name, "Simple Service");
+        assert!(service.payload.is_none());
+        assert!(service.active);
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services"))]
+    async fn get_nonexistent_service(pool: SqlitePool) -> sqlx::Result<()> {
+        let service = Service::get(&pool, 999).await?;
+        assert!(service.is_none());
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services"))]
+    async fn list_services_returns_only_active(pool: SqlitePool) -> sqlx::Result<()> {
+        let services = Service::all_active(&pool).await?;
+
+        // Should only return active services (4 out of 5 in fixtures)
+        assert_eq!(services.len(), 4);
+
+        // Verify all returned services are active
+        for service in services {
+            assert!(service.active);
+        }
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn get_stats_empty_database(pool: SqlitePool) -> sqlx::Result<()> {
+        let stats = Service::get_stats(&pool).await?;
+
+        assert_eq!(stats.active, 0);
+        assert_eq!(stats.count, 0);
+        assert_eq!(stats.up, 0);
+        assert_eq!(stats.down, 0);
+        assert_eq!(stats.failed, 0);
+
+        Ok(())
+    }
 }

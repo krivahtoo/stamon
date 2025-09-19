@@ -79,3 +79,99 @@ impl User {
         sqlx::query_as("SELECT * FROM Users").fetch_all(pool).await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use sqlx::SqlitePool;
+
+    use super::*;
+
+    #[sqlx::test]
+    async fn insert_user_with_defaults(pool: SqlitePool) -> sqlx::Result<()> {
+        let count = User::insert(
+            &pool,
+            UserForRegister {
+                username: "testuser".to_string(),
+                password: "testpass".to_string(),
+                role: None, // Should default to Viewer
+                timezone: None,
+            },
+        )
+        .await?;
+
+        assert_eq!(count, 1);
+
+        // Verify the user was inserted with correct defaults
+        let user = sqlx::query_as::<_, User>("SELECT * FROM Users WHERE username = ?")
+            .bind("testuser")
+            .fetch_one(&pool)
+            .await?;
+
+        assert_eq!(user.username, "testuser");
+        assert!(matches!(user.role, UserRole::Viewer));
+        assert!(user.active);
+        assert!(user.timezone.is_none());
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn insert_user_with_admin_role(pool: SqlitePool) -> sqlx::Result<()> {
+        let count = User::insert(
+            &pool,
+            UserForRegister {
+                username: "adminuser".to_string(),
+                password: "adminpass".to_string(),
+                role: Some(UserRole::Admin),
+                timezone: Some("UTC".to_string()),
+            },
+        )
+        .await?;
+
+        assert_eq!(count, 1);
+
+        // Verify the user was inserted with admin role
+        let user = sqlx::query_as::<_, User>("SELECT * FROM Users WHERE username = ?")
+            .bind("adminuser")
+            .fetch_one(&pool)
+            .await?;
+
+        assert_eq!(user.username, "adminuser");
+        assert!(matches!(user.role, UserRole::Admin));
+        assert!(user.active);
+        assert_eq!(user.timezone, Some("UTC".to_string()));
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users"))]
+    async fn get_existing_user(pool: SqlitePool) -> sqlx::Result<()> {
+        let user = User::get(&pool, 1).await?;
+
+        assert_eq!(user.id, 1);
+        assert_eq!(user.username, "user1");
+        assert!(matches!(user.role, UserRole::Admin));
+        assert!(user.active);
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users"))]
+    async fn get_nonexistent_user_fails(pool: SqlitePool) -> sqlx::Result<()> {
+        let result = User::get(&pool, 999).await;
+        assert!(result.is_err());
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users"))]
+    async fn list_all_users(pool: SqlitePool) -> sqlx::Result<()> {
+        let users = User::list(&pool).await?;
+
+        assert_eq!(users.len(), 4);
+        assert_eq!(users[0].username, "user1");
+        assert_eq!(users[1].username, "user2");
+
+        Ok(())
+    }
+}
