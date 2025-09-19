@@ -92,7 +92,7 @@ pub fn hash(val: String) -> String {
 
 pub fn verify_password(password: &str, hash: &str) -> bool {
     use argon2::{PasswordHash, PasswordVerifier};
-    
+
     let parsed_hash = PasswordHash::new(hash).expect("Invalid hash format");
     Argon2::default()
         .verify_password(password.as_bytes(), &parsed_hash)
@@ -107,13 +107,13 @@ mod tests {
     fn test_hash_password() {
         let password = "test_password".to_string();
         let hashed = hash(password.clone());
-        
+
         // Hash should not be empty
         assert!(!hashed.is_empty());
-        
+
         // Hash should not equal the original password
         assert_ne!(hashed, password);
-        
+
         // Hash should start with argon2 identifier
         assert!(hashed.starts_with("$argon2"));
     }
@@ -122,10 +122,10 @@ mod tests {
     fn test_hash_different_passwords() {
         let password1 = "password1".to_string();
         let password2 = "password2".to_string();
-        
+
         let hash1 = hash(password1);
         let hash2 = hash(password2);
-        
+
         // Different passwords should produce different hashes
         assert_ne!(hash1, hash2);
     }
@@ -133,10 +133,10 @@ mod tests {
     #[test]
     fn test_hash_same_password_different_salt() {
         let password = "same_password".to_string();
-        
+
         let hash1 = hash(password.clone());
         let hash2 = hash(password);
-        
+
         // Same password should produce different hashes due to different salts
         assert_ne!(hash1, hash2);
     }
@@ -145,7 +145,7 @@ mod tests {
     fn test_verify_password_correct() {
         let password = "test_password";
         let hashed = hash(password.to_string());
-        
+
         // Correct password should verify successfully
         assert!(verify_password(password, &hashed));
     }
@@ -155,7 +155,7 @@ mod tests {
         let password = "test_password";
         let wrong_password = "wrong_password";
         let hashed = hash(password.to_string());
-        
+
         // Wrong password should fail verification
         assert!(!verify_password(wrong_password, &hashed));
     }
@@ -165,7 +165,7 @@ mod tests {
         let password = "test_password";
         let empty_password = "";
         let hashed = hash(password.to_string());
-        
+
         // Empty password should fail verification
         assert!(!verify_password(empty_password, &hashed));
     }
@@ -174,7 +174,7 @@ mod tests {
     fn test_auth_error_display() {
         let missing_creds = AuthError::MissingCredentials;
         let invalid_token = AuthError::InvalidToken;
-        
+
         // Test that errors can be formatted (for debugging)
         assert!(!format!("{:?}", missing_creds).is_empty());
         assert!(!format!("{:?}", invalid_token).is_empty());

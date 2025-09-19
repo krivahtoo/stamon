@@ -25,14 +25,14 @@ pub async fn shutdown_signal() -> io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tokio::time::{timeout, Duration};
+    use tokio::time::{Duration, timeout};
 
     #[tokio::test]
     async fn test_shutdown_signal_timeout() {
         // Test that shutdown_signal doesn't complete immediately
         // We use a short timeout to ensure the test doesn't hang
         let result = timeout(Duration::from_millis(10), shutdown_signal()).await;
-        
+
         // Should timeout since no signal was sent
         assert!(result.is_err());
     }

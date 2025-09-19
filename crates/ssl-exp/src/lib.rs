@@ -173,7 +173,7 @@ mod tests {
         assert!(!future_expiry.is_expired());
         assert!(future_expiry.days() > 0);
 
-        // Test with past expiration (negative seconds)  
+        // Test with past expiration (negative seconds)
         let past_expiry = SslExpiration(-86400, Utc::now().add(TimeDelta::days(-1))); // 1 day ago
         assert!(past_expiry.is_expired());
         assert!(past_expiry.days() < 0);
@@ -217,7 +217,7 @@ mod tests {
         // Test that different error types can be created and formatted
         let no_cert_error = Error::NoCert;
         let handshake_error = Error::Handshake("test error".to_string());
-        
+
         assert!(!format!("{}", no_cert_error).is_empty());
         assert!(!format!("{}", handshake_error).is_empty());
         assert!(format!("{}", handshake_error).contains("test error"));
@@ -230,16 +230,16 @@ mod tests {
         assert!(result.is_err());
     }
 
-    #[test] 
+    #[test]
     fn test_domain_name_convenience_methods() {
         // Test that convenience methods use correct defaults
         // These will fail in CI due to network, but test the API structure
-        
+
         // Test default timeout method exists and has proper signature
         let result = SslExpiration::from_domain_name("test.local");
         assert!(result.is_err()); // Expected to fail due to invalid domain
 
-        // Test custom timeout method exists and has proper signature  
+        // Test custom timeout method exists and has proper signature
         let result = SslExpiration::from_domain_name_with_timeout("test.local", 5);
         assert!(result.is_err()); // Expected to fail due to invalid domain
     }

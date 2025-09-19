@@ -308,7 +308,7 @@ mod tests {
     async fn test_status_enum_values(pool: SqlitePool) -> sqlx::Result<()> {
         // Test all status variants
         let statuses = [Status::Pending, Status::Up, Status::Down, Status::Failed];
-        
+
         for (i, status) in statuses.iter().enumerate() {
             let count = Log::insert(
                 &pool,
