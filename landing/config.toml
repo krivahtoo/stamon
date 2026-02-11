@@ -1,7 +1,8 @@
 # The URL the site will be built for
 base_url = "/"
 
-title = "Stamon - A lightweight self-hosted status monitoring tool, written in Rust."
+title = "Stamon"
+description = "A lightweight self-hosted status monitoring tool, written in Rust."
 # default_language = "en"
 
 # Whether to automatically compile all Sass files in the sass directory
