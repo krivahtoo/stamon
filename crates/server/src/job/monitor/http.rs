@@ -18,21 +18,41 @@ pub async fn get(svc: Service, tx: Sender<Event>) -> LogForCreate {
     match reqwest::get(&svc.url).await {
         Ok(res) => {
             if let Some(json) = svc.expected_payload {
-                if let (Ok(tmpl), Ok(data)) = (
-                    serde_json::from_str::<serde_json::Value>(&json),
-                    res.json::<serde_json::Value>().await,
-                ) {
-                    if tmpl != data {
+                let tmpl = match serde_json::from_str::<serde_json::Value>(&json) {
+                    Ok(v) => v,
+                    Err(e) => {
                         return LogForCreate {
                             status: Status::Down,
                             service_id: svc.id,
                             duration: now.elapsed().as_millis() as u32,
                             time,
-                            message: Some(format!("Expected: {json} Got: {data}")),
+                            message: Some(format!("Invalid expected payload template: {e}")),
                         };
                     }
+                };
+                let data = match res.json::<serde_json::Value>().await {
+                    Ok(v) => v,
+                    Err(e) => {
+                        return LogForCreate {
+                            status: Status::Down,
+                            service_id: svc.id,
+                            duration: now.elapsed().as_millis() as u32,
+                            time,
+                            message: Some(format!("Failed to parse response JSON: {e}")),
+                        };
+                    }
+                };
+                if tmpl != data {
+                    return LogForCreate {
+                        status: Status::Down,
+                        service_id: svc.id,
+                        duration: now.elapsed().as_millis() as u32,
+                        time,
+                        message: Some(format!("Expected: {json} Got: {data}")),
+                    };
                 }
             }
+
             LogForCreate {
                 status: Status::Up,
                 service_id: svc.id,
@@ -43,28 +63,27 @@ pub async fn get(svc: Service, tx: Sender<Event>) -> LogForCreate {
         }
         Err(e) => {
             error!("Failed to get: {:?}", e);
-            if e.is_connect() {
-                if let Err(e) = tx.send(Event::Notification(Notification {
+            if e.is_connect()
+                && let Err(e) = tx.send(Event::Notification(Notification {
                     message: format!("Error: {}", e),
                     title: "Network Error".to_string(),
                     level: Level::Error,
-                })) {
-                    error!("Failed to send notification: {:?}", e);
+                }))
+            {
+                error!("Failed to send notification: {:?}", e);
+            };
+            if e.is_status()
+                && let Some(st) = e.status()
+                && st.as_u16() == svc.expected_code.unwrap_or(200)
+            {
+                return LogForCreate {
+                    status: Status::Up,
+                    service_id: svc.id,
+                    duration: now.elapsed().as_millis() as u32,
+                    time,
+                    ..Default::default()
                 };
-            }
-            if e.is_status() {
-                if let Some(st) = e.status() {
-                    if st.as_u16() == svc.expected_code.unwrap_or(200) {
-                        return LogForCreate {
-                            status: Status::Up,
-                            service_id: svc.id,
-                            duration: now.elapsed().as_millis() as u32,
-                            time,
-                            ..Default::default()
-                        };
-                    }
-                };
-            }
+            };
             LogForCreate {
                 status: Status::Down,
                 service_id: svc.id,
