@@ -1,4 +1,6 @@
 <script>
+  import { fuse } from '@sveu/extend/fuse';
+  import { resetMode, setMode } from 'mode-watcher';
   import Activity from 'lucide-svelte/icons/activity';
   import CircleUser from 'lucide-svelte/icons/circle-user';
   import Menu from 'lucide-svelte/icons/menu';
@@ -10,13 +12,13 @@
   import LogOut from 'lucide-svelte/icons/log-out';
   import UserRoundCog from 'lucide-svelte/icons/user-round-cog';
 
-  import { resetMode, setMode } from 'mode-watcher';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import * as Sheet from '$lib/components/ui/sheet/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import user from '$lib/store/user.js';
+  import services from '$lib/store/services.js';
   import { token } from '$lib/store/auth.js';
   import { cfetch } from '$lib/utils.js';
   import { goto } from '$app/navigation';
@@ -30,6 +32,32 @@
 
   /** @type {NavItem[]} */
   export let navItems = [];
+
+  let search = '';
+
+  let matchWhenEmpty = false;
+
+  let limit = 10;
+  /**
+   * @typedef {Object} Result
+   * @property {import('$lib/store/services.js').Service} item - resulting Service
+   * @property {number} refIndex - result index
+   */
+
+  /** @type {Result[]} */
+  let results = [];
+
+  $: ({ results } = fuse(search, $services, {
+    fuseOptions: {
+      includeScore: true,
+      includeMatches: true,
+      // shouldSort: true,
+      minMatchCharLength: 2,
+      keys: ['name']
+    },
+    matchWhenEmpty,
+    limit
+  }));
 
   function logout() {
     cfetch('/logout').finally(() => {
@@ -95,11 +123,17 @@
       <div class="relative">
         <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
+          bind:value={search}
           type="search"
           placeholder="Search monitors..."
           class="w-full appearance-none bg-background pl-8 shadow-none transition-all md:w-1/3 md:focus:w-2/3 lg:w-1/4 lg:focus:w-1/3"
           typing={focus}
         />
+        <ul class="hidden">
+          {#each results as result}
+            <li>{JSON.stringify(result)}</li>
+          {/each}
+        </ul>
       </div>
     </form>
   </div>
