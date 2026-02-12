@@ -16,13 +16,31 @@ pub async fn get(svc: Service, tx: Sender<Event>) -> LogForCreate {
     let time = Some(Utc::now());
 
     match reqwest::get(&svc.url).await {
-        Ok(_) => LogForCreate {
-            status: Status::Up,
-            service_id: svc.id,
-            duration: now.elapsed().as_millis() as u32,
-            time,
-            ..Default::default()
-        },
+        Ok(res) => {
+            if let Some(json) = svc.expected_payload {
+                if let (Ok(tmpl), Ok(data)) = (
+                    serde_json::from_str::<serde_json::Value>(&json),
+                    res.json::<serde_json::Value>().await,
+                ) {
+                    if tmpl != data {
+                        return LogForCreate {
+                            status: Status::Down,
+                            service_id: svc.id,
+                            duration: now.elapsed().as_millis() as u32,
+                            time,
+                            message: Some(format!("Expected: {json} Got: {data}")),
+                        };
+                    }
+                }
+            }
+            LogForCreate {
+                status: Status::Up,
+                service_id: svc.id,
+                duration: now.elapsed().as_millis() as u32,
+                time,
+                ..Default::default()
+            }
+        }
         Err(e) => {
             error!("Failed to get: {:?}", e);
             if e.is_connect() {
@@ -32,6 +50,19 @@ pub async fn get(svc: Service, tx: Sender<Event>) -> LogForCreate {
                     level: Level::Error,
                 })) {
                     error!("Failed to send notification: {:?}", e);
+                };
+            }
+            if e.is_status() {
+                if let Some(st) = e.status() {
+                    if st.as_u16() == svc.expected_code.unwrap_or(200) {
+                        return LogForCreate {
+                            status: Status::Up,
+                            service_id: svc.id,
+                            duration: now.elapsed().as_millis() as u32,
+                            time,
+                            ..Default::default()
+                        };
+                    }
                 };
             }
             LogForCreate {
