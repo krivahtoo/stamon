@@ -93,7 +93,10 @@ pub fn hash(val: String) -> String {
 pub fn verify_password(password: &str, hash: &str) -> bool {
     use argon2::{PasswordHash, PasswordVerifier};
 
-    let parsed_hash = PasswordHash::new(hash).expect("Invalid hash format");
+    let Ok(parsed_hash) = PasswordHash::new(hash) else {
+        return false;
+    };
+
     Argon2::default()
         .verify_password(password.as_bytes(), &parsed_hash)
         .is_ok()
@@ -168,6 +171,12 @@ mod tests {
 
         // Empty password should fail verification
         assert!(!verify_password(empty_password, &hashed));
+    }
+
+    #[test]
+    fn test_verify_password_invalid_hash() {
+        // Invalid hash input should not panic and should return false.
+        assert!(!verify_password("test_password", "not-a-valid-hash"));
     }
 
     #[test]
