@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Install | Stamon </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+    <style>
+    :root {
+        /* Primary theme color */
+        --primary-color: #1e54c4;
+        /* Primary theme text color */
+        --primary-text-color: #543631;
+        --primary-text-color-over: #000;
+        /* Primary theme link color */
+        --primary-link-color: #F9BB2D;
+        /* Secondary color: the background body color */
+        --secondary-color: #fcfaf6;
+        --secondary-text-color: #303030;
+        /* Highlight text color of table of content */
+        --toc-highlight-text-color: #d46e13;
+        --toc-background-color: white;
+        --code-color: #4a4a4a;
+        --code-background-color: white;
+
+        --shadow-color: #ddd;
+
+        /* Font used for headers (h1 & h2) */
+        --header-font-family: "Fira Sans", sans-serif;
+        /* Font used for text */
+        --text-font-family: "Fira Sans", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --primary-color: #1e54c4;
+            --primary-text-color: #d7d7d7;
+            --primary-text-color-over: #FFF;
+            --primary-link-color: #9b9b9b;
+            --secondary-color: #282828;
+            --secondary-text-color: #f2f2f2;
+            --toc-highlight-text-color: #f2f2f2;
+            --toc-background-color: #3a3a3a;
+            --code-color: white;
+            --code-background-color: #4a4a4a;
+
+            --shadow-color: #202020;
+            --header-font-family: "Fira Sans", sans-serif;
+            --text-font-family: "Fira Sans", sans-serif;
+        }
+    }
+</style>
+
+    
+    <link href="https://fonts.googleapis.com/css?family=Alfa+Slab+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Fira+Sans:400,500,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/normalize.css">
+    <link rel="stylesheet" href="/style.css">
+    
+    <link rel="stylesheet" href="/carbon.css">
+    
+</head>
+
+<body>
+    
+<header class="box-shadow">
+    
+
+<a href="/">
+    <div class="logo">
+        <img src="/stamon-min.svg" alt="logo">
+        stamon
+    </div>
+</a>
+
+<nav>
+    
+    
+    
+    <a class="nav-item subtitle-text" href="/changelog/">Changelog</a>
+    
+    
+    
+    
+    <a class="nav-item subtitle-text" href="/installation/">Install</a>
+    
+    
+    
+    
+    <a class="nav-item subtitle-text" href="/about/">About</a>
+    
+    
+    
+        
+        <a class="nav-item subtitle-text" href="https://github.com/krivahtoo/stamon">Github</a>
+        
+    
+</nav>
+
+</header>
+
+
+    <main>
+        
+        
+        
+        
+        
+        <div class="toc">
+            <div class="toc-sticky">
+                
+                <div class="toc-item">
+                    <a class="subtext" href="/installation/#inbox-tray-prerequisites">📥 Prerequisites</a>
+                </div>
+                
+                
+                <div class="toc-item">
+                    <a class="subtext" href="/installation/#whale-install-via-docker-recommended">🐳 Install via Docker (Recommended)</a>
+                </div>
+                
+                
+                <div class="toc-item-child">
+                    <a class="subtext" href="/installation/#run-with-docker-cli"><small>- Run with Docker CLI</small></a>
+                </div>
+                
+                <div class="toc-item-child">
+                    <a class="subtext" href="/installation/#run-with-docker-compose"><small>- Run with Docker Compose</small></a>
+                </div>
+                
+                
+                
+                <div class="toc-item">
+                    <a class="subtext" href="/installation/#gear-manual-installation-rust">⚙️ Manual Installation (Rust)</a>
+                </div>
+                
+                
+                <div class="toc-item-child">
+                    <a class="subtext" href="/installation/#1-clone-the-repository"><small>- 1. Clone the Repository</small></a>
+                </div>
+                
+                <div class="toc-item-child">
+                    <a class="subtext" href="/installation/#2-build-and-run"><small>- 2. Build and Run</small></a>
+                </div>
+                
+                
+                
+                <div class="toc-item">
+                    <a class="subtext" href="/installation/#development-setup">🏗️ Development Setup</a>
+                </div>
+                
+                
+                <div class="toc-item-child">
+                    <a class="subtext" href="/installation/#backend"><small>- Backend</small></a>
+                </div>
+                
+                <div class="toc-item-child">
+                    <a class="subtext" href="/installation/#frontend"><small>- Frontend</small></a>
+                </div>
+                
+                <div class="toc-item-child">
+                    <a class="subtext" href="/installation/#memo-configuration"><small>- 📝 Configuration</small></a>
+                </div>
+                
+                
+                
+            </div>
+        </div>
+        
+        
+
+        <div class="content text">
+            
+<div class="heading-text">Installing stamon</div>
+<p>This guide will walk you through installing <strong>stamon</strong>, a lightweight, self-hosted status monitoring tool written in Rust.</p>
+<hr />
+<h1 id="inbox-tray-prerequisites">📥 Prerequisites</h1>
+<p>Before installing <strong>stamon</strong>, make sure you have the following dependencies installed:</p>
+<ul>
+<li><strong>Docker</strong> (for containerized deployment) → <a href="https://docs.docker.com/get-docker/">Install Docker</a></li>
+<li><strong>Rust</strong> (for manual installation) → <a href="https://www.rust-lang.org/tools/install">Install Rust</a></li>
+<li><strong>Node.js &amp; PNPM</strong> (for frontend development) → <a href="https://nodejs.org/en">Install Node.js</a> &amp; <a href="https://pnpm.io/installation">PNPM</a></li>
+</ul>
+<hr />
+<h1 id="whale-install-via-docker-recommended">🐳 Install via Docker (Recommended)</h1>
+<p>The easiest way to get <strong>Stamon</strong> up and running is using Docker.</p>
+<h2 id="run-with-docker-cli"><strong>Run with Docker CLI</strong></h2>
+<pre data-lang="sh" style="background-color:#282a36;color:#f8f8f2;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#50fa7b;">docker</span><span> run</span><span style="font-style:italic;color:#ffb86c;"> -it -e</span><span> JWT_SECRET=</span><span style="color:#f1fa8c;">&quot;hello-world&quot;</span><span style="font-style:italic;color:#ffb86c;"> -p</span><span> 3000:3000 k4htoo/stamon
+</span></code></pre>
+<h2 id="run-with-docker-compose"><strong>Run with Docker Compose</strong></h2>
+<p>Create a <code>docker-compose.yml</code> file:</p>
+<pre data-lang="yml" style="background-color:#282a36;color:#f8f8f2;" class="language-yml "><code class="language-yml" data-lang="yml"><span style="color:#ff79c6;">version</span><span>: </span><span style="color:#f1fa8c;">&quot;3&quot;
+</span><span style="color:#ff79c6;">services</span><span>:
+</span><span>  </span><span style="color:#ff79c6;">stamon</span><span>:
+</span><span>    </span><span style="color:#ff79c6;">image</span><span>: </span><span style="color:#f1fa8c;">k4htoo/stamon
+</span><span>    </span><span style="color:#ff79c6;">environment</span><span>:
+</span><span>      </span><span style="color:#ff79c6;">JWT_SECRET</span><span>: </span><span style="color:#f1fa8c;">&quot;A_very_secure_secret&quot;
+</span><span>    </span><span style="color:#ff79c6;">ports</span><span>:
+</span><span>      - </span><span style="color:#f1fa8c;">&quot;3000:3000&quot;
+</span></code></pre>
+<p>Then run:</p>
+<pre data-lang="sh" style="background-color:#282a36;color:#f8f8f2;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#50fa7b;">docker</span><span> compose up</span><span style="font-style:italic;color:#ffb86c;"> -d
+</span></code></pre>
+<p>Now visit <a href="http://localhost:3000">http://localhost:3000</a>.</p>
+<h1 id="gear-manual-installation-rust">⚙️ Manual Installation (Rust)</h1>
+<p>For those who prefer running <strong>Stamon</strong> without Docker:</p>
+<h2 id="1-clone-the-repository">1. Clone the Repository</h2>
+<pre data-lang="sh" style="background-color:#282a36;color:#f8f8f2;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#50fa7b;">git</span><span> clone https://github.com/krivahtoo/stamon.git
+</span><span style="color:#8be9fd;">cd</span><span> stamon
+</span></code></pre>
+<h2 id="2-build-and-run">2. Build and Run</h2>
+<pre data-lang="sh" style="background-color:#282a36;color:#f8f8f2;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#50fa7b;">cargo</span><span> build</span><span style="font-style:italic;color:#ffb86c;"> --release
+</span><span style="color:#50fa7b;">./target/release/stamon
+</span></code></pre>
+<p>By default, the server runs on <strong>port 3000</strong>.</p>
+<h1 id="development-setup">🏗️ Development Setup</h1>
+<p>To set up a development environment:</p>
+<h2 id="backend">Backend</h2>
+<pre data-lang="sh" style="background-color:#282a36;color:#f8f8f2;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#50fa7b;">cargo</span><span> run
+</span></code></pre>
+<h2 id="frontend">Frontend</h2>
+<pre data-lang="sh" style="background-color:#282a36;color:#f8f8f2;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#8be9fd;">cd</span><span> frontend
+</span><span style="color:#50fa7b;">pnpm</span><span> install
+</span><span style="color:#50fa7b;">pnpm</span><span> dev
+</span></code></pre>
+<p>Then visit <a href="http://localhost:5173">http://localhost:5173</a>.</p>
+<h2 id="memo-configuration">📝 Configuration</h2>
+<p>You can customize Stamon using environment variables:</p>
+<table><thead><tr><th>Variable</th><th>Description</th><th>Default Value</th></tr></thead><tbody>
+<tr><td><code>JWT_SECRET</code></td><td>Secret key for authentication</td><td>Required</td></tr>
+<tr><td><code>PORT</code></td><td>Port for the server</td><td><code>3000</code></td></tr>
+<tr><td><code>DATABASE_URL</code></td><td>Database connection URL (if using DB)</td><td>Optional</td></tr>
+</tbody></table>
+<p>To set these values, create a <code>.env</code> file:</p>
+<pre data-lang="sh" style="background-color:#282a36;color:#f8f8f2;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#ffffff;">JWT_SECRET</span><span style="color:#ff79c6;">=</span><span style="color:#f1fa8c;">&quot;super_secret_key&quot;
+</span><span style="color:#ffffff;">PORT</span><span style="color:#ff79c6;">=</span><span style="color:#f1fa8c;">3000
+</span></code></pre>
+
+
+        </div>
+
+        
+        <div class="sidebar">
+        </div>
+        
+    </main>
+
+    
+    <footer>
+        <small class="subtext">
+          Made with ❤  by <a href="https://github.com/krivahtoo">Noah Cheptoo</a> and <a href="https://github.com/Est-1y">Esther Akinyi</a>
+        </small>
+    </footer>
+    
+</body>
+<script>
+    const scrollHandler = entries => {
+        // Find the first entry which intersecting and ratio > 0.9 to highlight.
+        let entry = entries.find(entry => {
+            return entry.isIntersecting && entry.intersectionRatio > 0.9;
+        });
+        if (!entry) return;
+
+        document.querySelectorAll(".toc a").forEach((item) => {
+            item.classList.remove("active");
+        });
+
+        // let url = new URL(`#${entry.target.id}`);
+        let link = document.querySelector(`.toc a[href$="${decodeURIComponent(`#${entry.target.id}`)}"]`)
+        if (link) {
+            link.classList.add("active");
+            link.scrollIntoView({ behavior: "auto", block: "nearest" });
+        }
+    };
+    // Set -100px root margin to improve highlight experience.
+    const observer = new IntersectionObserver(scrollHandler, { threshold: 1 });
+    let items = document.querySelectorAll('h1,h2,h3,h4,h5,h6');
+    items.forEach(item => observer.observe(item));
+</script>
+
+</html>
