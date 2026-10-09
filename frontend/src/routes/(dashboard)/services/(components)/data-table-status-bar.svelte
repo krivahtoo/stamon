@@ -24,7 +24,8 @@
     'bg-gray-500/30 dark:bg-gray-900/80',
     'bg-green-500 dark:bg-green-500/70',
     'bg-red-500 dark:bg-red-500/70',
-    'bg-yellow-500'
+    'bg-yellow-500',
+    'bg-blue-500 dark:bg-blue-500/70'
   ];
 
   onMount(async () => {

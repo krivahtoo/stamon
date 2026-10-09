@@ -1,7 +1,8 @@
 use alerts::ChannelConfig;
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, QueryBuilder, Sqlite, SqlitePool, types::Json};
+use sqlx::{FromRow, SqlitePool, types::Json};
 
+use super::missing_ids;
 use crate::{build_query_bind, build_update_query};
 
 /// A place alerts are sent. Its config holds secrets, so only admins see it.
@@ -170,22 +171,7 @@ impl Channel {
 
     /// The ids in `channel_ids` that don't belong to a channel.
     pub async fn missing_ids(pool: &SqlitePool, channel_ids: &[u32]) -> sqlx::Result<Vec<u32>> {
-        if channel_ids.is_empty() {
-            return Ok(vec![]);
-        }
-        let mut query =
-            QueryBuilder::<Sqlite>::new("SELECT id FROM NotificationChannels WHERE id IN (");
-        let mut ids = query.separated(", ");
-        for id in channel_ids {
-            ids.push_bind(id);
-        }
-        query.push(")");
-        let found: Vec<u32> = query.build_query_scalar().fetch_all(pool).await?;
-        Ok(channel_ids
-            .iter()
-            .copied()
-            .filter(|id| !found.contains(id))
-            .collect())
+        missing_ids(pool, "NotificationChannels", channel_ids).await
     }
 
     /// Replace the channels linked to a service.

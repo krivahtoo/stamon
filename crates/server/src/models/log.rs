@@ -16,6 +16,8 @@ pub enum Status {
     Down = 2,
     /// There was an internal error
     Failed = 3,
+    /// Not checked: the service is in a maintenance window
+    Maintenance = 4,
 }
 
 #[derive(Debug, FromRow, Serialize, Deserialize)]
@@ -375,7 +377,13 @@ mod tests {
     #[sqlx::test(fixtures("users", "services"))]
     async fn test_status_enum_values(pool: SqlitePool) -> sqlx::Result<()> {
         // Test all status variants
-        let statuses = [Status::Pending, Status::Up, Status::Down, Status::Failed];
+        let statuses = [
+            Status::Pending,
+            Status::Up,
+            Status::Down,
+            Status::Failed,
+            Status::Maintenance,
+        ];
 
         for (i, status) in statuses.iter().enumerate() {
             let count = Log::insert(
@@ -395,7 +403,8 @@ mod tests {
 
         // Verify all logs were created
         let logs = Log::list(&pool, 1, Some(10)).await?;
-        assert_eq!(logs.len(), 4);
+        assert_eq!(logs.len(), 5);
+        assert!(matches!(logs[0].status, Status::Maintenance));
 
         Ok(())
     }
