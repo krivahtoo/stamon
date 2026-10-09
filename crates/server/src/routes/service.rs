@@ -10,6 +10,7 @@ use serde_json::json;
 use tracing::error;
 
 use checks::CheckConfig;
+use chrono::{TimeDelta, Utc};
 use sqlx::types::Json as SqlJson;
 
 use crate::{
@@ -18,7 +19,7 @@ use crate::{
     models::{
         channel::Channel,
         log::Log,
-        service::{Service, ServiceForCreate, ServiceForUpdate, fill_push_token},
+        service::{Service, ServiceForCreate, ServiceForUpdate, clean_tags, fill_push_token},
     },
 };
 
@@ -80,6 +81,7 @@ async fn add_service(
     Json(mut service): Json<ServiceForCreate>,
 ) -> Response {
     fill_push_token(&mut service.config);
+    service.tags = clean_tags(std::mem::take(&mut service.tags));
     if let Err(message) = service.validate() {
         return bad_request(message);
     }
@@ -158,6 +160,40 @@ async fn set_service_channels(
     }
 }
 
+/// Uptime over the last day, week and month, and how long the service has
+/// had its current status.
+#[debug_handler]
+async fn service_stats(
+    _: Claims,
+    State(state): State<AppState>,
+    Path(service_id): Path<u32>,
+) -> Response {
+    let service = match Service::get(&state.pool, service_id).await {
+        Ok(Some(service)) => service,
+        Ok(None) => return json_response(404, "Service not found"),
+        Err(e) => {
+            error!("Error loading service({service_id}): {e}");
+            return json_response(500, "Internal server error");
+        }
+    };
+    let now = Utc::now();
+    let stats = async {
+        Ok::<_, sqlx::Error>(json!({
+            "uptime_24h": Log::uptime(&state.pool, service_id, now - TimeDelta::days(1)).await?,
+            "uptime_7d": Log::uptime(&state.pool, service_id, now - TimeDelta::days(7)).await?,
+            "uptime_30d": Log::uptime(&state.pool, service_id, now - TimeDelta::days(30)).await?,
+            "status_since": Log::status_since(&state.pool, service_id, service.last_status).await?,
+        }))
+    };
+    match stats.await {
+        Ok(stats) => Json(json!({ "stats": stats })).into_response(),
+        Err(e) => {
+            error!("Error computing stats for service({service_id}): {e}");
+            json_response(500, "Internal server error")
+        }
+    }
+}
+
 #[debug_handler]
 async fn get_service(
     _: Claims,
@@ -198,6 +234,9 @@ async fn update_service(
 ) -> Response {
     if let Some(SqlJson(config)) = &mut service.config {
         fill_push_token(config);
+    }
+    if let Some(SqlJson(tags)) = &mut service.tags {
+        *tags = clean_tags(std::mem::take(tags));
     }
     if let Err(message) = service.validate() {
         return bad_request(message);
@@ -296,6 +335,7 @@ pub fn routes() -> Router<AppState> {
             get(get_service).put(update_service).delete(delete_service),
         )
         .route("/services/{id}/logs", get(list_service_logs))
+        .route("/services/{id}/stats", get(service_stats))
         .route(
             "/services/{id}/channels",
             get(get_service_channels).put(set_service_channels),

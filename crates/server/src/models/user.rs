@@ -272,4 +272,73 @@ mod tests {
 
         Ok(())
     }
+
+    /// Run every migration before `version`, then the rest, with `setup`
+    /// executed in between, on one connection.
+    async fn migrate_around(
+        pool: &SqlitePool,
+        version: i64,
+        setup: &str,
+    ) -> sqlx::Result<sqlx::pool::PoolConnection<sqlx::Sqlite>> {
+        let mut conn = pool.acquire().await?;
+        let migrations = sqlx::migrate!();
+        for migration in migrations.iter().filter(|m| m.version < version) {
+            sqlx::raw_sql(&migration.sql).execute(&mut *conn).await?;
+        }
+        sqlx::raw_sql(setup).execute(&mut *conn).await?;
+        for migration in migrations.iter().filter(|m| m.version >= version) {
+            sqlx::raw_sql(&migration.sql).execute(&mut *conn).await?;
+        }
+        Ok(conn)
+    }
+
+    const ENSURE_ADMIN: i64 = 20251009190000;
+
+    async fn roles(conn: &mut sqlx::SqliteConnection) -> sqlx::Result<Vec<(String, UserRole)>> {
+        sqlx::query_as("SELECT username, role FROM Users ORDER BY id")
+            .fetch_all(conn)
+            .await
+    }
+
+    #[sqlx::test(migrations = false)]
+    async fn migration_promotes_first_user_without_admin(pool: SqlitePool) -> sqlx::Result<()> {
+        let mut conn = migrate_around(
+            &pool,
+            ENSURE_ADMIN,
+            r#"INSERT INTO Users (username, password, role, active) VALUES
+               ('gone', 'x', 'viewer', 0),
+               ('first', 'x', 'viewer', 1),
+               ('second', 'x', 'viewer', 1);"#,
+        )
+        .await?;
+        assert_eq!(
+            roles(&mut conn).await?,
+            [
+                ("gone".to_owned(), UserRole::Viewer),
+                ("first".to_owned(), UserRole::Admin),
+                ("second".to_owned(), UserRole::Viewer),
+            ]
+        );
+        Ok(())
+    }
+
+    #[sqlx::test(migrations = false)]
+    async fn migration_keeps_roles_when_an_admin_exists(pool: SqlitePool) -> sqlx::Result<()> {
+        let mut conn = migrate_around(
+            &pool,
+            ENSURE_ADMIN,
+            r#"INSERT INTO Users (username, password, role, active) VALUES
+               ('first', 'x', 'viewer', 1),
+               ('boss', 'x', 'admin', 1);"#,
+        )
+        .await?;
+        assert_eq!(
+            roles(&mut conn).await?,
+            [
+                ("first".to_owned(), UserRole::Viewer),
+                ("boss".to_owned(), UserRole::Admin),
+            ]
+        );
+        Ok(())
+    }
 }

@@ -2,7 +2,8 @@ export const StatusValue = {
   Pending: 0,
   Up: 1,
   Down: 2,
-  Failed: 3
+  Failed: 3,
+  Maintenance: 4
 };
 
 /**
@@ -32,6 +33,11 @@ export const statuses = [
   {
     value: StatusValue.Failed,
     label: 'Failed',
+    variant: 'secondary'
+  },
+  {
+    value: StatusValue.Maintenance,
+    label: 'Maintenance',
     variant: 'secondary'
   }
 ];

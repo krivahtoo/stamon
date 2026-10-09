@@ -19,7 +19,7 @@ jsonwebtoken = "9.3.0"
 serde = { version = "1.0.203", features = ["derive"] }
 serde_json = "1.0.117"
 sqlx = { version = "0.8.3", features = ["chrono", "json", "sqlite", "macros", "uuid", "migrate", "runtime-tokio"] }
-tokio = { version = "1.37.0", features = ["rt", "rt-multi-thread", "macros", "net", "signal", "time"] }
+tokio = { version = "1.37.0", features = ["fs", "rt", "rt-multi-thread", "macros", "net", "signal", "time"] }
 tower-http = { version = "0.6.2", features = ["fs", "trace", "timeout", "cors"] }
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
