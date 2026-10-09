@@ -17,7 +17,7 @@
   import ChannelPicker from '$lib/components/channel-picker.svelte';
   import user from '$lib/store/user.js';
   import { cfetch, pushUrl } from '$lib/utils.js';
-  import { statuses } from '../(data)/data.js';
+  import { statuses } from '$lib/data/table.js';
 
   /**
    * @typedef {Object} Log
