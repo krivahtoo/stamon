@@ -44,6 +44,9 @@ pub struct ServiceForCreate {
     pub retry_interval: u16,
     pub invert: Option<bool>,
     pub config: CheckConfig,
+    /// Channels that receive this service's alerts.
+    #[serde(default)]
+    pub channel_ids: Vec<u32>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -137,7 +140,8 @@ impl Service {
         Ok(service)
     }
 
-    pub async fn insert(pool: &SqlitePool, service: ServiceForCreate) -> sqlx::Result<u64> {
+    /// Returns the new service's id.
+    pub async fn insert(pool: &SqlitePool, service: ServiceForCreate) -> sqlx::Result<u32> {
         let result = sqlx::query(
             r#"INSERT INTO Services (
                    user_id, active, name, interval, timeout, retry, retry_interval, invert,
@@ -156,7 +160,7 @@ impl Service {
         .bind(Json(service.config))
         .execute(pool)
         .await?;
-        Ok(result.rows_affected())
+        Ok(result.last_insert_rowid() as u32)
     }
 
     pub async fn delete(pool: &SqlitePool, service_id: u32) -> sqlx::Result<u64> {
@@ -373,16 +377,18 @@ mod tests {
             retry_interval: 30,
             invert: None,
             config,
+            channel_ids: vec![],
         }
     }
 
     #[sqlx::test(fixtures("users"))]
     async fn insert_service_with_defaults(pool: SqlitePool) -> sqlx::Result<()> {
-        let count =
-            Service::insert(&pool, new_service("Simple", http("https://example.com"))).await?;
-        assert_eq!(count, 1);
+        let id = Service::insert(&pool, new_service("Simple", http("https://example.com"))).await?;
+        let second =
+            Service::insert(&pool, new_service("Second", http("https://example.com"))).await?;
+        assert_eq!((id, second), (1, 2), "returns the new id");
 
-        let service = Service::get(&pool, 1).await?.unwrap();
+        let service = Service::get(&pool, id).await?.unwrap();
         assert_eq!(service.name, "Simple");
         assert!(service.active);
         assert!(!service.invert);

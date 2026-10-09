@@ -1,5 +1,5 @@
+pub use alert::{AlertJob, deliver};
 pub use monitor::{CheckJob, job_monitor};
-pub use notification::{Notification, notify};
 
+pub mod alert;
 pub mod monitor;
-pub mod notification;
