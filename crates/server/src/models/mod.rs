@@ -3,6 +3,7 @@ use tracing::info;
 
 pub use self::user::{UserForLogin, UserForRegister};
 
+pub mod channel;
 pub mod config;
 pub mod log;
 pub mod notification;

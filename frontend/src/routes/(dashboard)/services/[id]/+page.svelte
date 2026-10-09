@@ -12,7 +12,10 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
-  import { pushUrl } from '$lib/utils.js';
+  import { toast } from 'svelte-sonner';
+  import ChannelPicker from '$lib/components/channel-picker.svelte';
+  import user from '$lib/store/user.js';
+  import { cfetch, pushUrl } from '$lib/utils.js';
 
   /**
    * @typedef {Object} Log
@@ -28,9 +31,37 @@
   /** @type {import('./$types').PageData} */
   export let data;
 
-  onMount(() => {
+  /**
+   * Channels picked for this service, once loaded.
+   * @type {number[]}
+   */
+  let channelIds = [];
+  let channelsLoaded = false;
+  $: canEdit = $user?.role === 'admin' || $user?.role === 'editor';
+
+  onMount(async () => {
     logs.set(data.logs);
+    const res = await cfetch(`/services/${data.service.id}/channels`, {
+      credentials: 'same-origin'
+    });
+    if (res.ok) channelIds = (await res.json()).channel_ids;
+    channelsLoaded = true;
   });
+
+  async function saveChannels() {
+    const res = await cfetch(`/services/${data.service.id}/channels`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ channel_ids: channelIds })
+    });
+    const body = await res.json().catch(() => null);
+    if (res.ok) {
+      toast.success('Alert channels saved');
+    } else {
+      toast.error(`Error: ${body?.message ?? body?.error ?? res.statusText}`);
+    }
+  }
 </script>
 
 <div class="flex items-center">
@@ -128,4 +159,23 @@
       <Metric data={logs} interval={data.service.interval} />
     </div>
   </Card.Content>
+</Card.Root>
+
+<Card.Root>
+  <Card.Header class="pb-2">
+    <Card.Title>Alert Channels</Card.Title>
+    <Card.Description
+      >Where alerts go when {data.service.name} goes down or recovers.</Card.Description
+    >
+  </Card.Header>
+  <Card.Content>
+    {#if channelsLoaded}
+      <ChannelPicker bind:selected={channelIds} disabled={!canEdit} />
+    {/if}
+  </Card.Content>
+  {#if canEdit}
+    <Card.Footer>
+      <Button size="sm" on:click={saveChannels}>Save channels</Button>
+    </Card.Footer>
+  {/if}
 </Card.Root>
