@@ -9,6 +9,7 @@ pub mod log;
 pub mod maintenance;
 pub mod notification;
 pub mod service;
+pub mod status_page;
 pub mod user;
 
 /// The ids in `ids` with no row in `table`.

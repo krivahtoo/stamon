@@ -21,7 +21,10 @@
   });
 
   onMount(() => {
-    if (!$user && $page?.url?.pathname != '/login/' && $page?.url?.pathname != '/register/') {
+    const path = $page?.url?.pathname ?? '';
+    // Public status pages are for visitors without an account.
+    const isPublic = path === '/login/' || path === '/register/' || path.startsWith('/status/');
+    if (!$user && !isPublic) {
       goto('/login');
     }
   });

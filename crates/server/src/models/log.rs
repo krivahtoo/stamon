@@ -200,6 +200,29 @@ impl Log {
         })
     }
 
+    /// Up and down results per UTC day since `since`, oldest first; days
+    /// without any are left out.
+    pub async fn daily_counts(
+        pool: &SqlitePool,
+        service_id: u32,
+        since: DateTime<Utc>,
+    ) -> sqlx::Result<Vec<(NaiveDate, u32, u32)>> {
+        sqlx::query_as(
+            r#"SELECT DATE(time) AS day,
+                      COUNT(*) FILTER (WHERE status = 1),
+                      COUNT(*) FILTER (WHERE status = 2)
+               FROM Logs
+               WHERE service_id = ? AND datetime(time) >= datetime(?)
+               GROUP BY day
+               HAVING COUNT(*) FILTER (WHERE status IN (1, 2)) > 0
+               ORDER BY day"#,
+        )
+        .bind(service_id)
+        .bind(since)
+        .fetch_all(pool)
+        .await
+    }
+
     /// When the service's current status began: the first log after the
     /// last one with a different status.
     pub async fn status_since(
@@ -517,6 +540,20 @@ mod tests {
         let removed = Log::prune(&pool, Utc::now() - chrono::TimeDelta::days(90)).await?;
         assert_eq!(removed, 1);
         assert_eq!(Log::list(&pool, 1, None).await?.len(), 1);
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services"))]
+    async fn daily_counts_group_by_day(pool: SqlitePool) -> sqlx::Result<()> {
+        let day_of =
+            |minutes_ago: i64| (Utc::now() - chrono::TimeDelta::minutes(minutes_ago)).date_naive();
+        insert_at(&pool, Status::Up, 60 * 24 * 2, 1).await;
+        insert_at(&pool, Status::Down, 60 * 24 * 2, 1).await;
+        insert_at(&pool, Status::Maintenance, 60 * 24, 1).await; // a day with no checks
+        insert_at(&pool, Status::Up, 1, 1).await;
+
+        let counts = Log::daily_counts(&pool, 1, Utc::now() - chrono::TimeDelta::days(30)).await?;
+        assert_eq!(counts, [(day_of(60 * 24 * 2), 1, 1), (day_of(1), 1, 0)]);
         Ok(())
     }
 }
