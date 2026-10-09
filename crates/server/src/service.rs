@@ -6,7 +6,7 @@ use chrono::{DateTime, Timelike, Utc};
 use sqlx::sqlite::SqlitePool;
 use tracing::{debug, error};
 
-use crate::models::service::Service;
+use crate::{job::CheckJob, models::service::Service};
 
 #[derive(Clone)]
 pub struct TimerService {
@@ -19,7 +19,7 @@ impl TimerService {
     }
 
     pub async fn execute(&self, job: Timer) -> Result<(), Box<dyn std::error::Error>> {
-        let mut storage: SqliteStorage<Service> = SqliteStorage::new(self.pool.clone());
+        let mut storage: SqliteStorage<CheckJob> = SqliteStorage::new(self.pool.clone());
         let now = Utc::now().timestamp();
 
         for service in Service::due(&self.pool, now).await? {
@@ -27,7 +27,11 @@ impl TimerService {
             // queueing the service again on every tick.
             let next_run_at = now + i64::from(service.interval.max(1));
             Service::set_next_run(&self.pool, service.id, next_run_at).await?;
-            storage.push(service).await?;
+            storage
+                .push(CheckJob {
+                    service_id: service.id,
+                })
+                .await?;
         }
 
         if job.second() == 0 {

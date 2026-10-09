@@ -350,6 +350,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "checks"
+version = "0.2.0"
+dependencies = [
+ "axum",
+ "ping-rs",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "chrono"
 version = "0.4.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2013,13 +2026,12 @@ dependencies = [
  "axum",
  "axum-extra",
  "axum-macros",
+ "checks",
  "chrono",
  "futures",
  "itertools",
  "jsonwebtoken",
  "listenfd",
- "ping-rs",
- "reqwest",
  "serde",
  "serde_json",
  "serde_repr",

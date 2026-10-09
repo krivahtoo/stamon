@@ -18,33 +18,51 @@
     { value: 'http', label: 'HTTP(s)' }
   ];
 
+  const httpMethods = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'].map((m) => ({
+    value: m,
+    label: m
+  }));
+
   /**
    * @typedef {Object} NewService
    * @property {string} name - The monitor name.
-   * @property {string} url - The monitor URL.
    * @property {string} service_type - The monitor type.
    * @property {number} retry - The number of retries.
    * @property {number} retry_interval - The interval between retries in seconds.
    * @property {number} interval - The monitoring interval in seconds.
-   * @property {number} timeout - The request timeout in seconds.
+   * @property {number} timeout - The check timeout in seconds.
    * @property {boolean} invert - Invert the expected result.
-   * @property {number} expected_code - The expected HTTP status code.
-   * @property {string} expected_payload - The expected HTTP response body.
+   * @property {string} url - HTTP: the URL to request.
+   * @property {string} method - HTTP: the request method.
+   * @property {string} headers - HTTP: request headers, one `Name: value` per line.
+   * @property {string} body - HTTP: the request body.
+   * @property {number | string} expected_code - HTTP: expected status code, or 1-5 for a class.
+   * @property {string} expected_payload - HTTP: JSON the response must equal.
+   * @property {string} host - Ping: the IP address or hostname.
    */
 
+  /** @returns {NewService} */
+  function emptyService() {
+    return {
+      name: '',
+      service_type: '',
+      retry: 1,
+      retry_interval: 30,
+      interval: 60,
+      timeout: 20,
+      invert: false,
+      url: '',
+      method: 'GET',
+      headers: '',
+      body: '',
+      expected_code: 2,
+      expected_payload: '',
+      host: ''
+    };
+  }
+
   /** @type {NewService} */
-  let newService = {
-    name: '',
-    url: '',
-    service_type: '',
-    retry: 1,
-    retry_interval: 30,
-    interval: 60,
-    timeout: 20,
-    invert: false,
-    expected_code: 2,
-    expected_payload: ''
-  };
+  let newService = emptyService();
 
   /** @type {import('../$types').Snapshot<NewService>} */
   export const snapshot = {
@@ -52,35 +70,80 @@
     restore: (value) => (newService = value)
   };
 
+  /**
+   * Parse `Name: value` lines into a header map.
+   * @param {string} text
+   * @returns {Record<string, string>}
+   */
+  function parseHeaders(text) {
+    /** @type {Record<string, string>} */
+    const headers = {};
+    for (const line of text.split('\n')) {
+      if (!line.trim()) continue;
+      const split = line.indexOf(':');
+      if (split <= 0) throw new Error(`Invalid header line: "${line}"`);
+      headers[line.slice(0, split).trim()] = line.slice(split + 1).trim();
+    }
+    return headers;
+  }
+
+  /** Build the type-specific check config sent to the API. */
+  function buildConfig() {
+    switch (newService.service_type) {
+      case 'http':
+        return {
+          type: 'http',
+          url: newService.url,
+          method: newService.method,
+          headers: parseHeaders(newService.headers),
+          body: newService.body || null,
+          expected_code: newService.expected_code === '' ? null : Number(newService.expected_code),
+          expected_payload: newService.expected_payload || null
+        };
+      case 'ping':
+        return { type: 'ping', host: newService.host };
+      default:
+        throw new Error('Select a service type');
+    }
+  }
+
   function addService() {
     // Validate inputs
-    if (newService.timeout >= newService.interval) {
+    if (Number(newService.timeout) >= Number(newService.interval)) {
       toast.error('Timeout must be less than interval');
       return;
     }
 
-    // fix data types
-    newService.retry = Number(newService.retry);
-    newService.retry_interval = Number(newService.retry_interval);
-    newService.interval = Number(newService.interval);
-    newService.timeout = Number(newService.timeout);
-    newService.expected_code = Number(newService.expected_code);
-    console.log(newService);
+    let config;
+    try {
+      config = buildConfig();
+    } catch (e) {
+      toast.error(`${e instanceof Error ? e.message : e}`);
+      return;
+    }
+
+    const payload = {
+      name: newService.name,
+      retry: Number(newService.retry),
+      retry_interval: Number(newService.retry_interval),
+      interval: Number(newService.interval),
+      timeout: Number(newService.timeout),
+      invert: newService.invert,
+      config
+    };
     const promise = new Promise((resolve, reject) =>
       cfetch('/services', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify(newService)
+        body: JSON.stringify(payload)
       })
         .then(async (res) => {
           if (res.ok) {
-            const data = await res.json();
-            // console.log(data);
-            resolve(data);
+            resolve(await res.json());
           } else {
-            console.log(res);
-            reject(res.statusText);
+            const data = await res.json().catch(() => null);
+            reject(data?.message ?? data?.error ?? res.statusText);
           }
         })
         .catch((e) => {
@@ -129,16 +192,6 @@
       />
     </div>
     <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-      <Label for="url" class="sm:text-right">Url</Label>
-      <Input
-        id="url"
-        bind:value={newService.url}
-        placeholder="URL/Ip of the service"
-        class="col-span-3"
-        required
-      />
-    </div>
-    <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
       <Label for="type" class="sm:text-right">Type</Label>
       <Select.Root onSelectedChange={(v) => (newService.service_type = v?.value)} portal={null}>
         <Select.Trigger class="w-[180px]">
@@ -155,10 +208,89 @@
         <Select.Input name="service_type" id="type" required />
       </Select.Root>
     </div>
-    <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-      <Label for="payload" class="sm:text-right">Payload</Label>
-      <Textarea id="payload" placeholder="Request payload" class="col-span-3" />
-    </div>
+
+    {#if newService.service_type === 'http'}
+      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
+        <Label for="url" class="sm:text-right">URL</Label>
+        <Input
+          id="url"
+          bind:value={newService.url}
+          placeholder="https://example.com/health"
+          type="url"
+          class="col-span-3"
+          required
+        />
+      </div>
+      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
+        <Label for="method" class="sm:text-right">Method</Label>
+        <Select.Root
+          selected={{ value: newService.method, label: newService.method }}
+          onSelectedChange={(v) => (newService.method = v?.value ?? 'GET')}
+          portal={null}
+        >
+          <Select.Trigger class="w-[180px]">
+            <Select.Value placeholder="GET" />
+          </Select.Trigger>
+          <Select.Content>
+            {#each httpMethods as method}
+              <Select.Item value={method.value} label={method.label}>{method.label}</Select.Item>
+            {/each}
+          </Select.Content>
+          <Select.Input name="method" id="method" />
+        </Select.Root>
+      </div>
+      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
+        <Label for="headers" class="sm:text-right">Headers</Label>
+        <Textarea
+          id="headers"
+          bind:value={newService.headers}
+          placeholder={'Authorization: Bearer <token>\nAccept: application/json'}
+          class="col-span-3 font-mono"
+        />
+      </div>
+      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
+        <Label for="body" class="sm:text-right">Body</Label>
+        <Textarea
+          id="body"
+          bind:value={newService.body}
+          placeholder="Request body"
+          class="col-span-3 font-mono"
+        />
+      </div>
+      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
+        <Label for="expected_code" class="sm:text-right">Expected Code</Label>
+        <Input
+          id="expected_code"
+          placeholder="Status code, or 1-5 for a whole class (2 = any 2xx)"
+          bind:value={newService.expected_code}
+          type="number"
+          min="0"
+          max="599"
+          class="col-span-3"
+        />
+      </div>
+      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
+        <Label for="expected_payload" class="sm:text-right">Expected Payload</Label>
+        <Textarea
+          id="expected_payload"
+          placeholder="JSON the response must equal"
+          bind:value={newService.expected_payload}
+          class="col-span-3 font-mono"
+        />
+      </div>
+    {:else if newService.service_type === 'ping'}
+      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
+        <Label for="host" class="sm:text-right">Host</Label>
+        <Input
+          id="host"
+          bind:value={newService.host}
+          placeholder="IP address or hostname"
+          class="col-span-3"
+          required
+        />
+      </div>
+    {/if}
+
     <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
       <Label for="interval" class="sm:text-right">Interval</Label>
       <Input
@@ -187,44 +319,10 @@
       <Label for="invert" class="sm:text-right">Invert Check</Label>
       <Switch id="invert" bind:checked={newService.invert} class="sm:col-span-3" />
     </div>
-    <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-      <Label for="expected_code" class="sm:text-right">Expected Code</Label>
-      <Input
-        id="expected_code"
-        placeholder="Expected HTTP response code"
-        bind:value={newService.expected_code}
-        type="number"
-        class="col-span-3"
-      />
-    </div>
-    <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-      <Label for="expected_payload" class="sm:text-right">Expected Payload</Label>
-      <Textarea
-        id="expected_payload"
-        placeholder="Expected response payload"
-        bind:value={newService.expected_payload}
-        class="col-span-3"
-      />
-    </div>
   </div>
   <Footer class="gap-2">
-    <Button
-      variant="outline"
-      type="reset"
-      on:click={() => {
-        newService = {
-          name: '',
-          url: '',
-          service_type: '',
-          retry: 1,
-          retry_interval: 30,
-          interval: 60,
-          timeout: 20,
-          invert: false,
-          expected_code: 200,
-          expected_payload: ''
-        };
-      }}>Reset</Button
+    <Button variant="outline" type="reset" on:click={() => (newService = emptyService())}
+      >Reset</Button
     >
     <Button type="submit">Add Service</Button>
   </Footer>

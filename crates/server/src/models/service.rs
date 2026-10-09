@@ -1,76 +1,60 @@
+use checks::CheckConfig;
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, SqlitePool, Type};
+use sqlx::{FromRow, SqlitePool, types::Json};
 
 use crate::{build_query_bind, build_update_query};
 
 use super::log::Status;
 
-#[derive(Debug, Clone, Type, Default, Serialize, Deserialize)]
-#[sqlx(rename_all = "kebab-case")]
-#[serde(rename_all = "kebab-case")]
-pub enum ServiceType {
-    #[default]
-    Ping,
-    Http,
-}
-
-#[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
+#[derive(Debug, Clone, FromRow, Serialize)]
 pub struct Service {
     pub id: u32,
     pub user_id: u32,
     pub active: bool,
     pub name: String,
     pub interval: u32,
-    pub url: String,
     pub timeout: u32,
-    pub payload: Option<String>,
     pub last_status: Status,
-    pub service_type: ServiceType,
     pub retry: u32,
     pub retry_interval: u32,
     pub invert: bool,
-    pub expected_code: Option<u16>,
-    pub expected_payload: Option<String>,
-    #[serde(default)]
     pub consecutive_failures: u32,
-    #[serde(default)]
     pub next_run_at: i64,
+    #[sqlx(json)]
+    pub config: CheckConfig,
+    /// The config's `type`, derived by the database.
+    pub service_type: String,
+    /// The config's URL or host, derived by the database.
+    pub target: String,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct ServiceForCreate {
     #[serde(skip)]
     pub user_id: Option<u32>,
     pub active: Option<bool>,
     pub name: String,
     pub interval: u16,
-    pub url: String,
     pub timeout: Option<u16>,
-    pub payload: Option<String>,
-    pub service_type: ServiceType,
     pub retry: u16,
     pub retry_interval: u16,
     pub invert: Option<bool>,
-    pub expected_code: Option<u16>,
-    pub expected_payload: Option<String>,
+    pub config: CheckConfig,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Deserialize)]
 pub struct ServiceForUpdate {
     pub active: Option<bool>,
     pub name: Option<String>,
     pub interval: Option<u16>,
-    pub url: Option<String>,
     pub timeout: Option<u16>,
-    pub payload: Option<String>,
     #[serde(skip)]
     pub last_status: Option<Status>,
-    pub service_type: Option<ServiceType>,
     pub retry: Option<u16>,
     pub retry_interval: Option<u16>,
     pub invert: Option<bool>,
-    pub expected_code: Option<u16>,
-    pub expected_payload: Option<String>,
+    /// Replaces the whole check config.
+    pub config: Option<Json<CheckConfig>>,
 }
 
 #[derive(Debug, Default, Serialize)]
@@ -84,51 +68,34 @@ pub struct Stats {
 
 impl ServiceForCreate {
     pub fn validate(&self) -> Result<(), String> {
-        validate_fields(
-            Some(&self.name),
-            Some(&self.url),
-            Some(self.interval),
-            self.timeout,
-            self.expected_code,
-        )
+        validate_fields(Some(&self.name), Some(self.interval), self.timeout)?;
+        self.config.validate()
     }
 }
 
 impl ServiceForUpdate {
     pub fn validate(&self) -> Result<(), String> {
-        validate_fields(
-            self.name.as_deref(),
-            self.url.as_deref(),
-            self.interval,
-            self.timeout,
-            self.expected_code,
-        )
+        validate_fields(self.name.as_deref(), self.interval, self.timeout)?;
+        match &self.config {
+            Some(Json(config)) => config.validate(),
+            None => Ok(()),
+        }
     }
 }
 
 fn validate_fields(
     name: Option<&str>,
-    url: Option<&str>,
     interval: Option<u16>,
     timeout: Option<u16>,
-    expected_code: Option<u16>,
 ) -> Result<(), String> {
     if name.is_some_and(|n| n.trim().is_empty()) {
         return Err("name must not be empty".into());
-    }
-    if url.is_some_and(|u| u.trim().is_empty()) {
-        return Err("url must not be empty".into());
     }
     if interval == Some(0) {
         return Err("interval must be at least 1 second".into());
     }
     if timeout == Some(0) {
         return Err("timeout must be at least 1 second".into());
-    }
-    if let Some(code) = expected_code
-        && !matches!(code, 0..=5 | 100..=599)
-    {
-        return Err("expected_code must be a status class (1-5) or a status code (100-599)".into());
     }
     Ok(())
 }
@@ -150,23 +117,18 @@ impl Service {
     pub async fn insert(pool: &SqlitePool, service: ServiceForCreate) -> sqlx::Result<u64> {
         let result = sqlx::query(
             r#"INSERT INTO Services (
-                   user_id, active, name, interval, url, timeout, payload, service_type,
-                   retry, retry_interval, invert, expected_code, expected_payload
-               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"#,
+                   user_id, active, name, interval, timeout, retry, retry_interval, invert, config
+               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"#,
         )
         .bind(service.user_id)
         .bind(service.active.unwrap_or(true))
         .bind(service.name)
         .bind(service.interval)
-        .bind(service.url)
         .bind(service.timeout.unwrap_or(10))
-        .bind(service.payload)
-        .bind(service.service_type)
         .bind(service.retry)
         .bind(service.retry_interval)
         .bind(service.invert.unwrap_or(false))
-        .bind(service.expected_code)
-        .bind(service.expected_payload)
+        .bind(Json(service.config))
         .execute(pool)
         .await?;
         Ok(result.rows_affected())
@@ -288,16 +250,12 @@ impl Service {
             active,
             name,
             interval,
-            url,
             timeout,
-            payload,
             last_status,
-            service_type,
             retry,
             retry_interval,
             invert,
-            expected_code,
-            expected_payload
+            config
         });
 
         // Remove the trailing comma and space
@@ -315,16 +273,12 @@ impl Service {
             active,
             name,
             interval,
-            url,
             timeout,
-            payload,
             last_status,
-            service_type,
             retry,
             retry_interval,
             invert,
-            expected_code,
-            expected_payload
+            config
         });
 
         // bind to service_id
@@ -338,53 +292,159 @@ impl Service {
 
 #[cfg(test)]
 mod tests {
+    use checks::{HttpMethod, PingConfig};
+    use serde_json::json;
     use sqlx::SqlitePool;
 
     use super::*;
 
+    fn http(url: &str) -> CheckConfig {
+        serde_json::from_value(json!({ "type": "http", "url": url })).unwrap()
+    }
+
+    fn new_service(name: &str, config: CheckConfig) -> ServiceForCreate {
+        ServiceForCreate {
+            user_id: Some(1),
+            active: None,
+            name: name.into(),
+            interval: 60,
+            timeout: None,
+            retry: 1,
+            retry_interval: 30,
+            invert: None,
+            config,
+        }
+    }
+
     #[sqlx::test(fixtures("users"))]
-    async fn insert_service(pool: SqlitePool) -> sqlx::Result<()> {
-        let count = Service::insert(
+    async fn insert_service_with_defaults(pool: SqlitePool) -> sqlx::Result<()> {
+        let count =
+            Service::insert(&pool, new_service("Simple", http("https://example.com"))).await?;
+        assert_eq!(count, 1);
+
+        let service = Service::get(&pool, 1).await?.unwrap();
+        assert_eq!(service.name, "Simple");
+        assert!(service.active);
+        assert!(!service.invert);
+        assert_eq!(service.timeout, 10);
+        assert_eq!(service.consecutive_failures, 0);
+        assert_eq!(service.next_run_at, 0);
+        assert_eq!(service.config, http("https://example.com"));
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users"))]
+    async fn insert_persists_all_settings(pool: SqlitePool) -> sqlx::Result<()> {
+        let config: CheckConfig = serde_json::from_value(json!({
+            "type": "http",
+            "url": "https://api.example.com",
+            "method": "POST",
+            "headers": { "Authorization": "Bearer x" },
+            "body": "{}",
+            "expected_code": 204,
+            "expected_payload": "{\"ok\":true}",
+        }))
+        .unwrap();
+        Service::insert(
             &pool,
             ServiceForCreate {
-                user_id: Some(1),
                 active: Some(false),
-                name: "foo".into(),
-                interval: 0,
-                url: "https://example.com".into(),
-                payload: None,
-                service_type: ServiceType::Ping,
-                retry: 0,
-                retry_interval: 0,
-                ..Default::default()
+                timeout: Some(7),
+                invert: Some(true),
+                ..new_service("API", config.clone())
             },
         )
         .await?;
 
-        assert_eq!(count, 1);
+        let service = Service::get(&pool, 1).await?.unwrap();
+        assert!(!service.active);
+        assert_eq!(service.timeout, 7);
+        assert!(service.invert);
+        assert_eq!(service.config, config);
+
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users"))]
+    async fn type_and_target_follow_config(pool: SqlitePool) -> sqlx::Result<()> {
+        Service::insert(
+            &pool,
+            new_service("web", http("https://example.com/health")),
+        )
+        .await?;
+        Service::insert(
+            &pool,
+            new_service(
+                "box",
+                CheckConfig::Ping(PingConfig {
+                    host: "10.0.0.5".into(),
+                }),
+            ),
+        )
+        .await?;
+
+        let web = Service::get(&pool, 1).await?.unwrap();
+        assert_eq!(web.service_type, "http");
+        assert_eq!(web.target, "https://example.com/health");
+        let host = Service::get(&pool, 2).await?.unwrap();
+        assert_eq!(host.service_type, "ping");
+        assert_eq!(host.target, "10.0.0.5");
+
+        // Replacing the config updates the derived columns.
+        Service::update(
+            &pool,
+            1,
+            ServiceForUpdate {
+                config: Some(Json(CheckConfig::Ping(PingConfig {
+                    host: "example.com".into(),
+                }))),
+                ..Default::default()
+            },
+        )
+        .await?;
+        let web = Service::get(&pool, 1).await?.unwrap();
+        assert_eq!(web.service_type, "ping");
+        assert_eq!(web.target, "example.com");
 
         Ok(())
     }
 
     #[sqlx::test(fixtures("users", "services"))]
-    async fn list_services(pool: SqlitePool) -> sqlx::Result<()> {
-        let services = Service::due(&pool, i64::MAX).await?;
+    async fn update_settings_and_config(pool: SqlitePool) -> sqlx::Result<()> {
+        let updated = Service::update(
+            &pool,
+            1,
+            ServiceForUpdate {
+                name: Some("Renamed".into()),
+                timeout: Some(3),
+                config: Some(Json(http("https://new.example.com"))),
+                ..Default::default()
+            },
+        )
+        .await?;
+        assert_eq!(updated, 1);
 
-        dbg!(&services);
+        let service = Service::get(&pool, 1).await?.unwrap();
+        assert_eq!(service.name, "Renamed");
+        assert_eq!(service.timeout, 3);
+        assert_eq!(service.config, http("https://new.example.com"));
+        assert_eq!(service.interval, 5, "untouched fields are kept");
 
-        assert_eq!(services.len(), 4);
-
+        assert_eq!(
+            Service::update(&pool, 1, ServiceForUpdate::default()).await?,
+            0
+        );
         Ok(())
     }
 
     #[sqlx::test(fixtures("users", "services"))]
     async fn get_service(pool: SqlitePool) -> sqlx::Result<()> {
-        let service = Service::get(&pool, 1).await?;
+        let service = Service::get(&pool, 1).await?.unwrap();
+        assert_eq!(service.name, "Service One");
+        assert_eq!(service.service_type, "http");
 
-        dbg!(&service);
-
-        assert!(service.is_some());
-
+        assert!(Service::get(&pool, 999).await?.is_none());
         Ok(())
     }
 
@@ -392,126 +452,25 @@ mod tests {
     async fn get_stats(pool: SqlitePool) -> sqlx::Result<()> {
         let stats = Service::get_stats(&pool).await?;
 
-        dbg!(&stats);
-
+        assert_eq!(stats.count, 5);
         assert_eq!(stats.active, 4);
-
-        Ok(())
-    }
-
-    #[sqlx::test(fixtures("users"))]
-    async fn insert_service_with_payload(pool: SqlitePool) -> sqlx::Result<()> {
-        let count = Service::insert(
-            &pool,
-            ServiceForCreate {
-                user_id: Some(1),
-                active: Some(true),
-                name: "Test Service".into(),
-                interval: 60,
-                url: "https://test.example.com".into(),
-                payload: Some("{\"test\": \"data\"}".into()),
-                service_type: ServiceType::Http,
-                retry: 3,
-                retry_interval: 30,
-                ..Default::default()
-            },
-        )
-        .await?;
-
-        assert_eq!(count, 1);
-
-        // Verify the service was created with payload
-        let service = Service::get(&pool, 1).await?;
-        assert!(service.is_some());
-        let service = service.unwrap();
-        assert_eq!(service.name, "Test Service");
-        assert_eq!(service.payload, Some("{\"test\": \"data\"}".into()));
-
-        Ok(())
-    }
-
-    #[sqlx::test(fixtures("users"))]
-    async fn insert_service_without_payload(pool: SqlitePool) -> sqlx::Result<()> {
-        let count = Service::insert(
-            &pool,
-            ServiceForCreate {
-                user_id: Some(1),
-                active: None, // Should default to true
-                name: "Simple Service".into(),
-                interval: 120,
-                url: "https://simple.example.com".into(),
-                payload: None,
-                service_type: ServiceType::Ping,
-                retry: 1,
-                retry_interval: 60,
-                ..Default::default()
-            },
-        )
-        .await?;
-
-        assert_eq!(count, 1);
-
-        // Verify the service was created without payload and with default active=true
-        let service = Service::get(&pool, 1).await?;
-        assert!(service.is_some());
-        let service = service.unwrap();
-        assert_eq!(service.name, "Simple Service");
-        assert!(service.payload.is_none());
-        assert!(service.active);
+        assert_eq!(stats.up, 1);
+        assert_eq!(stats.down, 1);
 
         Ok(())
     }
 
     #[sqlx::test(fixtures("users", "services"))]
-    async fn get_nonexistent_service(pool: SqlitePool) -> sqlx::Result<()> {
-        let service = Service::get(&pool, 999).await?;
-        assert!(service.is_none());
-
+    async fn list_all_services(pool: SqlitePool) -> sqlx::Result<()> {
+        assert_eq!(Service::all(&pool).await?.len(), 5);
         Ok(())
     }
 
     #[sqlx::test(fixtures("users", "services"))]
-    async fn list_services_returns_only_active(pool: SqlitePool) -> sqlx::Result<()> {
+    async fn due_returns_only_active(pool: SqlitePool) -> sqlx::Result<()> {
         let services = Service::due(&pool, i64::MAX).await?;
-
-        // Should only return active services (4 out of 5 in fixtures)
         assert_eq!(services.len(), 4);
-
-        // Verify all returned services are active
-        for service in services {
-            assert!(service.active);
-        }
-
-        Ok(())
-    }
-
-    #[sqlx::test(fixtures("users"))]
-    async fn insert_persists_all_check_settings(pool: SqlitePool) -> sqlx::Result<()> {
-        Service::insert(
-            &pool,
-            ServiceForCreate {
-                user_id: Some(1),
-                name: "API".into(),
-                interval: 60,
-                url: "https://api.example.com".into(),
-                timeout: Some(7),
-                service_type: ServiceType::Http,
-                invert: Some(true),
-                expected_code: Some(204),
-                expected_payload: Some(r#"{"ok":true}"#.into()),
-                ..Default::default()
-            },
-        )
-        .await?;
-
-        let service = Service::get(&pool, 1).await?.unwrap();
-        assert_eq!(service.timeout, 7);
-        assert!(service.invert);
-        assert_eq!(service.expected_code, Some(204));
-        assert_eq!(service.expected_payload.as_deref(), Some(r#"{"ok":true}"#));
-        assert_eq!(service.consecutive_failures, 0);
-        assert_eq!(service.next_run_at, 0);
-
+        assert!(services.iter().all(|s| s.active));
         Ok(())
     }
 
@@ -553,52 +512,103 @@ mod tests {
         Ok(())
     }
 
+    #[sqlx::test(migrations = false)]
+    async fn migrates_legacy_services_to_config(pool: SqlitePool) -> sqlx::Result<()> {
+        const CONFIG_MIGRATION: i64 = 20251009130000;
+        // One connection throughout, so no pooled connection holds the old schema.
+        let mut conn = pool.acquire().await?;
+        let migrations = sqlx::migrate!();
+        for migration in migrations.iter().filter(|m| m.version < CONFIG_MIGRATION) {
+            sqlx::raw_sql(&migration.sql).execute(&mut *conn).await?;
+        }
+
+        sqlx::raw_sql(
+            r#"INSERT INTO Users (username, password) VALUES ('admin', 'x');
+               INSERT INTO Services (user_id, name, interval, url, payload, service_type,
+                                     retry_interval, expected_code, expected_payload) VALUES
+               (1, 'get', 60, 'https://a.example.com', NULL, 'http', 30, 2, ''),
+               (1, 'post', 60, 'https://b.example.com', '{"q":1}', 'http', 30, 404, '{"ok":true}'),
+               (1, 'host', 60, '10.0.0.1', NULL, 'ping', 30, NULL, NULL);"#,
+        )
+        .execute(&mut *conn)
+        .await?;
+
+        for migration in migrations.iter().filter(|m| m.version >= CONFIG_MIGRATION) {
+            sqlx::raw_sql(&migration.sql).execute(&mut *conn).await?;
+        }
+
+        let services = sqlx::query_as::<_, Service>("SELECT * FROM Services ORDER BY id")
+            .fetch_all(&mut *conn)
+            .await?;
+        assert_eq!(services.len(), 3);
+        assert!(services.iter().all(|s| s.retry_interval == 30));
+
+        let CheckConfig::Http(get) = &services[0].config else {
+            panic!("expected http config");
+        };
+        assert_eq!(get.url, "https://a.example.com");
+        assert_eq!(get.method, HttpMethod::Get);
+        assert_eq!(get.body, None);
+        assert_eq!(get.expected_code, Some(2));
+        assert_eq!(get.expected_payload, None, "empty template is dropped");
+
+        let CheckConfig::Http(post) = &services[1].config else {
+            panic!("expected http config");
+        };
+        assert_eq!(post.method, HttpMethod::Post);
+        assert_eq!(post.body.as_deref(), Some(r#"{"q":1}"#));
+        assert_eq!(post.expected_code, Some(404));
+        assert_eq!(post.expected_payload.as_deref(), Some(r#"{"ok":true}"#));
+
+        assert_eq!(
+            services[2].config,
+            CheckConfig::Ping(PingConfig {
+                host: "10.0.0.1".into()
+            })
+        );
+        assert_eq!(services[2].service_type, "ping");
+        assert_eq!(services[2].target, "10.0.0.1");
+
+        Ok(())
+    }
+
     #[test]
     fn validate_rejects_bad_settings() {
-        let valid = ServiceForCreate {
-            name: "svc".into(),
-            url: "https://example.com".into(),
-            interval: 60,
-            ..Default::default()
-        };
+        let valid = new_service("svc", http("https://example.com"));
         assert!(valid.validate().is_ok());
 
-        let zero_interval = ServiceForCreate {
-            interval: 0,
-            ..valid.clone()
-        };
-        assert!(zero_interval.validate().is_err());
-
-        let zero_timeout = ServiceForCreate {
-            timeout: Some(0),
-            ..valid.clone()
-        };
-        assert!(zero_timeout.validate().is_err());
-
-        let blank_name = ServiceForCreate {
-            name: " ".into(),
-            ..valid.clone()
-        };
-        assert!(blank_name.validate().is_err());
-
-        for code in [Some(0), Some(2), Some(404)] {
-            let ok = ServiceForCreate {
-                expected_code: code,
+        let invalid = [
+            ServiceForCreate {
+                interval: 0,
                 ..valid.clone()
-            };
-            assert!(ok.validate().is_ok(), "{code:?}");
+            },
+            ServiceForCreate {
+                timeout: Some(0),
+                ..valid.clone()
+            },
+            ServiceForCreate {
+                name: " ".into(),
+                ..valid.clone()
+            },
+            ServiceForCreate {
+                config: http("not a url"),
+                ..valid.clone()
+            },
+        ];
+        for service in invalid {
+            assert!(service.validate().is_err(), "{service:?}");
         }
-        let bad_code = ServiceForCreate {
-            expected_code: Some(42),
-            ..valid.clone()
-        };
-        assert!(bad_code.validate().is_err());
 
         let partial = ServiceForUpdate {
             interval: Some(0),
             ..Default::default()
         };
         assert!(partial.validate().is_err());
+        let bad_config = ServiceForUpdate {
+            config: Some(Json(CheckConfig::Ping(PingConfig { host: "".into() }))),
+            ..Default::default()
+        };
+        assert!(bad_config.validate().is_err());
         assert!(ServiceForUpdate::default().validate().is_ok());
     }
 
