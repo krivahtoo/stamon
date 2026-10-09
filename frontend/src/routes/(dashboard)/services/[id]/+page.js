@@ -17,7 +17,7 @@ export async function load({ params }) {
         service: data.service,
         logs: logs.logs.reverse()
       };
-    } else if (res.status === 403) {
+    } else if (res.status === 401) {
       goto('/login');
     } else if (res.status === 404) {
       error(404, `Service with id "${params.id}" not found`);
