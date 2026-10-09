@@ -70,6 +70,20 @@ Visit http://localhost:3000.
 | `ASSETS_PATH` | `assets` | Directory of the built frontend. |
 | `LOG_RETENTION_DAYS` | `90` | Days to keep check logs and alert history; `0` keeps them forever. |
 
+### 🐳 Monitoring Docker containers
+
+Docker checks read container state from the Docker API. When Stamon itself runs in Docker, give it the host's socket (read-only is enough):
+
+```yaml
+services:
+  stamon:
+    image: k4htoo/stamon
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+```
+
+Access to the Docker socket is equivalent to root access on the host, so only mount it if you trust everyone who can manage monitors. A daemon exposed over TCP (`tcp://host:2375`) works too; TLS-protected daemons aren't supported yet.
+
 ## 🏗️ Development
 
 To start the frontend:

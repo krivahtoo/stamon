@@ -8,14 +8,18 @@ use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 
+mod database;
 mod dns;
+mod docker;
 mod http;
 mod ping;
 mod push;
 mod tcp;
 mod tls;
 
+pub use database::{DatabaseConfig, DatabaseEngine, REDACTED};
 pub use dns::{DnsConfig, DnsRecordType};
+pub use docker::DockerConfig;
 pub use http::{HttpConfig, HttpMethod};
 pub use ping::PingConfig;
 pub use push::PushConfig;
@@ -30,6 +34,8 @@ pub enum CheckConfig {
     Tcp(TcpConfig),
     Dns(DnsConfig),
     Tls(TlsConfig),
+    Docker(DockerConfig),
+    Database(DatabaseConfig),
     /// Passive: the service reports in instead of being checked.
     Push(PushConfig),
 }
@@ -83,7 +89,24 @@ impl CheckConfig {
             CheckConfig::Tcp(config) => config.validate(),
             CheckConfig::Dns(config) => config.validate(),
             CheckConfig::Tls(config) => config.validate(),
+            CheckConfig::Docker(config) => config.validate(),
+            CheckConfig::Database(config) => config.validate(),
             CheckConfig::Push(config) => config.validate(),
+        }
+    }
+
+    /// Hide secrets before showing the config.
+    pub fn redact(&mut self) {
+        if let CheckConfig::Database(config) = self {
+            config.redact();
+        }
+    }
+
+    /// Restore secrets that are still redacted from the config being
+    /// replaced, so a config read from the API can be saved back.
+    pub fn keep_secrets_from(&mut self, previous: &CheckConfig) {
+        if let (CheckConfig::Database(config), CheckConfig::Database(previous)) = (self, previous) {
+            config.keep_password_from(previous);
         }
     }
 
@@ -102,6 +125,8 @@ impl CheckConfig {
                 CheckConfig::Tcp(config) => tcp::check(config).await,
                 CheckConfig::Dns(config) => dns::check(config).await,
                 CheckConfig::Tls(config) => tls::check(config, timeout).await,
+                CheckConfig::Docker(config) => docker::check(config).await,
+                CheckConfig::Database(config) => database::check(config).await,
                 CheckConfig::Push(_) => CheckOutcome::error(
                     "Push monitors wait for heartbeats instead of being checked",
                 ),
@@ -150,6 +175,8 @@ mod tests {
             json!({ "type": "dns", "host": "example.com", "record_type": "MX" }),
             json!({ "type": "tls", "host": "example.com" }),
             json!({ "type": "push", "token": "abcdefgh12345678" }),
+            json!({ "type": "docker", "container": "web" }),
+            json!({ "type": "database", "engine": "postgres", "host": "db.internal" }),
         ] {
             let parsed: CheckConfig = serde_json::from_value(config.clone()).unwrap();
             assert!(parsed.validate().is_ok(), "{config}");
