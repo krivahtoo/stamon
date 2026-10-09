@@ -288,6 +288,7 @@ mod tests {
             next_run_at: 0,
             last_push_at: None,
             config: CheckConfig::Ping(PingConfig { host: url.into() }),
+            tags: vec![],
             service_type: "ping".into(),
             target: Some(url.into()),
         }

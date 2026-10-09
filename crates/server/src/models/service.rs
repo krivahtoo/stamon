@@ -26,6 +26,8 @@ pub struct Service {
     pub last_push_at: Option<i64>,
     #[sqlx(json)]
     pub config: CheckConfig,
+    #[sqlx(json)]
+    pub tags: Vec<String>,
     /// The config's `type`, derived by the database.
     pub service_type: String,
     /// The config's URL or host, derived by the database. Push monitors have none.
@@ -44,6 +46,8 @@ pub struct ServiceForCreate {
     pub retry_interval: u16,
     pub invert: Option<bool>,
     pub config: CheckConfig,
+    #[serde(default)]
+    pub tags: Vec<String>,
     /// Channels that receive this service's alerts.
     #[serde(default)]
     pub channel_ids: Vec<u32>,
@@ -62,8 +66,37 @@ pub struct ServiceForUpdate {
     pub invert: Option<bool>,
     /// Replaces the whole check config.
     pub config: Option<Json<CheckConfig>>,
+    /// Replaces all tags.
+    pub tags: Option<Json<Vec<String>>>,
     #[serde(skip)]
     pub last_push_at: Option<i64>,
+}
+
+const MAX_TAGS: usize = 10;
+const MAX_TAG_LEN: usize = 32;
+
+/// Trim tags and drop empty ones and repeats, ignoring case.
+pub fn clean_tags(tags: Vec<String>) -> Vec<String> {
+    let mut cleaned: Vec<String> = Vec::new();
+    for tag in tags {
+        let tag = tag.trim();
+        if !tag.is_empty() && !cleaned.iter().any(|t| t.eq_ignore_ascii_case(tag)) {
+            cleaned.push(tag.to_owned());
+        }
+    }
+    cleaned
+}
+
+fn validate_tags(tags: &[String]) -> Result<(), String> {
+    if tags.len() > MAX_TAGS {
+        return Err(format!("a service can have at most {MAX_TAGS} tags"));
+    }
+    if let Some(tag) = tags.iter().find(|t| t.chars().count() > MAX_TAG_LEN) {
+        return Err(format!(
+            "tag \"{tag}\" is longer than {MAX_TAG_LEN} characters"
+        ));
+    }
+    Ok(())
 }
 
 /// Give a push config without a token a random one.
@@ -95,6 +128,7 @@ pub struct Stats {
 impl ServiceForCreate {
     pub fn validate(&self) -> Result<(), String> {
         validate_fields(Some(&self.name), Some(self.interval), self.timeout)?;
+        validate_tags(&self.tags)?;
         self.config.validate()
     }
 }
@@ -102,6 +136,9 @@ impl ServiceForCreate {
 impl ServiceForUpdate {
     pub fn validate(&self) -> Result<(), String> {
         validate_fields(self.name.as_deref(), self.interval, self.timeout)?;
+        if let Some(Json(tags)) = &self.tags {
+            validate_tags(tags)?;
+        }
         match &self.config {
             Some(Json(config)) => config.validate(),
             None => Ok(()),
@@ -145,8 +182,8 @@ impl Service {
         let result = sqlx::query(
             r#"INSERT INTO Services (
                    user_id, active, name, interval, timeout, retry, retry_interval, invert,
-                   last_push_at, config
-               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"#,
+                   last_push_at, config, tags
+               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"#,
         )
         .bind(service.user_id)
         .bind(service.active.unwrap_or(true))
@@ -158,6 +195,7 @@ impl Service {
         .bind(service.invert.unwrap_or(false))
         .bind(initial_push_at(&service.config))
         .bind(Json(service.config))
+        .bind(Json(service.tags))
         .execute(pool)
         .await?;
         Ok(result.last_insert_rowid() as u32)
@@ -318,6 +356,7 @@ impl Service {
             retry_interval,
             invert,
             config,
+            tags,
             last_push_at
         });
 
@@ -342,6 +381,7 @@ impl Service {
             retry_interval,
             invert,
             config,
+            tags,
             last_push_at
         });
 
@@ -377,6 +417,7 @@ mod tests {
             retry_interval: 30,
             invert: None,
             config,
+            tags: vec![],
             channel_ids: vec![],
         }
     }
@@ -579,6 +620,10 @@ mod tests {
         let service = Service::get(&pool, 1).await?.unwrap();
         assert_eq!(service.name, "Service One");
         assert_eq!(service.service_type, "http");
+        assert!(
+            service.tags.is_empty(),
+            "rows inserted without tags have none"
+        );
 
         assert!(Service::get(&pool, 999).await?.is_none());
         Ok(())
@@ -705,6 +750,54 @@ mod tests {
         assert_eq!(services[2].service_type, "ping");
         assert_eq!(services[2].target.as_deref(), Some("10.0.0.1"));
 
+        Ok(())
+    }
+
+    #[test]
+    fn tags_are_cleaned_and_limited() {
+        let tags = |list: &[&str]| list.iter().map(|t| t.to_string()).collect::<Vec<_>>();
+        assert_eq!(
+            clean_tags(tags(&[" prod ", "", "API", "api", "eu-west"])),
+            tags(&["prod", "API", "eu-west"])
+        );
+
+        let too_many = ServiceForCreate {
+            tags: (0..11).map(|i| format!("t{i}")).collect(),
+            ..new_service("svc", http("https://example.com"))
+        };
+        assert!(too_many.validate().is_err());
+        let too_long = ServiceForUpdate {
+            tags: Some(Json(vec!["x".repeat(33)])),
+            ..Default::default()
+        };
+        assert!(too_long.validate().is_err());
+    }
+
+    #[sqlx::test(fixtures("users"))]
+    async fn tags_are_stored_and_replaced(pool: SqlitePool) -> sqlx::Result<()> {
+        let id = Service::insert(
+            &pool,
+            ServiceForCreate {
+                tags: vec!["prod".into(), "api".into()],
+                ..new_service("svc", http("https://example.com"))
+            },
+        )
+        .await?;
+        assert_eq!(
+            Service::get(&pool, id).await?.unwrap().tags,
+            ["prod", "api"]
+        );
+
+        Service::update(
+            &pool,
+            id,
+            ServiceForUpdate {
+                tags: Some(Json(vec!["staging".into()])),
+                ..Default::default()
+            },
+        )
+        .await?;
+        assert_eq!(Service::get(&pool, id).await?.unwrap().tags, ["staging"]);
         Ok(())
     }
 

@@ -10,6 +10,7 @@
   import { Separator } from '$lib/components/ui/separator/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
+  import { Badge } from '$lib/components/ui/badge/index.js';
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
@@ -88,6 +89,29 @@
     channelsLoaded = true;
   });
 
+  /** @type {string[]} */
+  let tags = data.service.tags ?? [];
+  let tagsText = tags.join(', ');
+
+  async function saveTags() {
+    const res = await cfetch(`/services/${data.service.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ tags: tagsText.split(',') })
+    });
+    const body = await res.json().catch(() => null);
+    if (!res.ok) {
+      toast.error(`Error: ${body?.message ?? body?.error ?? res.statusText}`);
+      return;
+    }
+    // Show the tags as the server cleaned them up.
+    const reload = await cfetch(`/services/${data.service.id}`, { credentials: 'same-origin' });
+    if (reload.ok) tags = (await reload.json()).service.tags;
+    tagsText = tags.join(', ');
+    toast.success('Tags saved');
+  }
+
   async function saveChannels() {
     const res = await cfetch(`/services/${data.service.id}/channels`, {
       method: 'PUT',
@@ -117,6 +141,13 @@
   <div class="space-y-0.5">
     <h2 class="text-2xl font-bold tracking-tight">{data.service.name}</h2>
     <p class="text-muted-foreground">Below is an overview of {data.service.name} service.</p>
+    {#if tags.length > 0}
+      <div class="flex flex-wrap gap-1 pt-1">
+        {#each tags as tag}
+          <Badge variant="outline" class="font-normal">{tag}</Badge>
+        {/each}
+      </div>
+    {/if}
   </div>
 </div>
 <Separator class="my-1" />
@@ -233,3 +264,18 @@
     </Card.Footer>
   {/if}
 </Card.Root>
+
+{#if canEdit}
+  <Card.Root>
+    <Card.Header class="pb-2">
+      <Card.Title>Tags</Card.Title>
+      <Card.Description>Labels for grouping and finding this service.</Card.Description>
+    </Card.Header>
+    <Card.Content>
+      <form class="flex gap-2" on:submit|preventDefault={saveTags}>
+        <Input bind:value={tagsText} placeholder="Comma-separated, e.g. prod, api" />
+        <Button type="submit" size="sm">Save tags</Button>
+      </form>
+    </Card.Content>
+  </Card.Root>
+{/if}

@@ -66,6 +66,7 @@
    * @property {string} push_token - Push: the secret in the push URL.
    * @property {number | string} grace_secs - Push: extra seconds before a heartbeat is late.
    * @property {number[]} channel_ids - Channels that receive this service's alerts.
+   * @property {string} tags - Comma-separated labels.
    */
 
   /** @returns {NewService} */
@@ -95,7 +96,8 @@
       warn_days: 14,
       push_token: newPushToken(),
       grace_secs: 0,
-      channel_ids: []
+      channel_ids: [],
+      tags: ''
     };
   }
 
@@ -200,6 +202,7 @@
       timeout: Number(newService.timeout),
       invert: newService.invert,
       config,
+      tags: newService.tags.split(','),
       channel_ids: newService.channel_ids
     };
     const promise = new Promise((resolve, reject) =>
@@ -480,6 +483,15 @@
       </div>
     {/if}
 
+    <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
+      <Label for="tags" class="sm:text-right">Tags</Label>
+      <Input
+        id="tags"
+        bind:value={newService.tags}
+        placeholder="Comma-separated, e.g. prod, api"
+        class="col-span-3"
+      />
+    </div>
     <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
       <Label for="interval" class="sm:text-right">Interval</Label>
       <Input

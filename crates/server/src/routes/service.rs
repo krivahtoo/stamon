@@ -19,7 +19,7 @@ use crate::{
     models::{
         channel::Channel,
         log::Log,
-        service::{Service, ServiceForCreate, ServiceForUpdate, fill_push_token},
+        service::{Service, ServiceForCreate, ServiceForUpdate, clean_tags, fill_push_token},
     },
 };
 
@@ -81,6 +81,7 @@ async fn add_service(
     Json(mut service): Json<ServiceForCreate>,
 ) -> Response {
     fill_push_token(&mut service.config);
+    service.tags = clean_tags(std::mem::take(&mut service.tags));
     if let Err(message) = service.validate() {
         return bad_request(message);
     }
@@ -233,6 +234,9 @@ async fn update_service(
 ) -> Response {
     if let Some(SqlJson(config)) = &mut service.config {
         fill_push_token(config);
+    }
+    if let Some(SqlJson(tags)) = &mut service.tags {
+        *tags = clean_tags(std::mem::take(tags));
     }
     if let Err(message) = service.validate() {
         return bad_request(message);

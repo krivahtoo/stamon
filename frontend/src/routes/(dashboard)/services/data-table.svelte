@@ -21,6 +21,7 @@
   import DataTablePagination from './(components)/data-table-pagination.svelte';
   import DataTableToolbar from './(components)/data-table-toolbar.svelte';
   import DataTableColumnHeader from './(components)/data-table-column-header.svelte';
+  import DataTableTags from './(components)/data-table-tags.svelte';
   import { fly } from 'svelte/transition';
 
   const table = createTable(services, {
@@ -67,6 +68,21 @@
       header: 'Name',
       accessor: 'name',
       id: 'name'
+    }),
+    table.column({
+      header: 'Tags',
+      accessor: 'tags',
+      id: 'tags',
+      cell: ({ value }) => createRender(DataTableTags, { tags: value ?? [] }),
+      plugins: {
+        sort: {
+          disable: true
+        },
+        // Let the search box match tags.
+        filter: {
+          getFilterValue: (value) => (value ?? []).join(' ')
+        }
+      }
     }),
     table.column({
       header: 'Recent Status',

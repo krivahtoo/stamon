@@ -8,6 +8,7 @@ import { writable } from 'svelte/store';
  * @property {string} service_type - The check type, e.g. `http` or `ping`.
  * @property {string | null} target - The URL or host being checked; null for push monitors.
  * @property {Object} config - The type-specific check settings.
+ * @property {string[]} tags - Labels for grouping and finding the service.
  * @property {number} last_status - The last status of this service.
  * @property {number} timeout - The timeout when checking service.
  * @property {number} retry - The number of retries.
