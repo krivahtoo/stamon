@@ -14,6 +14,7 @@ mod logs;
 mod maintenance;
 mod push;
 mod service;
+mod status_pages;
 mod users;
 
 async fn stats(_: Claims, State(state): State<AppState>) -> (StatusCode, Json<Value>) {
@@ -33,6 +34,7 @@ pub fn routes() -> Router<AppState> {
         .merge(auth::routes())
         .merge(channels::routes())
         .merge(service::routes())
+        .merge(status_pages::routes())
         .merge(logs::routes())
         .merge(maintenance::routes())
         .merge(push::routes())
