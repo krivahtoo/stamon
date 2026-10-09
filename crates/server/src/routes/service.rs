@@ -9,12 +9,15 @@ use serde::Deserialize;
 use serde_json::json;
 use tracing::error;
 
+use checks::CheckConfig;
+use sqlx::types::Json as SqlJson;
+
 use crate::{
     AppState,
     auth::{Claims, EditorClaims},
     models::{
         log::Log,
-        service::{Service, ServiceForCreate, ServiceForUpdate},
+        service::{Service, ServiceForCreate, ServiceForUpdate, fill_push_token},
     },
 };
 
@@ -24,12 +27,37 @@ struct Pagination {
 }
 
 fn bad_request(message: String) -> Response {
+    json_response(400, &message)
+}
+
+fn json_response(status: u16, message: &str) -> Response {
     Response::builder()
-        .status(400)
+        .status(status)
         .header("Content-Type", "application/json")
         .body(json!({ "message": message }).to_string())
         .unwrap()
         .into_response()
+}
+
+/// The response rejecting a push token that another service already uses.
+async fn push_token_rejection(
+    state: &AppState,
+    config: &CheckConfig,
+    service_id: Option<u32>,
+) -> Option<Response> {
+    let CheckConfig::Push(push) = config else {
+        return None;
+    };
+    match Service::find_by_push_token(&state.pool, &push.token).await {
+        Ok(Some(other)) if Some(other.id) != service_id => {
+            Some(json_response(409, "Push token is already in use"))
+        }
+        Ok(_) => None,
+        Err(e) => {
+            error!("Error checking push token: {e}");
+            Some(json_response(500, "Internal server error"))
+        }
+    }
 }
 
 #[debug_handler(state = AppState)]
@@ -38,8 +66,12 @@ async fn add_service(
     State(state): State<AppState>,
     Json(mut service): Json<ServiceForCreate>,
 ) -> Response {
+    fill_push_token(&mut service.config);
     if let Err(message) = service.validate() {
         return bad_request(message);
+    }
+    if let Some(response) = push_token_rejection(&state, &service.config, None).await {
+        return response;
     }
     service.user_id = Some(user_id);
     if let Err(e) = Service::insert(&state.pool, service).await {
@@ -95,10 +127,18 @@ async fn update_service(
     _: EditorClaims,
     State(state): State<AppState>,
     Path(service_id): Path<u32>,
-    Json(service): Json<ServiceForUpdate>,
+    Json(mut service): Json<ServiceForUpdate>,
 ) -> Response {
+    if let Some(SqlJson(config)) = &mut service.config {
+        fill_push_token(config);
+    }
     if let Err(message) = service.validate() {
         return bad_request(message);
+    }
+    if let Some(SqlJson(config)) = &service.config
+        && let Some(response) = push_token_rejection(&state, config, Some(service_id)).await
+    {
+        return response;
     }
     if let Err(e) = Service::update(&state.pool, service_id, service).await {
         error!("Error updating service({service_id}): {e}");
