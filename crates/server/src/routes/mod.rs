@@ -15,6 +15,8 @@ mod maintenance;
 mod push;
 mod service;
 mod status_pages;
+
+pub use status_pages::page_shell;
 mod users;
 
 async fn stats(_: Claims, State(state): State<AppState>) -> (StatusCode, Json<Value>) {
