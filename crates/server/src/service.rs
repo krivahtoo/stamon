@@ -2,20 +2,42 @@ use std::ops::Deref;
 
 use apalis::prelude::*;
 use apalis_sql::sqlite::SqliteStorage;
-use chrono::{DateTime, Timelike, Utc};
+use chrono::{DateTime, TimeDelta, Timelike, Utc};
 use sqlx::sqlite::SqlitePool;
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 
-use crate::{job::CheckJob, models::service::Service};
+use crate::{
+    job::CheckJob,
+    models::{log::Log, notification::Notification, service::Service},
+};
 
 #[derive(Clone)]
 pub struct TimerService {
     pub pool: SqlitePool,
+    /// Days of logs and alert history to keep; 0 keeps them forever.
+    pub retention_days: u32,
 }
 
 impl TimerService {
-    pub fn new(pool: SqlitePool) -> Self {
-        Self { pool }
+    pub fn new(pool: SqlitePool, retention_days: u32) -> Self {
+        Self {
+            pool,
+            retention_days,
+        }
+    }
+
+    /// Delete logs and alert history past the retention period.
+    async fn prune(&self) -> sqlx::Result<()> {
+        if self.retention_days == 0 {
+            return Ok(());
+        }
+        let before = Utc::now() - TimeDelta::days(self.retention_days.into());
+        let logs = Log::prune(&self.pool, before).await?;
+        let notifications = Notification::prune(&self.pool, before).await?;
+        if logs + notifications > 0 {
+            info!("Removed {logs} logs and {notifications} alerts older than {before}");
+        }
+        Ok(())
     }
 
     pub async fn execute(&self, job: Timer) -> Result<(), Box<dyn std::error::Error>> {
@@ -38,6 +60,9 @@ impl TimerService {
             let removed = storage.vacuum().await?;
             if removed > 0 {
                 debug!("Removed {removed} finished jobs");
+            }
+            if job.minute() == 0 {
+                self.prune().await?;
             }
         }
         Ok(())

@@ -10,6 +10,9 @@ pub struct EnvConfig {
     pub port: u16,
 
     pub jwt_secret: String,
+
+    /// Days to keep check logs and alert history; 0 keeps them forever.
+    pub log_retention_days: u32,
 }
 
 impl EnvConfig {
@@ -30,12 +33,20 @@ impl EnvConfig {
         );
         let jwt_secret = std::env::var("JWT_SECRET").map_err(|e| format!("JWT_SECRET: {e}"))?;
 
+        let log_retention_days = match std::env::var("LOG_RETENTION_DAYS") {
+            Ok(days) => days
+                .parse()
+                .map_err(|e| format!("LOG_RETENTION_DAYS: {e}"))?,
+            Err(_) => 90,
+        };
+
         Ok(EnvConfig {
             data_path,
             assets_path,
             db_file,
             port: 3000,
             jwt_secret,
+            log_retention_days,
         })
     }
 }

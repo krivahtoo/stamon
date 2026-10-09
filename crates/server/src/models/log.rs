@@ -160,6 +160,74 @@ impl Log {
     }
 }
 
+/// Availability of a service over a period.
+#[derive(Debug, Default, Serialize, PartialEq)]
+pub struct Uptime {
+    /// Percentage of up checks among up and down ones; `None` without any.
+    pub percent: Option<f64>,
+    /// Mean response time of up checks, in milliseconds.
+    pub avg_latency: Option<f64>,
+    pub checks: u32,
+}
+
+impl Log {
+    /// Uptime since `since`. Pending, failed and maintenance results say
+    /// nothing about the service, so they don't count.
+    pub async fn uptime(
+        pool: &SqlitePool,
+        service_id: u32,
+        since: DateTime<Utc>,
+    ) -> sqlx::Result<Uptime> {
+        let (up, down, avg_latency): (u32, u32, Option<f64>) = sqlx::query_as(
+            r#"SELECT COUNT(*) FILTER (WHERE status = 1),
+                      COUNT(*) FILTER (WHERE status = 2),
+                      AVG(duration) FILTER (WHERE status = 1)
+               FROM Logs
+               WHERE service_id = ? AND datetime(time) >= datetime(?)"#,
+        )
+        .bind(service_id)
+        .bind(since)
+        .fetch_one(pool)
+        .await?;
+
+        let checks = up + down;
+        Ok(Uptime {
+            percent: (checks > 0).then(|| f64::from(up) * 100.0 / f64::from(checks)),
+            avg_latency,
+            checks,
+        })
+    }
+
+    /// When the service's current status began: the first log after the
+    /// last one with a different status.
+    pub async fn status_since(
+        pool: &SqlitePool,
+        service_id: u32,
+        status: Status,
+    ) -> sqlx::Result<Option<DateTime<Utc>>> {
+        sqlx::query_scalar(
+            r#"SELECT MIN(time)
+               FROM Logs
+               WHERE service_id = ?1
+                 AND id > COALESCE(
+                     (SELECT MAX(id) FROM Logs WHERE service_id = ?1 AND status != ?2), 0)"#,
+        )
+        .bind(service_id)
+        .bind(status)
+        .fetch_one(pool)
+        .await
+    }
+
+    /// Delete logs older than `before`, returning how many were removed.
+    pub async fn prune(pool: &SqlitePool, before: DateTime<Utc>) -> sqlx::Result<u64> {
+        let result = sqlx::query("DELETE FROM Logs WHERE datetime(time) < datetime(?)")
+            .bind(before)
+            .execute(pool)
+            .await?;
+        Ok(result.rows_affected())
+    }
+}
+
 impl std::fmt::Display for LogForCreate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?} time={}ms", self.status, self.duration)
@@ -380,6 +448,66 @@ mod tests {
         let incidents = Log::incidents(&pool, None).await?;
         assert_eq!(incidents.len(), 0);
 
+        Ok(())
+    }
+
+    async fn insert_at(pool: &SqlitePool, status: Status, minutes_ago: i64, duration: u32) {
+        Log::insert(
+            pool,
+            LogForCreate {
+                service_id: 1,
+                status,
+                message: None,
+                time: Some(Utc::now() - chrono::TimeDelta::minutes(minutes_ago)),
+                duration,
+            },
+        )
+        .await
+        .unwrap();
+    }
+
+    #[sqlx::test(fixtures("users", "services"))]
+    async fn uptime_counts_up_and_down_in_window(pool: SqlitePool) -> sqlx::Result<()> {
+        let hour_ago = Utc::now() - chrono::TimeDelta::hours(1);
+        assert_eq!(Log::uptime(&pool, 1, hour_ago).await?, Uptime::default());
+
+        insert_at(&pool, Status::Up, 120, 500).await; // outside the window
+        insert_at(&pool, Status::Up, 50, 100).await;
+        insert_at(&pool, Status::Up, 40, 300).await;
+        insert_at(&pool, Status::Up, 30, 200).await;
+        insert_at(&pool, Status::Down, 20, 9).await;
+        insert_at(&pool, Status::Pending, 15, 9).await;
+        insert_at(&pool, Status::Failed, 10, 0).await;
+
+        let uptime = Log::uptime(&pool, 1, hour_ago).await?;
+        assert_eq!(uptime.checks, 4);
+        assert_eq!(uptime.percent, Some(75.0));
+        assert_eq!(uptime.avg_latency, Some(200.0));
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services"))]
+    async fn status_since_finds_last_change(pool: SqlitePool) -> sqlx::Result<()> {
+        assert_eq!(Log::status_since(&pool, 1, Status::Up).await?, None);
+
+        insert_at(&pool, Status::Up, 50, 1).await;
+        insert_at(&pool, Status::Down, 40, 1).await;
+        insert_at(&pool, Status::Up, 30, 1).await;
+        insert_at(&pool, Status::Up, 20, 1).await;
+
+        let since = Log::status_since(&pool, 1, Status::Up).await?.unwrap();
+        let minutes = (Utc::now() - since).num_minutes();
+        assert_eq!(minutes, 30, "since the recovery 30 minutes ago");
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services"))]
+    async fn prune_removes_old_logs(pool: SqlitePool) -> sqlx::Result<()> {
+        insert_at(&pool, Status::Up, 60 * 24 * 100, 1).await;
+        insert_at(&pool, Status::Up, 10, 1).await;
+        let removed = Log::prune(&pool, Utc::now() - chrono::TimeDelta::days(90)).await?;
+        assert_eq!(removed, 1);
+        assert_eq!(Log::list(&pool, 1, None).await?.len(), 1);
         Ok(())
     }
 }

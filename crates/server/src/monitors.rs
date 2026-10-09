@@ -15,6 +15,7 @@ use tracing::{debug, error, info};
 
 use crate::{
     AppState,
+    config::env_config,
     job::{self, AlertJob, CheckJob},
     service, utils,
 };
@@ -30,7 +31,10 @@ pub async fn monitors(state: &AppState) -> Result<(), Box<dyn std::error::Error>
         .layer(LoadShedLayer::new())
         .rate_limit(2, Duration::from_secs(1))
         .catch_panic()
-        .data(service::TimerService::new(state.pool.clone()))
+        .data(service::TimerService::new(
+            state.pool.clone(),
+            env_config().log_retention_days,
+        ))
         .backend(CronStream::new(schedule))
         .build_fn(service::run_timer_cron_service);
 
