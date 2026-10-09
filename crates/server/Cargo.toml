@@ -7,6 +7,7 @@ authors.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+checks = { path = "../checks" }
 argon2 = "0.5.3"
 axum = { version = "0.8.1", features = ["ws", "macros"] }
 axum-extra = { version = "0.10.0", features = ["typed-header", "cookie"] }
@@ -16,14 +17,12 @@ futures = "0.3.30"
 jsonwebtoken = "9.3.0"
 serde = { version = "1.0.203", features = ["derive"] }
 serde_json = "1.0.117"
-sqlx = { version = "0.8.3", features = ["chrono", "sqlite", "macros", "uuid", "migrate", "runtime-tokio"] }
+sqlx = { version = "0.8.3", features = ["chrono", "json", "sqlite", "macros", "uuid", "migrate", "runtime-tokio"] }
 tokio = { version = "1.37.0", features = ["rt", "rt-multi-thread", "macros", "net", "signal", "time"] }
 tower-http = { version = "0.6.2", features = ["fs", "trace", "timeout", "cors"] }
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
 apalis = { version = "0.7.1", features = ["catch-panic", "limit", "retry", "timeout"] }
-ping-rs = "0.1.2"
-reqwest = { version = "0.12.4", features = ["json"] }
 tower = { version = "0.5.2", features = ["load-shed"] }
 serde_repr = "0.1.19"
 itertools = "0.14.0"
