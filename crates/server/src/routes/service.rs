@@ -2,7 +2,7 @@ use axum::{
     Json, Router,
     extract::{Path, Query, State},
     response::{IntoResponse, Response},
-    routing::{get, put},
+    routing::get,
 };
 use axum_macros::debug_handler;
 use serde::Deserialize;
@@ -11,7 +11,7 @@ use tracing::error;
 
 use crate::{
     AppState,
-    auth::Claims,
+    auth::{Claims, EditorClaims},
     models::{
         log::Log,
         service::{Service, ServiceForCreate, ServiceForUpdate},
@@ -23,12 +23,24 @@ struct Pagination {
     limit: Option<u32>,
 }
 
-#[debug_handler]
+fn bad_request(message: String) -> Response {
+    Response::builder()
+        .status(400)
+        .header("Content-Type", "application/json")
+        .body(json!({ "message": message }).to_string())
+        .unwrap()
+        .into_response()
+}
+
+#[debug_handler(state = AppState)]
 async fn add_service(
-    Claims { user_id, .. }: Claims,
+    EditorClaims(Claims { user_id, .. }): EditorClaims,
     State(state): State<AppState>,
     Json(mut service): Json<ServiceForCreate>,
 ) -> Response {
+    if let Err(message) = service.validate() {
+        return bad_request(message);
+    }
     service.user_id = Some(user_id);
     if let Err(e) = Service::insert(&state.pool, service).await {
         error!("Error adding service: {e}");
@@ -78,13 +90,16 @@ async fn get_service(
     }
 }
 
-#[debug_handler]
+#[debug_handler(state = AppState)]
 async fn update_service(
-    _: Claims,
+    _: EditorClaims,
     State(state): State<AppState>,
     Path(service_id): Path<u32>,
     Json(service): Json<ServiceForUpdate>,
 ) -> Response {
+    if let Err(message) = service.validate() {
+        return bad_request(message);
+    }
     if let Err(e) = Service::update(&state.pool, service_id, service).await {
         error!("Error updating service({service_id}): {e}");
         return Response::builder()
@@ -102,8 +117,30 @@ async fn update_service(
         .into_response()
 }
 
+#[debug_handler(state = AppState)]
+async fn delete_service(
+    _: EditorClaims,
+    State(state): State<AppState>,
+    Path(service_id): Path<u32>,
+) -> Response {
+    let (status, message) = match Service::delete(&state.pool, service_id).await {
+        Ok(0) => (404, "Service not found"),
+        Ok(_) => (200, "Service deleted"),
+        Err(e) => {
+            error!("Error deleting service({service_id}): {e}");
+            (500, "Internal server error")
+        }
+    };
+    Response::builder()
+        .status(status)
+        .header("Content-Type", "application/json")
+        .body(json!({ "message": message }).to_string())
+        .unwrap()
+        .into_response()
+}
+
 #[debug_handler]
-async fn list_services(State(state): State<AppState>) -> Response {
+async fn list_services(_: Claims, State(state): State<AppState>) -> Response {
     let Ok(services) = Service::all(&state.pool).await else {
         return Response::builder()
             .header("Content-Type", "application/json")
@@ -121,7 +158,7 @@ async fn list_services(State(state): State<AppState>) -> Response {
 
 #[debug_handler]
 async fn list_service_logs(
-    //_: Claims,
+    _: Claims,
     State(state): State<AppState>,
     Path(service_id): Path<u32>,
     pagination: Query<Pagination>,
@@ -147,6 +184,9 @@ async fn list_service_logs(
 pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/services", get(list_services).post(add_service))
-        .route("/services/{id}", put(update_service).get(get_service))
+        .route(
+            "/services/{id}",
+            get(get_service).put(update_service).delete(delete_service),
+        )
         .route("/services/{id}/logs", get(list_service_logs))
 }

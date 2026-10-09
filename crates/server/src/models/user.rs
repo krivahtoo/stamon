@@ -3,12 +3,31 @@ use sqlx::SqlitePool;
 
 use crate::auth::hash;
 
-#[derive(sqlx::Type, Debug, Serialize, Deserialize)]
+#[derive(sqlx::Type, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[sqlx(rename_all = "lowercase")]
 #[serde(rename_all = "lowercase")]
 pub enum UserRole {
+    /// Manages users and settings, and everything an editor can do
     Admin,
+    /// Creates, edits and deletes monitors
+    Editor,
+    /// Read-only access
     Viewer,
+}
+
+impl UserRole {
+    fn rank(self) -> u8 {
+        match self {
+            UserRole::Viewer => 0,
+            UserRole::Editor => 1,
+            UserRole::Admin => 2,
+        }
+    }
+
+    /// Whether this role grants at least the permissions of `required`.
+    pub fn allows(self, required: UserRole) -> bool {
+        self.rank() >= required.rank()
+    }
 }
 
 #[derive(sqlx::FromRow, Serialize)]
@@ -28,6 +47,12 @@ pub struct UserForRegister {
     pub role: Option<UserRole>,
     pub password: String,
     pub timezone: Option<String>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+pub struct UserForUpdate {
+    pub role: Option<UserRole>,
+    pub active: Option<bool>,
 }
 
 #[derive(sqlx::FromRow, Serialize, Deserialize)]
@@ -77,6 +102,29 @@ impl User {
 
     pub async fn list(pool: &SqlitePool) -> sqlx::Result<Vec<User>> {
         sqlx::query_as("SELECT * FROM Users").fetch_all(pool).await
+    }
+
+    pub async fn find_by_username(pool: &SqlitePool, username: &str) -> sqlx::Result<Option<User>> {
+        sqlx::query_as("SELECT * FROM Users WHERE username = ?")
+            .bind(username)
+            .fetch_optional(pool)
+            .await
+    }
+
+    pub async fn update(
+        pool: &SqlitePool,
+        user_id: u32,
+        update: UserForUpdate,
+    ) -> sqlx::Result<u64> {
+        let result = sqlx::query(
+            "UPDATE Users SET role = COALESCE(?, role), active = COALESCE(?, active) WHERE id = ?",
+        )
+        .bind(update.role)
+        .bind(update.active)
+        .bind(user_id)
+        .execute(pool)
+        .await?;
+        Ok(result.rows_affected())
     }
 }
 
@@ -161,6 +209,56 @@ mod tests {
         let result = User::get(&pool, 999).await;
         assert!(result.is_err());
 
+        Ok(())
+    }
+
+    #[test]
+    fn role_ordering() {
+        assert!(UserRole::Admin.allows(UserRole::Editor));
+        assert!(UserRole::Editor.allows(UserRole::Editor));
+        assert!(UserRole::Editor.allows(UserRole::Viewer));
+        assert!(!UserRole::Editor.allows(UserRole::Admin));
+        assert!(!UserRole::Viewer.allows(UserRole::Editor));
+    }
+
+    #[sqlx::test(fixtures("users"))]
+    async fn update_role_and_active(pool: SqlitePool) -> sqlx::Result<()> {
+        let updated = User::update(
+            &pool,
+            3,
+            UserForUpdate {
+                role: Some(UserRole::Editor),
+                active: None,
+            },
+        )
+        .await?;
+        assert_eq!(updated, 1);
+
+        let user = User::get(&pool, 3).await?;
+        assert_eq!(user.role, UserRole::Editor);
+        assert!(user.active);
+
+        User::update(
+            &pool,
+            3,
+            UserForUpdate {
+                role: None,
+                active: Some(false),
+            },
+        )
+        .await?;
+        let user = User::get(&pool, 3).await?;
+        assert_eq!(user.role, UserRole::Editor);
+        assert!(!user.active);
+
+        assert_eq!(User::update(&pool, 999, UserForUpdate::default()).await?, 0);
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users"))]
+    async fn find_user_by_username(pool: SqlitePool) -> sqlx::Result<()> {
+        assert_eq!(User::find_by_username(&pool, "user3").await?.unwrap().id, 3);
+        assert!(User::find_by_username(&pool, "nobody").await?.is_none());
         Ok(())
     }
 
