@@ -11,6 +11,7 @@
   import { Switch } from '$lib/components/ui/switch/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
   import { Separator } from '$lib/components/ui/separator/index.js';
+  import ChannelPicker from '$lib/components/channel-picker.svelte';
   import { cfetch, pushUrl } from '$lib/utils.js';
 
   const serviceTypes = [
@@ -64,6 +65,7 @@
    * @property {number | string} warn_days - TLS: days before expiry to report down.
    * @property {string} push_token - Push: the secret in the push URL.
    * @property {number | string} grace_secs - Push: extra seconds before a heartbeat is late.
+   * @property {number[]} channel_ids - Channels that receive this service's alerts.
    */
 
   /** @returns {NewService} */
@@ -92,7 +94,8 @@
       expected_records: '',
       warn_days: 14,
       push_token: newPushToken(),
-      grace_secs: 0
+      grace_secs: 0,
+      channel_ids: []
     };
   }
 
@@ -196,7 +199,8 @@
       interval: Number(newService.interval),
       timeout: Number(newService.timeout),
       invert: newService.invert,
-      config
+      config,
+      channel_ids: newService.channel_ids
     };
     const promise = new Promise((resolve, reject) =>
       cfetch('/services', {
@@ -506,6 +510,12 @@
         <Switch id="invert" bind:checked={newService.invert} class="sm:col-span-3" />
       </div>
     {/if}
+    <div class="grid grid-cols-1 items-start gap-4 sm:grid-cols-4">
+      <Label class="sm:pt-1 sm:text-right">Alert Channels</Label>
+      <div class="col-span-3">
+        <ChannelPicker bind:selected={newService.channel_ids} />
+      </div>
+    </div>
   </div>
   <Footer class="gap-2">
     <Button variant="outline" type="reset" on:click={() => (newService = emptyService())}
