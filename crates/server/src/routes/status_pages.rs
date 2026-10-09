@@ -1,7 +1,9 @@
+use std::path::Path as FilePath;
+
 use axum::{
     Json, Router,
     extract::{Path, State},
-    http::StatusCode,
+    http::{StatusCode, header::CONTENT_TYPE},
     response::{IntoResponse, Response},
     routing::{get, put},
 };
@@ -13,6 +15,7 @@ use tracing::error;
 use crate::{
     AppState,
     auth::{Claims, EditorClaims},
+    config::env_config,
     models::{
         missing_ids,
         status_page::{StatusPage, StatusPageForSave},
@@ -126,9 +129,63 @@ async fn public_page(State(state): State<AppState>, Path(slug): Path<String>) ->
     }
 }
 
+/// The frontend's app shell, which renders any route in the browser.
+async fn shell_response(shell: &FilePath, status: StatusCode) -> Response {
+    match tokio::fs::read(shell).await {
+        Ok(html) => (status, [(CONTENT_TYPE, "text/html; charset=utf-8")], html).into_response(),
+        Err(e) => {
+            error!("Failed to read {}: {e}", shell.display());
+            (StatusCode::NOT_FOUND, "Not Found").into_response()
+        }
+    }
+}
+
+/// Serve `/status/{slug}` with a status saying whether the page exists, for
+/// link previews, search engines and uptime checkers. Other app routes fall
+/// back to the shell with a 404.
+pub async fn page_shell(State(state): State<AppState>, Path(slug): Path<String>) -> Response {
+    let status = match StatusPage::get_by_slug(&state.pool, &slug).await {
+        Ok(Some(page)) if page.published => StatusCode::OK,
+        Ok(_) => StatusCode::NOT_FOUND,
+        Err(e) => {
+            error!("Failed to look up status page {slug}: {e}");
+            StatusCode::INTERNAL_SERVER_ERROR
+        }
+    };
+    shell_response(&env_config().assets_path.join("404.html"), status).await
+}
+
 pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/status-pages", get(list_pages).post(add_page))
         .route("/status-pages/{id}", put(replace_page).delete(delete_page))
         .route("/status/{slug}", get(public_page))
+}
+
+#[cfg(test)]
+mod tests {
+    use axum::body::to_bytes;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn shell_is_served_with_the_given_status() {
+        let dir = std::env::temp_dir().join(format!("stamon-shell-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let shell = dir.join("404.html");
+        std::fs::write(&shell, "<html>app</html>").unwrap();
+
+        let res = shell_response(&shell, StatusCode::OK).await;
+        assert_eq!(res.status(), StatusCode::OK);
+        assert_eq!(res.headers()[CONTENT_TYPE], "text/html; charset=utf-8");
+        let body = to_bytes(res.into_body(), 1024).await.unwrap();
+        assert_eq!(&body[..], b"<html>app</html>");
+
+        let res = shell_response(&shell, StatusCode::NOT_FOUND).await;
+        assert_eq!(res.status(), StatusCode::NOT_FOUND);
+
+        std::fs::remove_dir_all(&dir).unwrap();
+        let missing = shell_response(&shell, StatusCode::OK).await;
+        assert_eq!(missing.status(), StatusCode::NOT_FOUND);
+    }
 }

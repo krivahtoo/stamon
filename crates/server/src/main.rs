@@ -14,7 +14,11 @@ use tower_http::{
 use tracing::{Level, error, info};
 use ws::ws_handler;
 
-use crate::{config::env_config, routes::routes, ws::Event as WsEvent};
+use crate::{
+    config::env_config,
+    routes::{page_shell, routes},
+    ws::Event as WsEvent,
+};
 
 mod auth;
 mod config;
@@ -72,6 +76,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let state = Arc::new(AppStateInner { pool, tx });
     let ws_route = Router::new()
         .route("/ws", get(ws_handler))
+        .route("/status/{slug}", get(page_shell))
+        .route("/status/{slug}/", get(page_shell))
         .nest("/api", routes())
         .with_state(state.clone());
     let app = Router::new()
