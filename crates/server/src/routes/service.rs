@@ -210,12 +210,15 @@ async fn get_service(
                 .unwrap()
                 .into_response()
         }
-        Ok(Some(s)) => Response::builder()
-            .status(200)
-            .header("Content-Type", "application/json")
-            .body(json!({ "service": s }).to_string())
-            .unwrap()
-            .into_response(),
+        Ok(Some(mut s)) => {
+            s.config.redact();
+            Response::builder()
+                .status(200)
+                .header("Content-Type", "application/json")
+                .body(json!({ "service": s }).to_string())
+                .unwrap()
+                .into_response()
+        }
         _ => Response::builder()
             .status(404)
             .header("Content-Type", "application/json")
@@ -234,6 +237,15 @@ async fn update_service(
 ) -> Response {
     if let Some(SqlJson(config)) = &mut service.config {
         fill_push_token(config);
+        // Configs from the API have their passwords redacted.
+        match Service::get(&state.pool, service_id).await {
+            Ok(Some(previous)) => config.keep_secrets_from(&previous.config),
+            Ok(None) => (),
+            Err(e) => {
+                error!("Error loading service({service_id}): {e}");
+                return json_response(500, "Internal server error");
+            }
+        }
     }
     if let Some(SqlJson(tags)) = &mut service.tags {
         *tags = clean_tags(std::mem::take(tags));
@@ -287,7 +299,7 @@ async fn delete_service(
 
 #[debug_handler]
 async fn list_services(_: Claims, State(state): State<AppState>) -> Response {
-    let Ok(services) = Service::all(&state.pool).await else {
+    let Ok(mut services) = Service::all(&state.pool).await else {
         return Response::builder()
             .header("Content-Type", "application/json")
             .status(500)
@@ -295,6 +307,9 @@ async fn list_services(_: Claims, State(state): State<AppState>) -> Response {
             .unwrap()
             .into_response();
     };
+    for service in &mut services {
+        service.config.redact();
+    }
     Response::builder()
         .header("Content-Type", "application/json")
         .body(json!({ "services": services }).to_string())

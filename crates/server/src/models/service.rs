@@ -587,6 +587,32 @@ mod tests {
         Ok(())
     }
 
+    #[sqlx::test(fixtures("users"))]
+    async fn docker_and_database_targets(pool: SqlitePool) -> sqlx::Result<()> {
+        let docker: CheckConfig =
+            serde_json::from_value(json!({ "type": "docker", "container": "web" })).unwrap();
+        let database: CheckConfig = serde_json::from_value(json!({
+            "type": "database",
+            "engine": "postgres",
+            "host": "db.internal",
+            "password": "hunter2",
+        }))
+        .unwrap();
+        let docker = Service::insert(&pool, new_service("web", docker)).await?;
+        let database = Service::insert(&pool, new_service("db", database)).await?;
+
+        let docker = Service::get(&pool, docker).await?.unwrap();
+        assert_eq!(docker.service_type, "docker");
+        assert_eq!(docker.target.as_deref(), Some("web"));
+        let database = Service::get(&pool, database).await?.unwrap();
+        assert_eq!(
+            database.target.as_deref(),
+            Some("db.internal"),
+            "the host, never a connection string with the password"
+        );
+        Ok(())
+    }
+
     #[sqlx::test(fixtures("users", "services"))]
     async fn update_settings_and_config(pool: SqlitePool) -> sqlx::Result<()> {
         let updated = Service::update(
