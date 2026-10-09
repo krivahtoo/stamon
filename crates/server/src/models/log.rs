@@ -41,7 +41,7 @@ pub struct LogForCreate {
 pub struct Incident {
     service_id: u32,
     service_name: String,
-    service_url: String,
+    service_target: String,
     status: Status,
     date: NaiveDate,
     count: u32,
@@ -91,7 +91,7 @@ impl Log {
         let incidents = sqlx::query_as::<_, Incident>(
             r#"SELECT
                 s.name AS service_name,
-                s.url AS service_url,
+                s.target AS service_target,
                 l.service_id,
                 l.status,
                 DATE(l.time) AS date,
@@ -121,7 +121,7 @@ impl Log {
                 messages,
                 service_id: i.service_id,
                 service_name: i.service_name.clone(),
-                service_url: i.service_url.clone(),
+                service_target: i.service_target.clone(),
                 status: i.status,
                 date: i.date,
                 count: i.count,

@@ -5,8 +5,9 @@ import { writable } from 'svelte/store';
  * @property {number} id - The ID.
  * @property {boolean} active - The service active status.
  * @property {string} name - The service name.
- * @property {string} url - The service URL.
- * @property {string} service_type - The service type.
+ * @property {string} service_type - The check type, e.g. `http` or `ping`.
+ * @property {string} target - The URL or host being checked.
+ * @property {Object} config - The type-specific check settings.
  * @property {number} last_status - The last status of this service.
  * @property {number} timeout - The timeout when checking service.
  * @property {number} retry - The number of retries.

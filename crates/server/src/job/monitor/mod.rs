@@ -1,18 +1,40 @@
+use std::time::Duration;
+
 use apalis::prelude::{Context, Data, Worker};
-use chrono::Utc;
+use checks::{CheckOutcome, CheckStatus};
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use tracing::{debug, error};
 
 use crate::{
     AppState,
     models::{
         log::{Log, LogForCreate, Status},
-        service::{Service, ServiceType},
+        service::Service,
     },
     ws::{Event, Level, Notification},
 };
 
-mod http;
-mod ping;
+/// A queued check. The service is loaded when the job runs, so it always uses
+/// the latest settings and retry state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CheckJob {
+    pub service_id: u32,
+}
+
+fn to_log(service_id: u32, time: DateTime<Utc>, outcome: CheckOutcome) -> LogForCreate {
+    LogForCreate {
+        service_id,
+        status: match outcome.status {
+            CheckStatus::Up => Status::Up,
+            CheckStatus::Down => Status::Down,
+            CheckStatus::Error => Status::Failed,
+        },
+        message: outcome.message,
+        time: Some(time),
+        duration: outcome.latency.as_millis().try_into().unwrap_or(u32::MAX),
+    }
+}
 
 /// Result of applying a service's invert and retry settings to a raw check.
 #[derive(Debug)]
@@ -87,28 +109,41 @@ fn transition_notification(name: &str, from: Status, to: Status) -> Option<Notif
     }
 }
 
-pub async fn job_monitor(job: Service, worker: Worker<Context>, state: Data<AppState>) {
-    // The queued job is a snapshot. Reload it so edits, pauses, deletes and the
-    // retry state made since it was queued are respected.
-    let svc = match Service::get(&state.pool, job.id).await {
+pub async fn job_monitor(job: CheckJob, worker: Worker<Context>, state: Data<AppState>) {
+    let svc = match Service::get(&state.pool, job.service_id).await {
         Ok(Some(svc)) if svc.active => svc,
         Ok(_) => {
             debug!(
                 worker = worker.id().to_string(),
-                "Service {} removed or paused", job.id
+                "Service {} removed or paused", job.service_id
             );
             return;
         }
         Err(e) => {
-            error!("Failed to reload service {}: {e}", job.id);
-            job
+            error!("Failed to load service {}: {e}", job.service_id);
+            return;
         }
     };
 
-    let checked = match svc.service_type {
-        ServiceType::Ping => ping::ping(svc.clone(), state.tx.clone()).await,
-        ServiceType::Http => http::get(svc.clone(), state.tx.clone()).await,
-    };
+    let time = Utc::now();
+    let outcome = svc
+        .config
+        .check(Duration::from_secs(svc.timeout.max(1).into()))
+        .await;
+    if outcome.status == CheckStatus::Error
+        && let Err(e) = state.tx.send(Event::Notification(Notification {
+            message: format!(
+                "Could not check {}: {}",
+                svc.name,
+                outcome.message.as_deref().unwrap_or("unknown error")
+            ),
+            title: "Monitor Error".to_string(),
+            level: Level::Error,
+        }))
+    {
+        error!("Failed to send notification: {:?}", e);
+    }
+    let checked = to_log(svc.id, time, outcome);
     let Evaluation {
         log: status_log,
         consecutive_failures,
@@ -153,29 +188,48 @@ pub async fn job_monitor(job: Service, worker: Worker<Context>, state: Data<AppS
 }
 
 #[cfg(test)]
-pub(super) mod tests {
+mod tests {
+    use checks::{CheckConfig, PingConfig};
+
     use super::*;
 
-    pub fn service(url: &str) -> Service {
+    fn service(url: &str) -> Service {
         Service {
             id: 1,
             user_id: 1,
             active: true,
             name: "test".into(),
             interval: 60,
-            url: url.into(),
             timeout: 5,
-            payload: None,
             last_status: Status::Up,
-            service_type: ServiceType::Http,
             retry: 0,
             retry_interval: 0,
             invert: false,
-            expected_code: None,
-            expected_payload: None,
             consecutive_failures: 0,
             next_run_at: 0,
+            config: CheckConfig::Ping(PingConfig { host: url.into() }),
+            service_type: "ping".into(),
+            target: url.into(),
         }
+    }
+
+    #[test]
+    fn outcome_maps_to_log() {
+        let time = Utc::now();
+        let log = to_log(
+            7,
+            time,
+            CheckOutcome {
+                status: CheckStatus::Error,
+                latency: Duration::from_millis(1500),
+                message: Some("no permission".into()),
+            },
+        );
+        assert!(matches!(log.status, Status::Failed));
+        assert_eq!(log.service_id, 7);
+        assert_eq!(log.duration, 1500);
+        assert_eq!(log.time, Some(time));
+        assert_eq!(log.message.as_deref(), Some("no permission"));
     }
 
     fn log(status: Status) -> LogForCreate {

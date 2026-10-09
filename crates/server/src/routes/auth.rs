@@ -1,12 +1,12 @@
 use axum::{
     Router, debug_handler,
     extract::State,
+    http::StatusCode,
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
 };
 use chrono::{Duration, Utc};
 use jsonwebtoken::{EncodingKey, Header, encode};
-use reqwest::StatusCode;
 use serde_json::json;
 use sqlx::Row;
 use tracing::{debug, error};

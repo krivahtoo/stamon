@@ -33,7 +33,7 @@
    * @typedef {Object} Incident
    * @property {number} service_id - The service id.
    * @property {string} service_name - The service name.
-   * @property {string} service_url - The url for the service.
+   * @property {string} service_target - The URL or host of the service.
    * @property {number} status - The incident log status.
    * @property {string} date - The date of the incident.
    * @property {string} messages - The error messages.

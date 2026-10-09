@@ -1,0 +1,17 @@
+[package]
+name = "checks"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+ping-rs = "0.1.2"
+reqwest = { version = "0.12.4", features = ["json"] }
+serde = { version = "1.0.203", features = ["derive"] }
+serde_json = "1.0.117"
+tokio = { version = "1.37.0", features = ["net", "time"] }
+tracing = "0.1.40"
+
+[dev-dependencies]
+axum = "0.8.1"
+tokio = { version = "1.37.0", features = ["macros", "rt-multi-thread"] }

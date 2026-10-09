@@ -1,14 +1,25 @@
 use std::{net::IpAddr, sync::Arc, time::Duration};
 
 use ping_rs::PingError;
-use tokio::sync::broadcast::Sender;
-use tracing::{debug, error, warn};
+use serde::{Deserialize, Serialize};
+use tracing::{debug, warn};
 
-use super::Service;
-use crate::{
-    models::log::{LogForCreate, Status},
-    ws::{Event, Level, Notification},
-};
+use crate::CheckOutcome;
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PingConfig {
+    /// IP address or hostname. A URL is accepted and its host is pinged.
+    pub host: String,
+}
+
+impl PingConfig {
+    pub fn validate(&self) -> Result<(), String> {
+        if self.host.trim().is_empty() {
+            return Err("host must not be empty".into());
+        }
+        Ok(())
+    }
+}
 
 /// Resolve a ping target, which may be an IP address, a hostname or a URL.
 async fn resolve(target: &str) -> Result<IpAddr, String> {
@@ -29,36 +40,20 @@ async fn resolve(target: &str) -> Result<IpAddr, String> {
         .ok_or_else(|| format!("No address found for {host}"))
 }
 
-#[tracing::instrument(skip(svc, tx), fields(name = svc.name, url = svc.url))]
-pub async fn ping(svc: Service, tx: Sender<Event>) -> LogForCreate {
-    let addr = match resolve(&svc.url).await {
+pub(crate) async fn check(config: &PingConfig, timeout: Duration) -> CheckOutcome {
+    let addr = match resolve(&config.host).await {
         Ok(addr) => addr,
         Err(msg) => {
             warn!("{msg}");
-            return LogForCreate {
-                status: Status::Down,
-                message: Some(msg),
-                service_id: svc.id,
-                time: Some(chrono::Utc::now()),
-                ..Default::default()
-            };
+            return CheckOutcome::down(Duration::ZERO, msg);
         }
     };
     let data = [1, 2, 3, 4]; // ping data
-    let data_arc = Arc::new(&data[..]);
     let options = ping_rs::PingOptions {
         ttl: 128,
         dont_fragment: true,
     };
-    let time = chrono::Utc::now();
-    match ping_rs::send_ping_async(
-        &addr,
-        Duration::from_secs(svc.timeout as u64),
-        data_arc,
-        Some(&options),
-    )
-    .await
-    {
+    match ping_rs::send_ping_async(&addr, timeout, Arc::new(&data[..]), Some(&options)).await {
         Ok(reply) => {
             debug!(
                 bytes = data.len(),
@@ -67,41 +62,13 @@ pub async fn ping(svc: Service, tx: Sender<Event>) -> LogForCreate {
                 "reply from {}:",
                 reply.address,
             );
-            LogForCreate {
-                status: Status::Up,
-                duration: reply.rtt,
-                service_id: svc.id,
-                time: Some(time),
-                ..Default::default()
-            }
+            CheckOutcome::up(Duration::from_millis(reply.rtt.into()))
         }
         Err(PingError::OsError(_, msg)) => {
-            if let Err(e) = tx.send(Event::Notification(Notification {
-                message: format!("Error: {}", msg),
-                title: "Network Error".to_string(),
-                level: Level::Error,
-            })) {
-                error!("Failed to send notification: {:?}", e);
-            };
             warn!("Ping failed {}", msg);
-            LogForCreate {
-                status: Status::Failed,
-                message: Some(msg),
-                service_id: svc.id,
-                time: Some(time),
-                ..Default::default()
-            }
+            CheckOutcome::error(msg)
         }
-        Err(e) => {
-            error!("{:?}", e);
-            LogForCreate {
-                status: Status::Down,
-                message: Some(format!("{:?}", e)),
-                service_id: svc.id,
-                time: Some(time),
-                ..Default::default()
-            }
-        }
+        Err(e) => CheckOutcome::down(Duration::ZERO, format!("{e:?}")),
     }
 }
 
@@ -124,5 +91,17 @@ mod tests {
     #[tokio::test]
     async fn unresolvable_host_is_an_error() {
         assert!(resolve("does-not-exist.invalid").await.is_err());
+    }
+
+    #[test]
+    fn validation() {
+        assert!(PingConfig { host: "  ".into() }.validate().is_err());
+        assert!(
+            PingConfig {
+                host: "localhost".into()
+            }
+            .validate()
+            .is_ok()
+        );
     }
 }
