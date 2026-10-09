@@ -41,7 +41,7 @@ pub struct LogForCreate {
 pub struct Incident {
     service_id: u32,
     service_name: String,
-    service_target: String,
+    service_target: Option<String>,
     status: Status,
     date: NaiveDate,
     count: u32,
