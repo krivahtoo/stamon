@@ -61,6 +61,15 @@ docker compose up stamon
 
 Visit http://localhost:3000.
 
+### ⚙️ Configuration
+
+| Variable | Default | Description |
+|---|---|---|
+| `JWT_SECRET` | (required) | Secret used to sign login tokens. |
+| `DATA_PATH` | `/app/data` in Docker | Directory for the SQLite database. |
+| `ASSETS_PATH` | `assets` | Directory of the built frontend. |
+| `LOG_RETENTION_DAYS` | `90` | Days to keep check logs and alert history; `0` keeps them forever. |
+
 ## 🏗️ Development
 
 To start the frontend:

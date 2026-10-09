@@ -58,6 +58,15 @@ impl Notification {
         Ok(())
     }
 
+    /// Delete deliveries older than `before`, returning how many were removed.
+    pub async fn prune(pool: &SqlitePool, before: DateTime<Utc>) -> sqlx::Result<u64> {
+        let result = sqlx::query("DELETE FROM Notifications WHERE datetime(sent_at) < datetime(?)")
+            .bind(before)
+            .execute(pool)
+            .await?;
+        Ok(result.rows_affected())
+    }
+
     /// The most recent deliveries first.
     pub async fn list(pool: &SqlitePool, limit: Option<u32>) -> sqlx::Result<Vec<Notification>> {
         sqlx::query_as(
@@ -130,6 +139,23 @@ mod tests {
         let history = Notification::list(&pool, Some(1)).await?;
         assert_eq!(history.len(), 1);
         assert_eq!(history[0].channel_id, None);
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn prune_removes_old_deliveries(pool: SqlitePool) -> sqlx::Result<()> {
+        sqlx::query(
+            r#"INSERT INTO Notifications (title, status, sent_at) VALUES
+               ('old', 'sent', datetime('now', '-100 days')),
+               ('new', 'sent', datetime('now'))"#,
+        )
+        .execute(&pool)
+        .await?;
+        let removed = Notification::prune(&pool, Utc::now() - chrono::TimeDelta::days(90)).await?;
+        assert_eq!(removed, 1);
+        let left = Notification::list(&pool, None).await?;
+        assert_eq!(left.len(), 1);
+        assert_eq!(left[0].title, "new");
         Ok(())
     }
 }
