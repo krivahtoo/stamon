@@ -17,7 +17,7 @@ mod push;
 mod tcp;
 mod tls;
 
-pub use database::{DatabaseConfig, DatabaseEngine, REDACTED};
+pub use database::{DatabaseConfig, DatabaseEngine};
 pub use dns::{DnsConfig, DnsRecordType};
 pub use docker::DockerConfig;
 pub use http::{HttpConfig, HttpMethod};
@@ -25,6 +25,9 @@ pub use ping::PingConfig;
 pub use push::PushConfig;
 pub use tcp::TcpConfig;
 pub use tls::TlsConfig;
+
+/// Shown instead of a stored secret in API responses.
+pub const REDACTED: &str = "********";
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "kebab-case")]
@@ -97,16 +100,24 @@ impl CheckConfig {
 
     /// Hide secrets before showing the config.
     pub fn redact(&mut self) {
-        if let CheckConfig::Database(config) = self {
-            config.redact();
+        match self {
+            CheckConfig::Http(config) => config.redact(),
+            CheckConfig::Database(config) => config.redact(),
+            _ => (),
         }
     }
 
     /// Restore secrets that are still redacted from the config being
     /// replaced, so a config read from the API can be saved back.
     pub fn keep_secrets_from(&mut self, previous: &CheckConfig) {
-        if let (CheckConfig::Database(config), CheckConfig::Database(previous)) = (self, previous) {
-            config.keep_password_from(previous);
+        match (self, previous) {
+            (CheckConfig::Http(config), CheckConfig::Http(previous)) => {
+                config.keep_headers_from(previous);
+            }
+            (CheckConfig::Database(config), CheckConfig::Database(previous)) => {
+                config.keep_password_from(previous);
+            }
+            _ => (),
         }
     }
 

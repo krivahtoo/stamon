@@ -11,10 +11,7 @@ use tokio::{
     net::TcpStream,
 };
 
-use crate::CheckOutcome;
-
-/// Shown instead of a stored password in API responses.
-pub const REDACTED: &str = "********";
+use crate::{CheckOutcome, REDACTED};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DatabaseConfig {

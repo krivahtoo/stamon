@@ -6,7 +6,7 @@ use reqwest::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::CheckOutcome;
+use crate::{CheckOutcome, REDACTED};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct HttpConfig {
@@ -116,6 +116,31 @@ impl HttpConfig {
             _ => (),
         }
         Ok(())
+    }
+
+    /// Hide header values, which often carry credentials (`Authorization`,
+    /// API keys, signatures) under names that can't be told apart.
+    pub fn redact(&mut self) {
+        for value in self.headers.values_mut() {
+            *value = REDACTED.into();
+        }
+    }
+
+    /// Restore header values that are still redacted from `previous`,
+    /// matching names regardless of case.
+    pub fn keep_headers_from(&mut self, previous: &HttpConfig) {
+        for (name, value) in &mut self.headers {
+            if value != REDACTED {
+                continue;
+            }
+            if let Some((_, stored)) = previous
+                .headers
+                .iter()
+                .find(|(previous_name, _)| previous_name.eq_ignore_ascii_case(name))
+            {
+                value.clone_from(stored);
+            }
+        }
     }
 
     fn checks_body(&self) -> bool {
@@ -315,6 +340,39 @@ mod tests {
         assert!(config.validate().is_ok());
         config.json_pointer = None;
         assert!(config.validate().is_err());
+    }
+
+    #[test]
+    fn header_redaction_round_trip() {
+        let mut stored = HttpConfig::get("https://example.com");
+        stored
+            .headers
+            .insert("Authorization".into(), "Bearer s3cret".into());
+        stored.headers.insert("X-Api-Key".into(), "k3y".into());
+
+        let mut shown = stored.clone();
+        shown.redact();
+        assert!(shown.headers.values().all(|v| v == REDACTED));
+        assert_eq!(shown.url, stored.url, "only header values are hidden");
+
+        // Saving the redacted config back keeps the stored values.
+        let mut saved = shown.clone();
+        saved.keep_headers_from(&stored);
+        assert_eq!(saved, stored);
+
+        // Changed values replace them, names match regardless of case,
+        // and removed headers stay removed.
+        let mut edited = HttpConfig::get("https://example.com");
+        edited
+            .headers
+            .insert("authorization".into(), REDACTED.into());
+        edited
+            .headers
+            .insert("Accept".into(), "application/json".into());
+        edited.keep_headers_from(&stored);
+        assert_eq!(edited.headers["authorization"], "Bearer s3cret");
+        assert_eq!(edited.headers["Accept"], "application/json");
+        assert!(!edited.headers.contains_key("X-Api-Key"));
     }
 
     #[test]
