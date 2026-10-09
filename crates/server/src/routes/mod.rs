@@ -10,6 +10,7 @@ use crate::{
 
 mod auth;
 mod logs;
+mod push;
 mod service;
 mod users;
 
@@ -30,6 +31,7 @@ pub fn routes() -> Router<AppState> {
         .merge(auth::routes())
         .merge(service::routes())
         .merge(logs::routes())
+        .merge(push::routes())
         .merge(users::routes())
         .merge(stats_route)
         .fallback(root)

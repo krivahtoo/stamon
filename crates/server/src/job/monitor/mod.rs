@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use apalis::prelude::{Context, Data, Worker};
-use checks::{CheckOutcome, CheckStatus};
+use checks::{CheckConfig, CheckOutcome, CheckStatus};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, error};
@@ -109,6 +109,16 @@ fn transition_notification(name: &str, from: Status, to: Status) -> Option<Notif
     }
 }
 
+/// When a push monitor's next heartbeat is due (unix seconds), or `None`
+/// for monitors that are actively checked.
+pub fn push_deadline(svc: &Service) -> Option<i64> {
+    let CheckConfig::Push(push) = &svc.config else {
+        return None;
+    };
+    let last_push_at = svc.last_push_at.unwrap_or(0);
+    Some(last_push_at + i64::from(svc.interval) + i64::from(push.grace_secs))
+}
+
 pub async fn job_monitor(job: CheckJob, worker: Worker<Context>, state: Data<AppState>) {
     let svc = match Service::get(&state.pool, job.service_id).await {
         Ok(Some(svc)) if svc.active => svc,
@@ -126,10 +136,37 @@ pub async fn job_monitor(job: CheckJob, worker: Worker<Context>, state: Data<App
     };
 
     let time = Utc::now();
-    let outcome = svc
-        .config
-        .check(Duration::from_secs(svc.timeout.max(1).into()))
-        .await;
+    let outcome = match push_deadline(&svc) {
+        // Not late yet; look again when the heartbeat is due.
+        Some(deadline) if time.timestamp() < deadline => {
+            if let Err(e) = Service::set_next_run(&state.pool, svc.id, deadline).await {
+                error!("Failed to schedule service {}: {e}", svc.id);
+            }
+            return;
+        }
+        Some(_) => CheckOutcome {
+            status: CheckStatus::Down,
+            latency: Duration::ZERO,
+            message: Some(format!(
+                "No heartbeat received for {}s",
+                time.timestamp() - svc.last_push_at.unwrap_or(0)
+            )),
+        },
+        None => {
+            svc.config
+                .check(Duration::from_secs(svc.timeout.max(1).into()))
+                .await
+        }
+    };
+    debug!(
+        worker = worker.id().to_string(),
+        "Service {} checked: {:?}", svc.id, outcome.status
+    );
+    record(&state, &svc, time, outcome).await;
+}
+
+/// Apply invert and retries to a check result, then store and announce it.
+pub async fn record(state: &AppState, svc: &Service, time: DateTime<Utc>, outcome: CheckOutcome) {
     if outcome.status == CheckStatus::Error
         && let Err(e) = state.tx.send(Event::Notification(Notification {
             message: format!(
@@ -143,20 +180,15 @@ pub async fn job_monitor(job: CheckJob, worker: Worker<Context>, state: Data<App
     {
         error!("Failed to send notification: {:?}", e);
     }
-    let checked = to_log(svc.id, time, outcome);
     let Evaluation {
         log: status_log,
         consecutive_failures,
         retrying,
-    } = evaluate(&svc, checked);
+    } = evaluate(svc, to_log(svc.id, time, outcome));
 
     if let Err(e) = state.tx.send(Event::Log(status_log.clone())) {
         error!("Failed to send notification: {:?}", e);
     }
-    debug!(
-        worker = worker.id().to_string(),
-        "Service status {}", status_log
-    );
 
     if let Some(notification) =
         transition_notification(&svc.name, svc.last_status, status_log.status)
@@ -189,7 +221,7 @@ pub async fn job_monitor(job: CheckJob, worker: Worker<Context>, state: Data<App
 
 #[cfg(test)]
 mod tests {
-    use checks::{CheckConfig, PingConfig};
+    use checks::{PingConfig, PushConfig};
 
     use super::*;
 
@@ -207,10 +239,25 @@ mod tests {
             invert: false,
             consecutive_failures: 0,
             next_run_at: 0,
+            last_push_at: None,
             config: CheckConfig::Ping(PingConfig { host: url.into() }),
             service_type: "ping".into(),
-            target: url.into(),
+            target: Some(url.into()),
         }
+    }
+
+    #[test]
+    fn push_deadline_counts_from_last_heartbeat() {
+        let mut svc = service("x");
+        assert_eq!(push_deadline(&svc), None, "active checks have no deadline");
+
+        svc.config = CheckConfig::Push(PushConfig {
+            token: "t".repeat(16),
+            grace_secs: 15,
+        });
+        svc.interval = 60;
+        svc.last_push_at = Some(1_000);
+        assert_eq!(push_deadline(&svc), Some(1_075));
     }
 
     #[test]

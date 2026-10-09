@@ -8,17 +8,30 @@ use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 
+mod dns;
 mod http;
 mod ping;
+mod push;
+mod tcp;
+mod tls;
 
+pub use dns::{DnsConfig, DnsRecordType};
 pub use http::{HttpConfig, HttpMethod};
 pub use ping::PingConfig;
+pub use push::PushConfig;
+pub use tcp::TcpConfig;
+pub use tls::TlsConfig;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "kebab-case")]
 pub enum CheckConfig {
     Http(HttpConfig),
     Ping(PingConfig),
+    Tcp(TcpConfig),
+    Dns(DnsConfig),
+    Tls(TlsConfig),
+    /// Passive: the service reports in instead of being checked.
+    Push(PushConfig),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -67,7 +80,16 @@ impl CheckConfig {
         match self {
             CheckConfig::Http(config) => config.validate(),
             CheckConfig::Ping(config) => config.validate(),
+            CheckConfig::Tcp(config) => config.validate(),
+            CheckConfig::Dns(config) => config.validate(),
+            CheckConfig::Tls(config) => config.validate(),
+            CheckConfig::Push(config) => config.validate(),
         }
+    }
+
+    /// Whether the service reports in instead of being checked.
+    pub fn is_passive(&self) -> bool {
+        matches!(self, CheckConfig::Push(_))
     }
 
     /// Run the check, treating anything slower than `timeout` as down.
@@ -77,6 +99,12 @@ impl CheckConfig {
             match self {
                 CheckConfig::Http(config) => http::check(config).await,
                 CheckConfig::Ping(config) => ping::check(config, timeout).await,
+                CheckConfig::Tcp(config) => tcp::check(config).await,
+                CheckConfig::Dns(config) => dns::check(config).await,
+                CheckConfig::Tls(config) => tls::check(config, timeout).await,
+                CheckConfig::Push(_) => CheckOutcome::error(
+                    "Push monitors wait for heartbeats instead of being checked",
+                ),
             }
         };
         match tokio::time::timeout(timeout, check).await {
@@ -116,6 +144,17 @@ mod tests {
         );
 
         assert!(serde_json::from_value::<CheckConfig>(json!({ "type": "smtp" })).is_err());
+
+        for config in [
+            json!({ "type": "tcp", "host": "db", "port": 5432 }),
+            json!({ "type": "dns", "host": "example.com", "record_type": "MX" }),
+            json!({ "type": "tls", "host": "example.com" }),
+            json!({ "type": "push", "token": "abcdefgh12345678" }),
+        ] {
+            let parsed: CheckConfig = serde_json::from_value(config.clone()).unwrap();
+            assert!(parsed.validate().is_ok(), "{config}");
+            assert_eq!(parsed.is_passive(), config["type"] == "push");
+        }
         assert_eq!(
             serde_json::to_value(&ping).unwrap(),
             json!({ "type": "ping", "host": "10.0.0.1" })
