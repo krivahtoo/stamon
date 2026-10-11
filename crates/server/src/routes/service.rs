@@ -16,6 +16,7 @@ use crate::{
     AppState,
     auth::{Claims, EditorClaims},
     models::{
+        channel::Channel,
         log::Log,
         service::{Service, ServiceForCreate, ServiceForUpdate, fill_push_token},
     },
@@ -60,6 +61,18 @@ async fn push_token_rejection(
     }
 }
 
+/// The response rejecting channel ids that don't exist.
+async fn unknown_channels_rejection(state: &AppState, channel_ids: &[u32]) -> Option<Response> {
+    match Channel::missing_ids(&state.pool, channel_ids).await {
+        Ok(missing) if missing.is_empty() => None,
+        Ok(missing) => Some(bad_request(format!("Unknown channel ids: {missing:?}"))),
+        Err(e) => {
+            error!("Error checking channels: {e}");
+            Some(json_response(500, "Internal server error"))
+        }
+    }
+}
+
 #[debug_handler(state = AppState)]
 async fn add_service(
     EditorClaims(Claims { user_id, .. }): EditorClaims,
@@ -73,22 +86,76 @@ async fn add_service(
     if let Some(response) = push_token_rejection(&state, &service.config, None).await {
         return response;
     }
+    if let Some(response) = unknown_channels_rejection(&state, &service.channel_ids).await {
+        return response;
+    }
     service.user_id = Some(user_id);
-    if let Err(e) = Service::insert(&state.pool, service).await {
-        error!("Error adding service: {e}");
-        return Response::builder()
-            .status(500)
-            .header("Content-Type", "application/json")
-            .body(json!({ "message": "Internal server error" }).to_string())
-            .unwrap()
-            .into_response();
+    let channel_ids = std::mem::take(&mut service.channel_ids);
+    let id = match Service::insert(&state.pool, service).await {
+        Ok(id) => id,
+        Err(e) => {
+            error!("Error adding service: {e}");
+            return json_response(500, "Internal server error");
+        }
     };
+    if let Err(e) = Channel::set_for_service(&state.pool, id, &channel_ids).await {
+        error!("Error linking channels to service({id}): {e}");
+        return json_response(500, "Service created, but its channels could not be saved");
+    }
     Response::builder()
         .status(201)
         .header("Content-Type", "application/json")
-        .body(json!({ "message": "Services created" }).to_string())
+        .body(json!({ "message": "Services created", "id": id }).to_string())
         .unwrap()
         .into_response()
+}
+
+#[derive(Deserialize)]
+struct ServiceChannels {
+    channel_ids: Vec<u32>,
+}
+
+/// Channels linked to the service; channels that apply to all aren't listed.
+#[debug_handler]
+async fn get_service_channels(
+    _: Claims,
+    State(state): State<AppState>,
+    Path(service_id): Path<u32>,
+) -> Response {
+    match Channel::linked_ids(&state.pool, service_id).await {
+        Ok(channel_ids) => Json(json!({ "channel_ids": channel_ids })).into_response(),
+        Err(e) => {
+            error!("Error listing channels of service({service_id}): {e}");
+            json_response(500, "Internal server error")
+        }
+    }
+}
+
+#[debug_handler(state = AppState)]
+async fn set_service_channels(
+    _: EditorClaims,
+    State(state): State<AppState>,
+    Path(service_id): Path<u32>,
+    Json(body): Json<ServiceChannels>,
+) -> Response {
+    match Service::get(&state.pool, service_id).await {
+        Ok(Some(_)) => (),
+        Ok(None) => return json_response(404, "Service not found"),
+        Err(e) => {
+            error!("Error loading service({service_id}): {e}");
+            return json_response(500, "Internal server error");
+        }
+    }
+    if let Some(response) = unknown_channels_rejection(&state, &body.channel_ids).await {
+        return response;
+    }
+    match Channel::set_for_service(&state.pool, service_id, &body.channel_ids).await {
+        Ok(()) => json_response(200, "Channels updated"),
+        Err(e) => {
+            error!("Error linking channels to service({service_id}): {e}");
+            json_response(500, "Internal server error")
+        }
+    }
 }
 
 #[debug_handler]
@@ -229,4 +296,8 @@ pub fn routes() -> Router<AppState> {
             get(get_service).put(update_service).delete(delete_service),
         )
         .route("/services/{id}/logs", get(list_service_logs))
+        .route(
+            "/services/{id}/channels",
+            get(get_service_channels).put(set_service_channels),
+        )
 }

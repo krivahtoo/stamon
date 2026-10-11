@@ -15,12 +15,12 @@ use tracing::{debug, error, info};
 
 use crate::{
     AppState,
-    job::{self, CheckJob, Notification},
+    job::{self, AlertJob, CheckJob},
     service, utils,
 };
 
 pub async fn monitors(state: &AppState) -> Result<(), Box<dyn std::error::Error>> {
-    let notification_storage: SqliteStorage<Notification> = SqliteStorage::new(state.pool.clone());
+    let alert_storage: SqliteStorage<AlertJob> = SqliteStorage::new(state.pool.clone());
 
     let monitor_storage: SqliteStorage<CheckJob> = SqliteStorage::new(state.pool.clone());
 
@@ -35,9 +35,10 @@ pub async fn monitors(state: &AppState) -> Result<(), Box<dyn std::error::Error>
         .build_fn(service::run_timer_cron_service);
 
     let notify_worker = WorkerBuilder::new("notification-worker")
+        .data(state.clone())
         .layer(TraceLayer::new())
-        .backend(notification_storage)
-        .build_fn(job::notify);
+        .backend(alert_storage)
+        .build_fn(job::deliver);
 
     let monitor_worker = WorkerBuilder::new("monitor-worker")
         .data(state.clone())

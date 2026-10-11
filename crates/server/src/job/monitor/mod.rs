@@ -1,6 +1,8 @@
 use std::time::Duration;
 
-use apalis::prelude::{Context, Data, Worker};
+use alerts::{Alert, AlertStatus};
+use apalis::prelude::{Context, Data, Storage, Worker};
+use apalis_sql::sqlite::SqliteStorage;
 use checks::{CheckConfig, CheckOutcome, CheckStatus};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -8,7 +10,9 @@ use tracing::{debug, error};
 
 use crate::{
     AppState,
+    job::AlertJob,
     models::{
+        channel::Channel,
         log::{Log, LogForCreate, Status},
         service::Service,
     },
@@ -166,6 +170,48 @@ pub async fn job_monitor(job: CheckJob, worker: Worker<Context>, state: Data<App
 }
 
 /// Apply invert and retries to a check result, then store and announce it.
+/// The alert a status change warrants: only confirmed changes, so retries
+/// and monitor errors stay quiet.
+fn alert_status(from: Status, to: Status) -> Option<AlertStatus> {
+    match (from, to) {
+        (Status::Up | Status::Pending, Status::Down) => Some(AlertStatus::Down),
+        (Status::Down, Status::Up) => Some(AlertStatus::Up),
+        _ => None,
+    }
+}
+
+/// Queue the alert for every channel the service sends to.
+async fn queue_alerts(state: &AppState, svc: &Service, log: &LogForCreate) {
+    let Some(status) = alert_status(svc.last_status, log.status) else {
+        return;
+    };
+    let channels = match Channel::for_service(&state.pool, svc.id).await {
+        Ok(channels) => channels,
+        Err(e) => {
+            error!("Failed to load channels for service {}: {e}", svc.id);
+            return;
+        }
+    };
+    let alert = Alert {
+        service_id: svc.id,
+        service_name: svc.name.clone(),
+        target: svc.target.clone(),
+        status,
+        message: log.message.clone(),
+        time: log.time.unwrap_or_else(Utc::now),
+    };
+    let mut storage: SqliteStorage<AlertJob> = SqliteStorage::new(state.pool.clone());
+    for channel in channels {
+        let job = AlertJob {
+            channel_id: channel.id,
+            alert: alert.clone(),
+        };
+        if let Err(e) = storage.push(job).await {
+            error!("Failed to queue alert for channel {}: {e}", channel.id);
+        }
+    }
+}
+
 pub async fn record(state: &AppState, svc: &Service, time: DateTime<Utc>, outcome: CheckOutcome) {
     if outcome.status == CheckStatus::Error
         && let Err(e) = state.tx.send(Event::Notification(Notification {
@@ -196,6 +242,7 @@ pub async fn record(state: &AppState, svc: &Service, time: DateTime<Utc>, outcom
     {
         error!("Failed to send notification: {:?}", e);
     }
+    queue_alerts(state, svc, &status_log).await;
 
     if let Err(e) = Log::insert(&state.pool, status_log).await {
         error!("error {e}");
@@ -244,6 +291,31 @@ mod tests {
             service_type: "ping".into(),
             target: Some(url.into()),
         }
+    }
+
+    #[test]
+    fn alerts_only_on_confirmed_changes() {
+        assert_eq!(
+            alert_status(Status::Up, Status::Down),
+            Some(AlertStatus::Down)
+        );
+        assert_eq!(
+            alert_status(Status::Pending, Status::Down),
+            Some(AlertStatus::Down),
+            "after retries, or a new service's first check"
+        );
+        assert_eq!(
+            alert_status(Status::Down, Status::Up),
+            Some(AlertStatus::Up)
+        );
+        assert_eq!(
+            alert_status(Status::Up, Status::Pending),
+            None,
+            "still retrying"
+        );
+        assert_eq!(alert_status(Status::Pending, Status::Up), None);
+        assert_eq!(alert_status(Status::Down, Status::Down), None);
+        assert_eq!(alert_status(Status::Up, Status::Failed), None);
     }
 
     #[test]

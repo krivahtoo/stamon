@@ -9,6 +9,7 @@ use crate::{
 };
 
 mod auth;
+mod channels;
 mod logs;
 mod push;
 mod service;
@@ -29,6 +30,7 @@ pub fn routes() -> Router<AppState> {
 
     Router::new()
         .merge(auth::routes())
+        .merge(channels::routes())
         .merge(service::routes())
         .merge(logs::routes())
         .merge(push::routes())
