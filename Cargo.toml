@@ -5,6 +5,7 @@ members = [
   "crates/server",
 
   # -- Application Libraries
+  "crates/checks",
   "crates/ssl-exp",
 ]
 

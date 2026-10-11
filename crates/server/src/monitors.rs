@@ -15,15 +15,14 @@ use tracing::{debug, error, info};
 
 use crate::{
     AppState,
-    job::{self, Notification},
-    models::service::Service,
+    job::{self, CheckJob, Notification},
     service, utils,
 };
 
 pub async fn monitors(state: &AppState) -> Result<(), Box<dyn std::error::Error>> {
     let notification_storage: SqliteStorage<Notification> = SqliteStorage::new(state.pool.clone());
 
-    let monitor_storage: SqliteStorage<Service> = SqliteStorage::new(state.pool.clone());
+    let monitor_storage: SqliteStorage<CheckJob> = SqliteStorage::new(state.pool.clone());
 
     let schedule = Schedule::from_str("* * * * * *")?;
     let cron_timer = WorkerBuilder::new("uptime-timer")
