@@ -16,8 +16,14 @@ use axum_extra::{
 use jsonwebtoken::{DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use sqlx::SqlitePool;
+use tracing::error;
 
-use crate::{config::env_config, models::user::UserRole};
+use crate::{
+    AppState,
+    config::env_config,
+    models::user::{User, UserRole},
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -63,17 +69,82 @@ where
     }
 }
 
+/// Check the token's user against the database, so role changes and
+/// deactivation apply without waiting for the token to expire.
+async fn authorize(
+    pool: &SqlitePool,
+    claims: Claims,
+    required: UserRole,
+) -> Result<Claims, AuthError> {
+    let user = match User::get(pool, claims.user_id).await {
+        Ok(user) => user,
+        Err(sqlx::Error::RowNotFound) => return Err(AuthError::InvalidToken),
+        Err(e) => {
+            error!("Failed to load user {}: {e}", claims.user_id);
+            return Err(AuthError::Internal);
+        }
+    };
+    if !user.active {
+        return Err(AuthError::InvalidToken);
+    }
+    if !user.role.allows(required) {
+        return Err(AuthError::Forbidden);
+    }
+    Ok(Claims {
+        role: user.role,
+        ..claims
+    })
+}
+
+/// Claims of an active user allowed to change monitors.
+pub struct EditorClaims(pub Claims);
+
+/// Claims of an active admin.
+pub struct AdminClaims(pub Claims);
+
+impl FromRequestParts<AppState> for EditorClaims {
+    type Rejection = AuthError;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
+        let claims = Claims::from_request_parts(parts, state).await?;
+        authorize(&state.pool, claims, UserRole::Editor)
+            .await
+            .map(Self)
+    }
+}
+
+impl FromRequestParts<AppState> for AdminClaims {
+    type Rejection = AuthError;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
+        let claims = Claims::from_request_parts(parts, state).await?;
+        authorize(&state.pool, claims, UserRole::Admin)
+            .await
+            .map(Self)
+    }
+}
+
 #[derive(Debug)]
 pub enum AuthError {
     MissingCredentials,
     InvalidToken,
+    Forbidden,
+    Internal,
 }
 
 impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
-            AuthError::MissingCredentials => (StatusCode::FORBIDDEN, "Missing credentials"),
-            AuthError::InvalidToken => (StatusCode::FORBIDDEN, "Invalid token"),
+            AuthError::MissingCredentials => (StatusCode::UNAUTHORIZED, "Missing credentials"),
+            AuthError::InvalidToken => (StatusCode::UNAUTHORIZED, "Invalid token"),
+            AuthError::Forbidden => (StatusCode::FORBIDDEN, "Insufficient permissions"),
+            AuthError::Internal => (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error"),
         };
         let body = Json(json!({
             "error": error_message,
@@ -177,6 +248,39 @@ mod tests {
     fn test_verify_password_invalid_hash() {
         // Invalid hash input should not panic and should return false.
         assert!(!verify_password("test_password", "not-a-valid-hash"));
+    }
+
+    fn claims(user_id: u32) -> Claims {
+        Claims {
+            user_id,
+            role: UserRole::Admin,
+            issued_at: 0,
+            expiry: 0,
+        }
+    }
+
+    #[sqlx::test(fixtures(path = "models/fixtures", scripts("users")))]
+    async fn authorize_checks_current_role(pool: SqlitePool) {
+        // user1 is an active admin
+        let ok = authorize(&pool, claims(1), UserRole::Admin).await.unwrap();
+        assert_eq!(ok.role, UserRole::Admin);
+
+        // user3 is a viewer even though the token claims admin
+        assert!(matches!(
+            authorize(&pool, claims(3), UserRole::Editor).await,
+            Err(AuthError::Forbidden)
+        ));
+
+        // user2 is a deactivated admin
+        assert!(matches!(
+            authorize(&pool, claims(2), UserRole::Viewer).await,
+            Err(AuthError::InvalidToken)
+        ));
+
+        assert!(matches!(
+            authorize(&pool, claims(999), UserRole::Viewer).await,
+            Err(AuthError::InvalidToken)
+        ));
     }
 
     #[test]

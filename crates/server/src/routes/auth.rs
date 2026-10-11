@@ -1,4 +1,3 @@
-use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use axum::{
     Router, debug_handler,
     extract::State,
@@ -14,7 +13,7 @@ use tracing::{debug, error};
 
 use crate::{
     AppState,
-    auth::Claims,
+    auth::{Claims, verify_password},
     config::env_config,
     extractors::json::Json,
     models::{
@@ -41,26 +40,31 @@ async fn login(State(state): State<AppState>, Json(user_login): Json<UserForLogi
         return Redirect::temporary("/register").into_response();
     }
 
-    let Some(user) = sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = $1")
-        .bind(user_login.username)
-        .fetch_optional(&state.pool)
-        .await
-        .unwrap()
-    else {
-        return Redirect::to("/register").into_response();
+    let user = match User::find_by_username(&state.pool, &user_login.username).await {
+        Ok(Some(user)) => user,
+        Ok(None) => return Redirect::to("/register").into_response(),
+        Err(e) => {
+            error!("{e}");
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": "Login failed"})),
+            )
+                .into_response();
+        }
     };
 
-    let is_valid = {
-        let parsed_hash = PasswordHash::new(&user.password).unwrap();
-        Argon2::default()
-            .verify_password(user_login.password.as_bytes(), &parsed_hash)
-            .is_ok_and(|_| true)
-    };
-
-    if !is_valid {
+    if !verify_password(&user_login.password, &user.password) {
         return (
             StatusCode::BAD_REQUEST,
             Json(json!({"error": "Invalid email or password"})),
+        )
+            .into_response();
+    }
+
+    if !user.active {
+        return (
+            StatusCode::FORBIDDEN,
+            Json(json!({"error": "Account is disabled"})),
         )
             .into_response();
     }
@@ -72,7 +76,7 @@ async fn login(State(state): State<AppState>, Json(user_login): Json<UserForLogi
         user_id: user.id,
         expiry,
         issued_at,
-        role: UserRole::Admin,
+        role: user.role,
     };
 
     let token = encode(
@@ -94,7 +98,10 @@ async fn login(State(state): State<AppState>, Json(user_login): Json<UserForLogi
 }
 
 #[debug_handler]
-async fn register(State(state): State<AppState>, Json(user): Json<UserForRegister>) -> Response {
+async fn register(
+    State(state): State<AppState>,
+    Json(mut user): Json<UserForRegister>,
+) -> Response {
     let users_exists: bool = match sqlx::query("SELECT EXISTS(SELECT 1 FROM users)")
         .fetch_one(&state.pool)
         .await
@@ -114,6 +121,8 @@ async fn register(State(state): State<AppState>, Json(user): Json<UserForRegiste
             .into_response();
     }
 
+    // Registration only sets up the first account, which must be able to manage the rest.
+    user.role = Some(UserRole::Admin);
     let count = match User::insert(&state.pool, user).await {
         Ok(c) => c,
         Err(e) => {

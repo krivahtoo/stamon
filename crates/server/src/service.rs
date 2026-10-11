@@ -4,7 +4,7 @@ use apalis::prelude::*;
 use apalis_sql::sqlite::SqliteStorage;
 use chrono::{DateTime, Timelike, Utc};
 use sqlx::sqlite::SqlitePool;
-use tracing::error;
+use tracing::{debug, error};
 
 use crate::models::service::Service;
 
@@ -20,10 +20,20 @@ impl TimerService {
 
     pub async fn execute(&self, job: Timer) -> Result<(), Box<dyn std::error::Error>> {
         let mut storage: SqliteStorage<Service> = SqliteStorage::new(self.pool.clone());
+        let now = Utc::now().timestamp();
 
-        for service in Service::all_active(&self.pool).await? {
-            if job.is_interval(service.interval) {
-                storage.push(service).await?;
+        for service in Service::due(&self.pool, now).await? {
+            // Reschedule before queueing so a failed push skips one run instead of
+            // queueing the service again on every tick.
+            let next_run_at = now + i64::from(service.interval.max(1));
+            Service::set_next_run(&self.pool, service.id, next_run_at).await?;
+            storage.push(service).await?;
+        }
+
+        if job.second() == 0 {
+            let removed = storage.vacuum().await?;
+            if removed > 0 {
+                debug!("Removed {removed} finished jobs");
             }
         }
         Ok(())
@@ -44,12 +54,6 @@ impl Deref for Timer {
 
     fn deref(&self) -> &Self::Target {
         &self.0
-    }
-}
-
-impl Timer {
-    fn is_interval(&self, interval: u32) -> bool {
-        self.num_seconds_from_midnight() % interval == 0
     }
 }
 
