@@ -15,7 +15,7 @@ use sqlx::types::Json as SqlJson;
 
 use crate::{
     AppState,
-    auth::{Claims, EditorClaims},
+    auth::{Claims, EditorClaims, can_edit},
     models::{
         channel::Channel,
         log::Log,
@@ -196,10 +196,11 @@ async fn service_stats(
 
 #[debug_handler]
 async fn get_service(
-    _: Claims,
+    claims: Claims,
     State(state): State<AppState>,
     Path(service_id): Path<u32>,
 ) -> Response {
+    let reveal_push_token = can_edit(&state.pool, &claims).await;
     match Service::get(&state.pool, service_id).await {
         Err(e) => {
             error!("Error updating service({service_id}): {e}");
@@ -212,6 +213,9 @@ async fn get_service(
         }
         Ok(Some(mut s)) => {
             s.config.redact();
+            if !reveal_push_token {
+                s.config.redact_push_token();
+            }
             Response::builder()
                 .status(200)
                 .header("Content-Type", "application/json")
@@ -237,7 +241,7 @@ async fn update_service(
 ) -> Response {
     if let Some(SqlJson(config)) = &mut service.config {
         fill_push_token(config);
-        // Configs from the API have their passwords redacted.
+        // Configs from the API have their secrets redacted.
         match Service::get(&state.pool, service_id).await {
             Ok(Some(previous)) => config.keep_secrets_from(&previous.config),
             Ok(None) => (),
@@ -298,7 +302,8 @@ async fn delete_service(
 }
 
 #[debug_handler]
-async fn list_services(_: Claims, State(state): State<AppState>) -> Response {
+async fn list_services(claims: Claims, State(state): State<AppState>) -> Response {
+    let reveal_push_token = can_edit(&state.pool, &claims).await;
     let Ok(mut services) = Service::all(&state.pool).await else {
         return Response::builder()
             .header("Content-Type", "application/json")
@@ -309,6 +314,9 @@ async fn list_services(_: Claims, State(state): State<AppState>) -> Response {
     };
     for service in &mut services {
         service.config.redact();
+        if !reveal_push_token {
+            service.config.redact_push_token();
+        }
     }
     Response::builder()
         .header("Content-Type", "application/json")

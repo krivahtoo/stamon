@@ -149,7 +149,6 @@ Made with [contrib.rocks](https://contrib.rocks).
 - [ ] Edit the check settings of existing monitors from the dashboard
 - [ ] Recurring maintenance windows
 - [ ] TLS for Docker daemons and Redis checks
-- [ ] Hide push tokens from viewers
 
 
 ## 📜 License

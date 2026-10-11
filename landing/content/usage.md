@@ -69,7 +69,7 @@ Pick the engine and give the host, port (the engine's default otherwise), creden
 
 # 💓 Push monitors {#push-monitors}
 
-For cron jobs, backups and workers that can't be reached from Stamon, the job reports in instead. Each push monitor has a secret URL, shown when you create it and on its page:
+For cron jobs, backups and workers that can't be reached from Stamon, the job reports in instead. Each push monitor has a secret URL, shown when you create it and on its page to editors and admins:
 
 ```
 https://stamon.example.com/api/push/<token>
@@ -154,4 +154,4 @@ Get `$TOKEN` by signing in, as shown in [First Run](/installation/#first-run). R
 
 - Check logs and alert history are kept for `LOG_RETENTION_DAYS` days (default 90; `0` keeps them forever).
 - **Uptime** is the share of *up* results among up and down ones. Pending, failed and maintenance results don't count.
-- Secrets in monitor settings are hidden from the API: database passwords and HTTP header values show as `********`. Channel settings are only visible to admins.
+- Secrets in monitor settings are hidden from the API: database passwords and HTTP header values show as `********`, and push tokens do too for viewers. Channel settings are only visible to admins.

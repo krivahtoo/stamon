@@ -167,7 +167,13 @@
       </Card.Description>
     </Card.Header>
     <Card.Content>
-      <Input readonly value={pushUrl(data.service.config.token)} class="font-mono" />
+      {#if data.service.config.token === '********'}
+        <p class="text-sm text-muted-foreground">
+          Only editors and admins can see this monitor's push URL.
+        </p>
+      {:else}
+        <Input readonly value={pushUrl(data.service.config.token)} class="font-mono" />
+      {/if}
     </Card.Content>
   </Card.Root>
 {/if}
