@@ -17,6 +17,7 @@ jobs:
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
+      pr_branch: ${{ steps.release.outputs.pr && fromJSON(steps.release.outputs.pr).headBranchName }}
     steps:
       - name: Open or update the release PR, or publish a release
         id: release
@@ -42,3 +43,20 @@ jobs:
           gh workflow run docker.yml
           --repo "${{ github.repository }}"
           --ref "${{ needs.release-please.outputs.tag_name }}"
+
+  # The release PR is pushed with GITHUB_TOKEN, which doesn't trigger CI, so
+  # its required Check would stay pending. Dispatch CI on its branch instead.
+  ci:
+    needs: release-please
+    if: needs.release-please.outputs.pr_branch
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Run CI on the release PR branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh workflow run ci.yml
+          --repo "${{ github.repository }}"
+          --ref "${{ needs.release-please.outputs.pr_branch }}"

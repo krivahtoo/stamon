@@ -1,0 +1,24 @@
+name: CI on retarget
+
+# Changing a PR's base (as GitHub does to a stacked PR once the PR below it
+# merges) is an `edited` event, which doesn't run CI. Dispatch it instead.
+# CI isn't run on `edited` directly, since title or body edits would rerun it
+# and could replace a failed Check.
+on:
+  pull_request:
+    types: [edited]
+
+permissions: {}
+
+jobs:
+  dispatch:
+    if: github.event.changes.base && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Run CI on the PR branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.head_ref }}
+        run: gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"

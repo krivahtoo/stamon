@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      rust: ${{ steps.release.outputs.skip == 'true' && 'false' || steps.filter.outputs.rust }}
+      frontend: ${{ steps.release.outputs.skip == 'true' && 'false' || steps.filter.outputs.frontend }}
+    steps:
+      # Release PRs only bump versions and the changelog.
+      - name: Skip release PRs
+        id: release
+        run: echo "skip=${{ startsWith(github.head_ref || github.ref_name, 'release-please--') }}" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        if: steps.release.outputs.skip != 'true'
+      - uses: dorny/paths-filter@v3
+        id: filter
+        if: steps.release.outputs.skip != 'true'
+        with:
+          base: main
+          filters: |
+            rust:
+              - 'crates/**'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+              - '.cargo/**'
+              - 'rustfmt.toml'
+              - '.github/workflows/ci.yml'
+            frontend:
+              - 'frontend/**'
+              - '.github/workflows/ci.yml'
+
+  cargo-check:
+    name: Cargo check
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo check --all-features
+
+  fmt:
+    name: Rustfmt
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
+  clippy:
+    name: Clippy
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy
+
+  frontend:
+    name: Frontend build
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.7.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: pnpm install
+        working-directory: ./frontend
+      - run: pnpm run build
+        working-directory: ./frontend
+
+  # The single required check. Jobs skipped because nothing relevant changed
+  # count as passing; a failed or cancelled job fails it.
+  check:
+    name: Check
+    if: always()
+    needs: [changes, cargo-check, fmt, clippy, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every job to pass or be skipped
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
