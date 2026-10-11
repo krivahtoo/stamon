@@ -1,4 +1,6 @@
+use argon2::password_hash::rand_core::{OsRng, RngCore};
 use checks::CheckConfig;
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, SqlitePool, types::Json};
 
@@ -20,12 +22,14 @@ pub struct Service {
     pub invert: bool,
     pub consecutive_failures: u32,
     pub next_run_at: i64,
+    /// When a push monitor last received a heartbeat (unix seconds).
+    pub last_push_at: Option<i64>,
     #[sqlx(json)]
     pub config: CheckConfig,
     /// The config's `type`, derived by the database.
     pub service_type: String,
-    /// The config's URL or host, derived by the database.
-    pub target: String,
+    /// The config's URL or host, derived by the database. Push monitors have none.
+    pub target: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -55,6 +59,25 @@ pub struct ServiceForUpdate {
     pub invert: Option<bool>,
     /// Replaces the whole check config.
     pub config: Option<Json<CheckConfig>>,
+    #[serde(skip)]
+    pub last_push_at: Option<i64>,
+}
+
+/// Give a push config without a token a random one.
+pub fn fill_push_token(config: &mut CheckConfig) {
+    if let CheckConfig::Push(push) = config
+        && push.token.trim().is_empty()
+    {
+        let mut bytes = [0u8; 16];
+        OsRng.fill_bytes(&mut bytes);
+        push.token = bytes.iter().map(|b| format!("{b:02x}")).collect();
+    }
+}
+
+/// A new push monitor counts from when it's set up, so it isn't reported as
+/// missing a heartbeat before it could have sent one.
+fn initial_push_at(config: &CheckConfig) -> Option<i64> {
+    config.is_passive().then(|| Utc::now().timestamp())
 }
 
 #[derive(Debug, Default, Serialize)]
@@ -117,8 +140,9 @@ impl Service {
     pub async fn insert(pool: &SqlitePool, service: ServiceForCreate) -> sqlx::Result<u64> {
         let result = sqlx::query(
             r#"INSERT INTO Services (
-                   user_id, active, name, interval, timeout, retry, retry_interval, invert, config
-               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"#,
+                   user_id, active, name, interval, timeout, retry, retry_interval, invert,
+                   last_push_at, config
+               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"#,
         )
         .bind(service.user_id)
         .bind(service.active.unwrap_or(true))
@@ -128,6 +152,7 @@ impl Service {
         .bind(service.retry)
         .bind(service.retry_interval)
         .bind(service.invert.unwrap_or(false))
+        .bind(initial_push_at(&service.config))
         .bind(Json(service.config))
         .execute(pool)
         .await?;
@@ -160,6 +185,36 @@ impl Service {
         next_run_at: i64,
     ) -> sqlx::Result<()> {
         sqlx::query("UPDATE Services SET next_run_at = ? WHERE id = ?")
+            .bind(next_run_at)
+            .bind(service_id)
+            .execute(pool)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn find_by_push_token(
+        pool: &SqlitePool,
+        token: &str,
+    ) -> sqlx::Result<Option<Service>> {
+        sqlx::query_as::<_, Service>(
+            r#"SELECT *
+               FROM Services
+               WHERE service_type = 'push' AND json_extract(config, '$.token') = ?"#,
+        )
+        .bind(token)
+        .fetch_optional(pool)
+        .await
+    }
+
+    /// Record a heartbeat and move the next check to the new deadline.
+    pub async fn record_push(
+        pool: &SqlitePool,
+        service_id: u32,
+        pushed_at: i64,
+        next_run_at: i64,
+    ) -> sqlx::Result<()> {
+        sqlx::query("UPDATE Services SET last_push_at = ?, next_run_at = ? WHERE id = ?")
+            .bind(pushed_at)
             .bind(next_run_at)
             .bind(service_id)
             .execute(pool)
@@ -241,8 +296,11 @@ impl Service {
     pub async fn update(
         pool: &SqlitePool,
         service_id: u32,
-        update_data: ServiceForUpdate,
+        mut update_data: ServiceForUpdate,
     ) -> sqlx::Result<u64> {
+        if let Some(Json(config)) = &update_data.config {
+            update_data.last_push_at = initial_push_at(config);
+        }
         let mut query = String::from("UPDATE Services SET ");
         let mut has_updates = false;
 
@@ -255,7 +313,8 @@ impl Service {
             retry,
             retry_interval,
             invert,
-            config
+            config,
+            last_push_at
         });
 
         // Remove the trailing comma and space
@@ -278,7 +337,8 @@ impl Service {
             retry,
             retry_interval,
             invert,
-            config
+            config,
+            last_push_at
         });
 
         // bind to service_id
@@ -292,7 +352,7 @@ impl Service {
 
 #[cfg(test)]
 mod tests {
-    use checks::{HttpMethod, PingConfig};
+    use checks::{HttpMethod, PingConfig, PushConfig};
     use serde_json::json;
     use sqlx::SqlitePool;
 
@@ -386,10 +446,10 @@ mod tests {
 
         let web = Service::get(&pool, 1).await?.unwrap();
         assert_eq!(web.service_type, "http");
-        assert_eq!(web.target, "https://example.com/health");
+        assert_eq!(web.target.as_deref(), Some("https://example.com/health"));
         let host = Service::get(&pool, 2).await?.unwrap();
         assert_eq!(host.service_type, "ping");
-        assert_eq!(host.target, "10.0.0.5");
+        assert_eq!(host.target.as_deref(), Some("10.0.0.5"));
 
         // Replacing the config updates the derived columns.
         Service::update(
@@ -405,7 +465,77 @@ mod tests {
         .await?;
         let web = Service::get(&pool, 1).await?.unwrap();
         assert_eq!(web.service_type, "ping");
-        assert_eq!(web.target, "example.com");
+        assert_eq!(web.target.as_deref(), Some("example.com"));
+
+        Ok(())
+    }
+
+    fn push(token: &str) -> CheckConfig {
+        CheckConfig::Push(PushConfig {
+            token: token.into(),
+            grace_secs: 10,
+        })
+    }
+
+    #[test]
+    fn fill_push_token_only_when_missing() {
+        let mut config = push("");
+        fill_push_token(&mut config);
+        let CheckConfig::Push(generated) = &config else {
+            unreachable!()
+        };
+        assert_eq!(generated.token.len(), 32);
+        assert!(config.validate().is_ok());
+
+        let mut other = push("");
+        fill_push_token(&mut other);
+        assert_ne!(config, other, "tokens are random");
+
+        let mut chosen = push("my-own-token-1234");
+        fill_push_token(&mut chosen);
+        assert_eq!(chosen, push("my-own-token-1234"));
+    }
+
+    #[sqlx::test(fixtures("users"))]
+    async fn push_monitors_track_heartbeats(pool: SqlitePool) -> sqlx::Result<()> {
+        let before = Utc::now().timestamp();
+        Service::insert(&pool, new_service("cron", push("cron-token-123456"))).await?;
+        Service::insert(&pool, new_service("web", http("https://example.com"))).await?;
+
+        let cron = Service::find_by_push_token(&pool, "cron-token-123456")
+            .await?
+            .unwrap();
+        assert_eq!(cron.service_type, "push");
+        assert_eq!(cron.target, None);
+        assert!(
+            cron.last_push_at.unwrap() >= before,
+            "set up counts as a heartbeat"
+        );
+        assert!(
+            Service::get(&pool, 2)
+                .await?
+                .unwrap()
+                .last_push_at
+                .is_none()
+        );
+        assert!(Service::find_by_push_token(&pool, "nope").await?.is_none());
+
+        Service::record_push(&pool, cron.id, 5_000, 5_070).await?;
+        let cron = Service::get(&pool, cron.id).await?.unwrap();
+        assert_eq!(cron.last_push_at, Some(5_000));
+        assert_eq!(cron.next_run_at, 5_070);
+
+        // Switching an existing service to push starts its heartbeat clock.
+        Service::update(
+            &pool,
+            2,
+            ServiceForUpdate {
+                config: Some(Json(push("web-token-12345678"))),
+                ..Default::default()
+            },
+        )
+        .await?;
+        assert!(Service::get(&pool, 2).await?.unwrap().last_push_at.unwrap() >= before);
 
         Ok(())
     }
@@ -567,7 +697,7 @@ mod tests {
             })
         );
         assert_eq!(services[2].service_type, "ping");
-        assert_eq!(services[2].target, "10.0.0.1");
+        assert_eq!(services[2].target.as_deref(), Some("10.0.0.1"));
 
         Ok(())
     }

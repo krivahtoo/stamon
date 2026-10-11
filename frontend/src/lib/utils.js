@@ -26,6 +26,16 @@ export function cfetch(path, options = { credentials: 'same-origin' }) {
   return fetch(url, options);
 }
 
+/**
+ * The URL a push monitor's service calls to send a heartbeat.
+ * @param {string} pushToken
+ * @returns {string}
+ */
+export function pushUrl(pushToken) {
+  const origin = dev ? 'http://0.0.0.0:3000' : window.location.origin;
+  return `${origin}/api/push/${pushToken}`;
+}
+
 export const flyAndScale = (node, params = { y: -8, x: 0, start: 0.95, duration: 150 }) => {
   const style = getComputedStyle(node);
   const transform = style.transform === 'none' ? '' : style.transform;

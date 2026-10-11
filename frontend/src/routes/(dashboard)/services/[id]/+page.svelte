@@ -9,8 +9,10 @@
   import { Metric } from '$lib/components/chart/index.js';
   import { Separator } from '$lib/components/ui/separator/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
+  import { Input } from '$lib/components/ui/input/index.js';
   import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
+  import { pushUrl } from '$lib/utils.js';
 
   /**
    * @typedef {Object} Log
@@ -47,6 +49,20 @@
   </div>
 </div>
 <Separator class="my-1" />
+{#if data.service.config?.type === 'push'}
+  <Card.Root>
+    <Card.Header class="pb-2">
+      <Card.Title class="text-sm font-medium">Push URL</Card.Title>
+      <Card.Description>
+        Call this URL (GET or POST) at least every {data.service.interval}s. Add
+        <code>?status=down&amp;msg=...</code> to report a failure.
+      </Card.Description>
+    </Card.Header>
+    <Card.Content>
+      <Input readonly value={pushUrl(data.service.config.token)} class="font-mono" />
+    </Card.Content>
+  </Card.Root>
+{/if}
 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
   <Card.Root>
     <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">

@@ -24,6 +24,17 @@ pub struct HttpConfig {
     /// JSON the response body must equal.
     #[serde(default)]
     pub expected_payload: Option<String>,
+    /// Text the response body must contain.
+    #[serde(default)]
+    pub keyword: Option<String>,
+    /// JSON pointer to a value in the response, e.g. `/status` or
+    /// `/checks/0/ok`. On its own the value only has to exist.
+    #[serde(default)]
+    pub json_pointer: Option<String>,
+    /// What the value at `json_pointer` must be: a string compares with
+    /// string values, anything else is parsed as JSON.
+    #[serde(default)]
+    pub json_expected: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -67,6 +78,9 @@ impl HttpConfig {
             body: None,
             expected_code: None,
             expected_payload: None,
+            keyword: None,
+            json_pointer: None,
+            json_expected: None,
         }
     }
 
@@ -90,6 +104,64 @@ impl HttpConfig {
         if let Some(payload) = non_empty(&self.expected_payload) {
             serde_json::from_str::<serde_json::Value>(payload)
                 .map_err(|e| format!("expected_payload must be valid JSON: {e}"))?;
+        }
+        match (
+            non_empty(&self.json_pointer),
+            non_empty(&self.json_expected),
+        ) {
+            (Some(pointer), _) if !pointer.starts_with('/') => {
+                return Err("json_pointer must start with /".into());
+            }
+            (None, Some(_)) => return Err("json_expected needs a json_pointer".into()),
+            _ => (),
+        }
+        Ok(())
+    }
+
+    fn checks_body(&self) -> bool {
+        non_empty(&self.expected_payload).is_some()
+            || non_empty(&self.keyword).is_some()
+            || non_empty(&self.json_pointer).is_some()
+    }
+
+    /// Apply the body assertions, returning why the body doesn't match.
+    fn check_body(&self, body: &str) -> Result<(), String> {
+        if let Some(keyword) = non_empty(&self.keyword)
+            && !body.contains(keyword)
+        {
+            return Err(format!("Response does not contain \"{keyword}\""));
+        }
+
+        let json_pointer = non_empty(&self.json_pointer);
+        let expected_payload = non_empty(&self.expected_payload);
+        if json_pointer.is_none() && expected_payload.is_none() {
+            return Ok(());
+        }
+        let data = serde_json::from_str::<serde_json::Value>(body)
+            .map_err(|e| format!("Failed to parse response JSON: {e}"))?;
+
+        if let Some(expected) = expected_payload {
+            let expected = serde_json::from_str::<serde_json::Value>(expected)
+                .map_err(|e| format!("Invalid expected payload template: {e}"))?;
+            if expected != data {
+                return Err(format!("Expected: {expected} Got: {data}"));
+            }
+        }
+
+        if let Some(pointer) = json_pointer {
+            let value = data
+                .pointer(pointer)
+                .ok_or_else(|| format!("No value at {pointer} in response"))?;
+            if let Some(expected) = non_empty(&self.json_expected) {
+                let matches = match value {
+                    serde_json::Value::String(text) => text == expected,
+                    value => serde_json::from_str::<serde_json::Value>(expected)
+                        .is_ok_and(|expected| &expected == value),
+                };
+                if !matches {
+                    return Err(format!("Expected {expected} at {pointer}, got {value}"));
+                }
+            }
         }
         Ok(())
     }
@@ -141,27 +213,18 @@ pub(crate) async fn check(config: &HttpConfig) -> CheckOutcome {
         return CheckOutcome::down(start.elapsed(), format!("Unexpected status code: {status}"));
     }
 
-    if let Some(expected) = non_empty(&config.expected_payload) {
-        let expected = match serde_json::from_str::<serde_json::Value>(expected) {
-            Ok(v) => v,
-            Err(e) => {
-                return CheckOutcome::error(format!("Invalid expected payload template: {e}"));
-            }
-        };
-        let data = match res.json::<serde_json::Value>().await {
-            Ok(v) => v,
+    if config.checks_body() {
+        let body = match res.text().await {
+            Ok(body) => body,
             Err(e) => {
                 return CheckOutcome::down(
                     start.elapsed(),
-                    format!("Failed to parse response JSON: {e}"),
+                    format!("Failed to read response: {e}"),
                 );
             }
         };
-        if expected != data {
-            return CheckOutcome::down(
-                start.elapsed(),
-                format!("Expected: {expected} Got: {data}"),
-            );
+        if let Err(message) = config.check_body(&body) {
+            return CheckOutcome::down(start.elapsed(), message);
         }
     }
 
@@ -243,6 +306,75 @@ mod tests {
         let mut config = HttpConfig::get("https://example.com");
         config.headers.insert("bad header".into(), "x".into());
         assert!(config.validate().is_err());
+
+        let mut config = HttpConfig::get("https://example.com");
+        config.json_pointer = Some("status".into());
+        assert!(config.validate().is_err());
+        config.json_pointer = Some("/status".into());
+        config.json_expected = Some("ok".into());
+        assert!(config.validate().is_ok());
+        config.json_pointer = None;
+        assert!(config.validate().is_err());
+    }
+
+    #[test]
+    fn body_assertions() {
+        let body = r#"{"status": "ok", "checks": [{"name": "db", "ok": true, "latency": 3}]}"#;
+        let config =
+            |keyword: Option<&str>, pointer: Option<&str>, expected: Option<&str>| HttpConfig {
+                keyword: keyword.map(Into::into),
+                json_pointer: pointer.map(Into::into),
+                json_expected: expected.map(Into::into),
+                ..HttpConfig::get("https://example.com")
+            };
+
+        assert!(config(Some("\"db\""), None, None).check_body(body).is_ok());
+        let missing = config(Some("redis"), None, None).check_body(body);
+        assert_eq!(missing.unwrap_err(), "Response does not contain \"redis\"");
+
+        assert!(
+            config(None, Some("/status"), Some("ok"))
+                .check_body(body)
+                .is_ok()
+        );
+        assert!(
+            config(None, Some("/checks/0/ok"), Some("true"))
+                .check_body(body)
+                .is_ok()
+        );
+        assert!(
+            config(None, Some("/checks/0/latency"), Some("3"))
+                .check_body(body)
+                .is_ok()
+        );
+        assert!(
+            config(None, Some("/checks/0/name"), None)
+                .check_body(body)
+                .is_ok()
+        );
+
+        let wrong = config(None, Some("/checks/0/ok"), Some("false")).check_body(body);
+        assert_eq!(
+            wrong.unwrap_err(),
+            "Expected false at /checks/0/ok, got true"
+        );
+        assert!(
+            config(None, Some("/missing"), None)
+                .check_body(body)
+                .is_err()
+        );
+        assert!(
+            config(None, Some("/status"), None)
+                .check_body("not json")
+                .is_err()
+        );
+
+        // A keyword alone doesn't require JSON.
+        assert!(
+            config(Some("json"), None, None)
+                .check_body("not json")
+                .is_ok()
+        );
     }
 
     #[tokio::test]
