@@ -14,7 +14,7 @@ use tracing::error;
 
 use crate::{
     AppState,
-    auth::{AdminClaims, Claims},
+    auth::{AdminClaims, ViewerClaims},
     models::{
         channel::{Channel, ChannelForCreate, ChannelForUpdate},
         notification::{DeliveryStatus, Notification, NotificationForCreate},
@@ -33,7 +33,7 @@ fn internal_error(e: sqlx::Error) -> Response {
 /// Everyone can see which channels exist, to pick them for a service; the
 /// configs hold secrets, so they're left out.
 #[debug_handler]
-async fn list_channels(_: Claims, State(state): State<AppState>) -> Response {
+async fn list_channels(_: ViewerClaims, State(state): State<AppState>) -> Response {
     match Channel::summaries(&state.pool).await {
         Ok(channels) => Json(json!({ "channels": channels })).into_response(),
         Err(e) => internal_error(e),
@@ -156,7 +156,7 @@ struct Pagination {
 
 #[debug_handler]
 async fn list_notifications(
-    _: Claims,
+    _: ViewerClaims,
     State(state): State<AppState>,
     Query(pagination): Query<Pagination>,
 ) -> Response {

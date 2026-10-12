@@ -9,7 +9,7 @@ use serde::Deserialize;
 use serde_json::json;
 use tracing::error;
 
-use crate::{AppState, auth::Claims, models::log::Log};
+use crate::{AppState, auth::ViewerClaims, models::log::Log};
 
 #[derive(Deserialize)]
 struct Pagination {
@@ -18,7 +18,7 @@ struct Pagination {
 
 #[debug_handler]
 async fn list_logs(
-    _: Claims,
+    _: ViewerClaims,
     State(state): State<AppState>,
     pagination: Query<Pagination>,
 ) -> Response {
@@ -42,7 +42,7 @@ async fn list_logs(
 
 #[debug_handler]
 async fn list_log_incidents(
-    _: Claims,
+    _: ViewerClaims,
     State(state): State<AppState>,
     pagination: Query<Pagination>,
 ) -> Response {

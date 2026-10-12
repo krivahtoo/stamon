@@ -115,8 +115,11 @@ impl ChannelConfig {
 fn client() -> &'static reqwest::Client {
     static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
     CLIENT.get_or_init(|| {
+        // Requests carry secret headers and tokens, which a redirect would
+        // hand to another host, so a 3xx counts as a failure.
         reqwest::Client::builder()
             .timeout(Duration::from_secs(10))
+            .redirect(reqwest::redirect::Policy::none())
             .build()
             .expect("HTTP client should build")
     })

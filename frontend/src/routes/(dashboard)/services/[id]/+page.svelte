@@ -39,6 +39,8 @@
    */
   let channelIds = [];
   let channelsLoaded = false;
+  /** @type {string | null} */
+  let channelsError = null;
 
   /**
    * @typedef {Object} Uptime
@@ -82,11 +84,20 @@
         if (res.ok) stats = (await res.json()).stats;
       }
     );
-    const res = await cfetch(`/services/${data.service.id}/channels`, {
-      credentials: 'same-origin'
-    });
-    if (res.ok) channelIds = (await res.json()).channel_ids;
-    channelsLoaded = true;
+    // Saving replaces the service's channels, so it stays off until they load.
+    try {
+      const res = await cfetch(`/services/${data.service.id}/channels`, {
+        credentials: 'same-origin'
+      });
+      if (res.ok) {
+        channelIds = (await res.json()).channel_ids;
+        channelsLoaded = true;
+      } else {
+        channelsError = `Could not load alert channels (${res.status})`;
+      }
+    } catch (e) {
+      channelsError = `Could not load alert channels: ${e instanceof Error ? e.message : e}`;
+    }
   });
 
   /** @type {string[]} */
@@ -274,11 +285,13 @@
   <Card.Content>
     {#if channelsLoaded}
       <ChannelPicker bind:selected={channelIds} disabled={!canEdit} />
+    {:else if channelsError}
+      <p class="text-sm text-destructive">{channelsError}</p>
     {/if}
   </Card.Content>
   {#if canEdit}
     <Card.Footer>
-      <Button size="sm" on:click={saveChannels}>Save channels</Button>
+      <Button size="sm" on:click={saveChannels} disabled={!channelsLoaded}>Save channels</Button>
     </Card.Footer>
   {/if}
 </Card.Root>

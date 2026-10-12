@@ -14,7 +14,7 @@ use tracing::error;
 
 use crate::{
     AppState,
-    auth::{Claims, EditorClaims},
+    auth::{EditorClaims, ViewerClaims},
     config::env_config,
     models::{
         missing_ids,
@@ -58,7 +58,7 @@ async fn rejection(
 }
 
 #[debug_handler]
-async fn list_pages(_: Claims, State(state): State<AppState>) -> Response {
+async fn list_pages(_: ViewerClaims, State(state): State<AppState>) -> Response {
     match StatusPage::list(&state.pool).await {
         Ok(pages) => Json(json!({ "status_pages": pages })).into_response(),
         Err(e) => internal_error(e),
