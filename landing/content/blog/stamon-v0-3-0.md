@@ -61,6 +61,6 @@ docker compose up -d
 ```
 
 Keep the `stamon-data` volume so the database survives the upgrade, and set a
-strong `JWT_SECRET`. See the [installation guide](@/docs/installation.md) for a
-full setup, the [usage guide](@/docs/usage.md) for how each feature works, and
-the [changelog](@/docs/changelog.md) for every change in this release.
+strong `JWT_SECRET`. See the [installation guide](@/docs/getting-started/installation.md) for a
+full setup, the [monitors](@/docs/monitors/_index.md) and [features](@/docs/features/_index.md) guides for how each feature works, and
+the [changelog](@/changelog.md) for every change in this release.

@@ -1,8 +1,8 @@
 +++
 title = "Changelog"
-description = "Changelog"
-weight = 3
-aliases = ["/changelog/"]
+description = "Every Stamon release and what changed."
+weight = 5
+aliases = ["/docs/changelog/"]
 +++
 
 ## [0.3.0](https://github.com/krivahtoo/stamon/compare/v0.2.0...v0.3.0) (2026-10-12)

@@ -6,7 +6,7 @@
       "release-type": "simple",
       "package-name": "stamon",
       "include-component-in-tag": false,
-      "changelog-path": "landing/content/docs/changelog.md",
+      "changelog-path": "landing/content/changelog.md",
       "extra-files": [
         {
           "type": "toml",
