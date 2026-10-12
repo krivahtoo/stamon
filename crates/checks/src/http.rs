@@ -93,6 +93,11 @@ impl HttpConfig {
             HeaderName::from_bytes(name.as_bytes())
                 .map_err(|_| format!("invalid header name: {name}"))?;
             HeaderValue::from_str(value).map_err(|_| format!("invalid value for header {name}"))?;
+            if value == REDACTED {
+                return Err(format!(
+                    "re-enter the value for header {name}: saved values are only kept for the same host"
+                ));
+            }
         }
         if let Some(code) = self.expected_code
             && !matches!(code, 0..=5 | 100..=599)
@@ -127,8 +132,14 @@ impl HttpConfig {
     }
 
     /// Restore header values that are still redacted from `previous`,
-    /// matching names regardless of case.
+    /// matching names regardless of case. Only for the same origin:
+    /// otherwise anyone who can edit the check could point it at their own
+    /// server and receive the headers.
     pub fn keep_headers_from(&mut self, previous: &HttpConfig) {
+        let origin = |url: &str| Url::parse(url).ok().map(|url| url.origin());
+        if origin(&self.url).is_none() || origin(&self.url) != origin(&previous.url) {
+            return;
+        }
         for (name, value) in &mut self.headers {
             if value != REDACTED {
                 continue;
@@ -373,6 +384,25 @@ mod tests {
         assert_eq!(edited.headers["authorization"], "Bearer s3cret");
         assert_eq!(edited.headers["Accept"], "application/json");
         assert!(!edited.headers.contains_key("X-Api-Key"));
+
+        // Another path on the same origin keeps them.
+        let mut same_origin = shown.clone();
+        same_origin.url = "https://example.com/health".into();
+        same_origin.keep_headers_from(&stored);
+        assert_eq!(same_origin.headers, stored.headers);
+
+        // Another origin doesn't, and the placeholders can't be saved.
+        for url in [
+            "https://attacker.example",
+            "http://example.com",
+            "https://example.com:8443",
+        ] {
+            let mut moved = shown.clone();
+            moved.url = url.into();
+            moved.keep_headers_from(&stored);
+            assert!(moved.headers.values().all(|v| v == REDACTED), "{url}");
+            assert!(moved.validate().is_err(), "{url}");
+        }
     }
 
     #[test]

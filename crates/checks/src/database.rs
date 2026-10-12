@@ -64,6 +64,11 @@ impl DatabaseConfig {
         if self.port == Some(0) {
             return Err("port must be between 1 and 65535".into());
         }
+        if self.password.as_deref() == Some(REDACTED) {
+            return Err(
+                "re-enter the password: a saved one is only kept for the same server".into(),
+            );
+        }
         if self.engine == DatabaseEngine::Redis {
             if self.tls {
                 return Err("TLS isn't supported for Redis checks yet".into());
@@ -89,11 +94,19 @@ impl DatabaseConfig {
     }
 
     /// Keep `previous`'s password when this one is still the placeholder,
-    /// so a redacted config can be saved back unchanged.
+    /// so a redacted config can be saved back unchanged. Only for the same
+    /// server: otherwise anyone who can edit the check could point it at
+    /// their own server and receive the password.
     pub fn keep_password_from(&mut self, previous: &DatabaseConfig) {
-        if self.password.as_deref() == Some(REDACTED) {
+        if self.password.as_deref() == Some(REDACTED) && self.same_server(previous) {
             self.password = previous.password.clone();
         }
+    }
+
+    fn same_server(&self, other: &DatabaseConfig) -> bool {
+        self.engine == other.engine
+            && self.host.trim() == other.host.trim()
+            && self.port() == other.port()
     }
 
     async fn check_postgres(&self) -> Result<(), String> {
@@ -337,10 +350,31 @@ mod tests {
         // A new password replaces it.
         let mut changed = DatabaseConfig {
             password: Some("new".into()),
-            ..shown
+            ..shown.clone()
         };
         changed.keep_password_from(&stored);
         assert_eq!(changed.password.as_deref(), Some("new"));
+
+        // A placeholder isn't filled in for another server, and can't be saved.
+        for moved in [
+            DatabaseConfig {
+                host: "attacker.example".into(),
+                ..shown.clone()
+            },
+            DatabaseConfig {
+                port: Some(6543),
+                ..shown.clone()
+            },
+            DatabaseConfig {
+                engine: DatabaseEngine::Mysql,
+                ..shown.clone()
+            },
+        ] {
+            let mut moved = moved;
+            moved.keep_password_from(&stored);
+            assert_eq!(moved.password.as_deref(), Some(REDACTED));
+            assert!(moved.validate().is_err());
+        }
 
         let mut none = config(DatabaseEngine::Postgres, 5432);
         none.redact();
