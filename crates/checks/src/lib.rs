@@ -107,6 +107,14 @@ impl CheckConfig {
         }
     }
 
+    /// Hide a push monitor's token, for users who can't manage monitors.
+    /// Editors keep seeing it because they set up what calls the push URL.
+    pub fn redact_push_token(&mut self) {
+        if let CheckConfig::Push(config) = self {
+            config.redact();
+        }
+    }
+
     /// Restore secrets that are still redacted from the config being
     /// replaced, so a config read from the API can be saved back.
     pub fn keep_secrets_from(&mut self, previous: &CheckConfig) {
@@ -116,6 +124,9 @@ impl CheckConfig {
             }
             (CheckConfig::Database(config), CheckConfig::Database(previous)) => {
                 config.keep_password_from(previous);
+            }
+            (CheckConfig::Push(config), CheckConfig::Push(previous)) => {
+                config.keep_token_from(previous);
             }
             _ => (),
         }

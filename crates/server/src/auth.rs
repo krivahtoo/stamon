@@ -25,7 +25,7 @@ use crate::{
     models::user::{User, UserRole},
 };
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
     #[serde(rename = "sub")]
     pub user_id: u32,
@@ -94,6 +94,14 @@ async fn authorize(
         role: user.role,
         ..claims
     })
+}
+
+/// Whether the user may change monitors right now, by their role in the
+/// database rather than the one in their token.
+pub async fn can_edit(pool: &SqlitePool, claims: &Claims) -> bool {
+    authorize(pool, claims.clone(), UserRole::Editor)
+        .await
+        .is_ok()
 }
 
 /// Claims of an active user allowed to change monitors.
@@ -281,6 +289,17 @@ mod tests {
             authorize(&pool, claims(999), UserRole::Viewer).await,
             Err(AuthError::InvalidToken)
         ));
+    }
+
+    #[sqlx::test(fixtures(path = "models/fixtures", scripts("users")))]
+    async fn can_edit_uses_current_role(pool: SqlitePool) {
+        assert!(can_edit(&pool, &claims(1)).await, "active admin");
+        assert!(
+            !can_edit(&pool, &claims(3)).await,
+            "viewer, despite the token"
+        );
+        assert!(!can_edit(&pool, &claims(2)).await, "deactivated admin");
+        assert!(!can_edit(&pool, &claims(999)).await, "unknown user");
     }
 
     #[test]
