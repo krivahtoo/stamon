@@ -9,14 +9,14 @@ This guide will walk you through installing **stamon**, a lightweight, self-host
 
 ---
 
-## 📥 Prerequisites
+## Prerequisites
 
 - **Docker** (recommended) → [Install Docker](https://docs.docker.com/get-docker/)
 - Or, to build from source: **Rust** → [Install Rust](https://www.rust-lang.org/tools/install), plus **Node.js & PNPM** for the frontend → [Install Node.js](https://nodejs.org/en) & [PNPM](https://pnpm.io/installation)
 
 ---
 
-## 🐳 Install via Docker (Recommended)
+## Install via Docker (Recommended)
 
 ### **Run with Docker CLI**
 
@@ -55,7 +55,7 @@ docker compose up -d
 
 Now visit <http://localhost:3000>.
 
-## ⚙️ Manual Installation (Rust)
+## Manual Installation (Rust)
 
 ### 1. Clone the Repository
 
@@ -84,7 +84,7 @@ DATA_PATH=./data JWT_SECRET="change-me" ASSETS_PATH=./frontend/build ./target/re
 
 The server creates the database in `DATA_PATH` and listens on **port 3000**.
 
-## 👤 First Run {#first-run}
+## First Run {#first-run}
 
 Open Stamon and register. The first account becomes the **admin**; after that, registration is closed.
 
@@ -102,7 +102,7 @@ curl -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
 
 See [Users and roles](@/docs/usage.md#users-and-roles) for what each role can do.
 
-## 📝 Configuration
+## Configuration
 
 Stamon is configured with environment variables:
 
@@ -116,7 +116,7 @@ Stamon is configured with environment variables:
 
 The server always listens on port **3000**. With Docker, publish it on another port with `-p 8080:3000`.
 
-## 🏗️ Development Setup
+## Development Setup
 
 `.cargo/config.toml` sets a development environment (`DATA_PATH=./data`, a development `JWT_SECRET`, and so on), so you only need:
 

@@ -9,7 +9,7 @@ This guide covers what **Stamon** can monitor and how its alerts, maintenance wi
 
 ---
 
-## 📡 Monitors {#monitors}
+## Monitors {#monitors}
 
 Every monitor has these settings:
 
@@ -68,7 +68,7 @@ Access to the Docker socket is equivalent to root access on the host, so only mo
 
 Pick the engine and give the host, port (the engine's default otherwise), credentials and database (a number for Redis). Stamon connects and runs `SELECT 1`, or `PING` for Redis. Use a read-only account. **Require TLS** is available for PostgreSQL and MySQL; without it, they still use TLS when the server offers it. Redis checks don't support TLS yet.
 
-## 💓 Push monitors {#push-monitors}
+## Push monitors {#push-monitors}
 
 For cron jobs, backups and workers that can't be reached from Stamon, the job reports in instead. Each push monitor has a secret URL, shown when you create it and on its page to editors and admins:
 
@@ -94,7 +94,7 @@ else
 fi
 ```
 
-## 🔔 Alerts {#alerts}
+## Alerts {#alerts}
 
 Alerts are sent when a service is confirmed **down** (after its retries) and when it comes back **up**. Retries, maintenance and errors in Stamon itself don't send alerts.
 
@@ -113,11 +113,11 @@ Admins add channels under **Notification Providers**:
 - **Test** sends a sample alert right away.
 - Failed deliveries are retried 3 times. The **History** list shows every alert and whether it was delivered.
 
-## 🛠️ Maintenance windows {#maintenance-windows}
+## Maintenance windows {#maintenance-windows}
 
 Schedule planned work under **Maintenance**, for chosen services or all of them. While a window is active, covered services aren't checked: they show as *Maintenance*, send no alerts and don't count against uptime. If a service is still down when the window ends, it's retried and then alerts as usual.
 
-## 🌐 Status pages {#status-pages}
+## Status pages {#status-pages}
 
 Under **Status Pages**, create a page with a title, an address (slug) and the services to show, in order. Once **published**, anyone can open it without an account at:
 
@@ -127,7 +127,7 @@ https://stamon.example.com/status/<slug>/
 
 Visitors see each service's name, current status, 30-day uptime and a bar per day, plus upcoming maintenance. They never see URLs, hosts or settings, and paused services are left out. Unpublished pages return *not found*.
 
-## 👥 Users and roles {#users-and-roles}
+## Users and roles {#users-and-roles}
 
 | Role | Can |
 |---|---|
@@ -151,7 +151,7 @@ curl -X PUT -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json
 
 Get `$TOKEN` by signing in, as shown in [First Run](@/docs/installation.md#first-run). Role changes and deactivation apply to changes right away; a deactivated user can still view until their sign-in expires (60 minutes). Admins can't change their own role or status.
 
-## 💾 Data and retention {#data-and-retention}
+## Data and retention {#data-and-retention}
 
 - Check logs and alert history are kept for `LOG_RETENTION_DAYS` days (default 90; `0` keeps them forever).
 - **Uptime** is the share of *up* results among up and down ones. Pending, failed and maintenance results don't count.

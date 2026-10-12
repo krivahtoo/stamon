@@ -57,7 +57,7 @@ dismissible = true
 
 [extra.devlab.footer]
 show = true
-note = "Made with ❤ by Noah Cheptoo and Esther Akinyi."
+note = "Made by Noah Cheptoo and Esther Akinyi."
 links = [
   { name = "GitHub", path = "https://github.com/krivahtoo/stamon", icon = "github" },
   { name = "Atom feed", path = "/atom.xml", icon = "rss" },
