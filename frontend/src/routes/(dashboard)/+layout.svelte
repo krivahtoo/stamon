@@ -3,45 +3,11 @@
   import SideBar from '$lib/components/nav/side-bar.svelte';
   import { onMount } from 'svelte';
   import user from '$lib/store/user.js';
-  import Home from 'lucide-svelte/icons/home';
-  import Layers3 from 'lucide-svelte/icons/layers-3';
-  import Users from 'lucide-svelte/icons/users';
-  import Monitor from 'lucide-svelte/icons/monitor';
-  import MessageSquareText from 'lucide-svelte/icons/message-square-text';
   import { get } from 'svelte/store';
   import { cfetch } from '$lib/utils.js';
+  import { navItems } from '$lib/data/nav.js';
   import services from '$lib/store/services.js';
   import stats from '$lib/store/stats.js';
-
-  let navItems = [
-    {
-      name: 'Dashboard',
-      path: '/',
-      icon: Home
-    },
-    {
-      name: 'Services',
-      // final '/' is important for hightlighting
-      // current active navitem
-      path: '/services/',
-      icon: Layers3
-    },
-    {
-      name: 'Status Pages',
-      path: '/status-pages/',
-      icon: Monitor
-    },
-    {
-      name: 'Notification Providers',
-      path: '/notifications/',
-      icon: MessageSquareText
-    },
-    {
-      name: 'Team',
-      path: '/users/',
-      icon: Users
-    }
-  ];
 
   onMount(async () => {
     if ($user) {

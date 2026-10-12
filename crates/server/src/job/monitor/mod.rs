@@ -14,6 +14,7 @@ use crate::{
     models::{
         channel::Channel,
         log::{Log, LogForCreate, Status},
+        maintenance::Maintenance,
         service::Service,
     },
     ws::{Event, Level, Notification},
@@ -81,8 +82,8 @@ fn evaluate(svc: &Service, mut log: LogForCreate) -> Evaluation {
             }
             failures
         }
-        // Monitor errors say nothing about the service itself.
-        Status::Pending | Status::Failed => svc.consecutive_failures,
+        // Monitor errors and maintenance say nothing about the service itself.
+        Status::Pending | Status::Failed | Status::Maintenance => svc.consecutive_failures,
     };
 
     Evaluation {
@@ -104,7 +105,7 @@ fn transition_notification(name: &str, from: Status, to: Status) -> Option<Notif
             title: "Monitor Success".to_string(),
             level: Level::Info,
         }),
-        (Status::Up | Status::Pending, Status::Down) => Some(Notification {
+        (Status::Up | Status::Pending | Status::Maintenance, Status::Down) => Some(Notification {
             message: format!("Service {name} is Down"),
             title: "Service Down".to_string(),
             level: Level::Warning,
@@ -140,6 +141,23 @@ pub async fn job_monitor(job: CheckJob, worker: Worker<Context>, state: Data<App
     };
 
     let time = Utc::now();
+    match Maintenance::active_for_service(&state.pool, svc.id, time).await {
+        Ok(Some(window)) => {
+            let log = LogForCreate {
+                service_id: svc.id,
+                status: Status::Maintenance,
+                message: Some(format!("Maintenance: {}", window.title)),
+                time: Some(time),
+                duration: 0,
+            };
+            record_log(&state, &svc, log).await;
+            return;
+        }
+        Ok(None) => (),
+        // Better to check and maybe alert than to skip checks.
+        Err(e) => error!("Failed to look up maintenance for service {}: {e}", svc.id),
+    }
+
     let outcome = match push_deadline(&svc) {
         // Not late yet; look again when the heartbeat is due.
         Some(deadline) if time.timestamp() < deadline => {
@@ -174,7 +192,9 @@ pub async fn job_monitor(job: CheckJob, worker: Worker<Context>, state: Data<App
 /// and monitor errors stay quiet.
 fn alert_status(from: Status, to: Status) -> Option<AlertStatus> {
     match (from, to) {
-        (Status::Up | Status::Pending, Status::Down) => Some(AlertStatus::Down),
+        (Status::Up | Status::Pending | Status::Maintenance, Status::Down) => {
+            Some(AlertStatus::Down)
+        }
         (Status::Down, Status::Up) => Some(AlertStatus::Up),
         _ => None,
     }
@@ -226,11 +246,15 @@ pub async fn record(state: &AppState, svc: &Service, time: DateTime<Utc>, outcom
     {
         error!("Failed to send notification: {:?}", e);
     }
+    record_log(state, svc, to_log(svc.id, time, outcome)).await;
+}
+
+async fn record_log(state: &AppState, svc: &Service, log: LogForCreate) {
     let Evaluation {
         log: status_log,
         consecutive_failures,
         retrying,
-    } = evaluate(svc, to_log(svc.id, time, outcome));
+    } = evaluate(svc, log);
 
     if let Err(e) = state.tx.send(Event::Log(status_log.clone())) {
         error!("Failed to send notification: {:?}", e);
@@ -288,9 +312,31 @@ mod tests {
             next_run_at: 0,
             last_push_at: None,
             config: CheckConfig::Ping(PingConfig { host: url.into() }),
+            tags: vec![],
             service_type: "ping".into(),
             target: Some(url.into()),
         }
+    }
+
+    #[test]
+    fn maintenance_keeps_failure_count_and_alerts_if_down_after() {
+        let mut svc = service("x");
+        svc.consecutive_failures = 2;
+        let during = evaluate(&svc, log(Status::Maintenance));
+        assert!(matches!(during.log.status, Status::Maintenance));
+        assert_eq!(during.consecutive_failures, 2);
+        assert!(!during.retrying);
+
+        assert_eq!(
+            alert_status(Status::Up, Status::Maintenance),
+            None,
+            "entering maintenance is planned"
+        );
+        assert_eq!(alert_status(Status::Maintenance, Status::Up), None);
+        assert_eq!(
+            alert_status(Status::Maintenance, Status::Down),
+            Some(AlertStatus::Down)
+        );
     }
 
     #[test]
