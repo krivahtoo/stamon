@@ -9,7 +9,7 @@ FROM node:18-alpine3.21 AS frontend
 RUN npm install -g pnpm
 
 WORKDIR /app
-COPY ./frontend/package.json ./frontend/pnpm-lock.yaml ./
+COPY ./frontend/package.json ./frontend/pnpm-lock.yaml ./frontend/pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY ./frontend .

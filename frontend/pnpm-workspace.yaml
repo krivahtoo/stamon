@@ -1,0 +1,9 @@
+# pnpm 10+ skips dependency build scripts unless they are listed here, and
+# pnpm 11 fails the install when one is left undecided.
+allowBuilds:
+  # Checks that the right platform binary is installed.
+  esbuild: true
+  # Empty in the published package.
+  maplibre-gl: false
+  # Only prints a reminder.
+  svelte-preprocess: false
