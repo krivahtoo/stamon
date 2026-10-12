@@ -11,7 +11,7 @@ use tracing::error;
 
 use crate::{
     AppState,
-    auth::{AdminClaims, Claims},
+    auth::{AdminClaims, Claims, ViewerClaims},
     models::{
         UserForRegister,
         user::{User, UserForUpdate},
@@ -23,7 +23,10 @@ fn message(status: StatusCode, message: &str) -> Response {
 }
 
 #[debug_handler]
-async fn get_user(Claims { user_id, .. }: Claims, State(state): State<AppState>) -> Response {
+async fn get_user(
+    ViewerClaims(Claims { user_id, .. }): ViewerClaims,
+    State(state): State<AppState>,
+) -> Response {
     match User::get(&state.pool, user_id).await {
         Ok(user) => Response::builder()
             .header("Content-Type", "application/json")
@@ -43,7 +46,7 @@ async fn get_user(Claims { user_id, .. }: Claims, State(state): State<AppState>)
 }
 
 #[debug_handler]
-async fn list_users(_: Claims, State(state): State<AppState>) -> Response {
+async fn list_users(_: ViewerClaims, State(state): State<AppState>) -> Response {
     match User::list(&state.pool).await {
         Ok(users) => Response::builder()
             .header("Content-Type", "application/json")

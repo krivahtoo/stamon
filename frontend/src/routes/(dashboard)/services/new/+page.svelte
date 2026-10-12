@@ -660,11 +660,11 @@
           class="col-span-3"
         />
       </div>
-      <div class="grid grid-cols-4 items-center gap-4">
-        <Label for="invert" class="sm:text-right">Invert Check</Label>
-        <Switch id="invert" bind:checked={newService.invert} class="sm:col-span-3" />
-      </div>
     {/if}
+    <div class="grid grid-cols-4 items-center gap-4">
+      <Label for="invert" class="sm:text-right">Invert Check</Label>
+      <Switch id="invert" bind:checked={newService.invert} class="sm:col-span-3" />
+    </div>
     <div class="grid grid-cols-1 items-start gap-4 sm:grid-cols-4">
       <Label class="sm:pt-1 sm:text-right">Alert Channels</Label>
       <div class="col-span-3">

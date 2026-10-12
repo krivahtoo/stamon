@@ -21,12 +21,24 @@ impl PingConfig {
     }
 }
 
+/// Drop a port from `host:port` or `[ipv6]:port`; ICMP has no ports. A
+/// bare IPv6 address has several colons and is left alone.
+fn strip_port(target: &str) -> &str {
+    if let Some(rest) = target.strip_prefix('[') {
+        return rest.split(']').next().unwrap_or(rest);
+    }
+    match target.split_once(':') {
+        Some((host, port)) if !port.contains(':') => host,
+        _ => target,
+    }
+}
+
 /// Resolve a ping target, which may be an IP address, a hostname or a URL.
 async fn resolve(target: &str) -> Result<IpAddr, String> {
     let host = reqwest::Url::parse(target)
         .ok()
         .and_then(|url| url.host_str().map(str::to_owned))
-        .unwrap_or_else(|| target.trim().to_owned());
+        .unwrap_or_else(|| strip_port(target.trim()).to_owned());
     let host = host.trim_start_matches('[').trim_end_matches(']');
 
     if let Ok(ip) = host.parse::<IpAddr>() {
@@ -86,6 +98,9 @@ mod tests {
             resolve("http://localhost:8080/health").await.unwrap()
         ));
         assert!(localhost(resolve("http://[::1]/").await.unwrap()));
+        assert!(localhost(resolve("localhost:8080").await.unwrap()));
+        assert!(localhost(resolve("127.0.0.1:80").await.unwrap()));
+        assert!(localhost(resolve("[::1]:80").await.unwrap()));
     }
 
     #[tokio::test]

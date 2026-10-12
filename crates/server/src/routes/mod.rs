@@ -4,7 +4,7 @@ use tracing::error;
 
 use crate::{
     AppState,
-    auth::Claims,
+    auth::ViewerClaims,
     models::service::{Service, Stats},
 };
 
@@ -19,7 +19,7 @@ mod status_pages;
 pub use status_pages::page_shell;
 mod users;
 
-async fn stats(_: Claims, State(state): State<AppState>) -> (StatusCode, Json<Value>) {
+async fn stats(_: ViewerClaims, State(state): State<AppState>) -> (StatusCode, Json<Value>) {
     match Service::get_stats(&state.pool).await {
         Ok(stats) => (StatusCode::OK, Json(json!({"stats": stats}))),
         Err(e) => {

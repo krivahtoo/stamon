@@ -104,11 +104,28 @@ pub async fn can_edit(pool: &SqlitePool, claims: &Claims) -> bool {
         .is_ok()
 }
 
+/// Claims of an active user, checked against the database.
+pub struct ViewerClaims(pub Claims);
+
 /// Claims of an active user allowed to change monitors.
 pub struct EditorClaims(pub Claims);
 
 /// Claims of an active admin.
 pub struct AdminClaims(pub Claims);
+
+impl FromRequestParts<AppState> for ViewerClaims {
+    type Rejection = AuthError;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
+        let claims = Claims::from_request_parts(parts, state).await?;
+        authorize(&state.pool, claims, UserRole::Viewer)
+            .await
+            .map(Self)
+    }
+}
 
 impl FromRequestParts<AppState> for EditorClaims {
     type Rejection = AuthError;

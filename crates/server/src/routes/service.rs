@@ -15,7 +15,7 @@ use sqlx::types::Json as SqlJson;
 
 use crate::{
     AppState,
-    auth::{Claims, EditorClaims, can_edit},
+    auth::{Claims, EditorClaims, ViewerClaims, can_edit},
     models::{
         channel::Channel,
         log::Log,
@@ -120,7 +120,7 @@ struct ServiceChannels {
 /// Channels linked to the service; channels that apply to all aren't listed.
 #[debug_handler]
 async fn get_service_channels(
-    _: Claims,
+    _: ViewerClaims,
     State(state): State<AppState>,
     Path(service_id): Path<u32>,
 ) -> Response {
@@ -164,7 +164,7 @@ async fn set_service_channels(
 /// had its current status.
 #[debug_handler]
 async fn service_stats(
-    _: Claims,
+    _: ViewerClaims,
     State(state): State<AppState>,
     Path(service_id): Path<u32>,
 ) -> Response {
@@ -196,7 +196,7 @@ async fn service_stats(
 
 #[debug_handler]
 async fn get_service(
-    claims: Claims,
+    ViewerClaims(claims): ViewerClaims,
     State(state): State<AppState>,
     Path(service_id): Path<u32>,
 ) -> Response {
@@ -302,7 +302,10 @@ async fn delete_service(
 }
 
 #[debug_handler]
-async fn list_services(claims: Claims, State(state): State<AppState>) -> Response {
+async fn list_services(
+    ViewerClaims(claims): ViewerClaims,
+    State(state): State<AppState>,
+) -> Response {
     let reveal_push_token = can_edit(&state.pool, &claims).await;
     let Ok(mut services) = Service::all(&state.pool).await else {
         return Response::builder()
@@ -327,7 +330,7 @@ async fn list_services(claims: Claims, State(state): State<AppState>) -> Respons
 
 #[debug_handler]
 async fn list_service_logs(
-    _: Claims,
+    _: ViewerClaims,
     State(state): State<AppState>,
     Path(service_id): Path<u32>,
     pagination: Query<Pagination>,

@@ -11,7 +11,7 @@ use tracing::error;
 
 use crate::{
     AppState,
-    auth::{Claims, EditorClaims},
+    auth::{EditorClaims, ViewerClaims},
     models::{
         maintenance::{Maintenance, MaintenanceForSave},
         missing_ids,
@@ -43,7 +43,7 @@ async fn rejection(state: &AppState, window: &MaintenanceForSave) -> Option<Resp
 }
 
 #[debug_handler]
-async fn list_windows(_: Claims, State(state): State<AppState>) -> Response {
+async fn list_windows(_: ViewerClaims, State(state): State<AppState>) -> Response {
     match Maintenance::list(&state.pool).await {
         Ok(windows) => Json(json!({ "maintenance": windows })).into_response(),
         Err(e) => internal_error(e),

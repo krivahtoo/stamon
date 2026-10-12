@@ -70,6 +70,8 @@ pub struct ServiceForUpdate {
     pub tags: Option<Json<Vec<String>>>,
     #[serde(skip)]
     pub last_push_at: Option<i64>,
+    #[serde(skip)]
+    pub next_run_at: Option<i64>,
 }
 
 const MAX_TAGS: usize = 10;
@@ -346,6 +348,11 @@ impl Service {
         if let Some(Json(config)) = &update_data.config {
             update_data.last_push_at = initial_push_at(config);
         }
+        // Check again now rather than at a deadline set by the old settings,
+        // such as a push monitor's longer interval.
+        if update_data.config.is_some() || update_data.interval.is_some() {
+            update_data.next_run_at = Some(Utc::now().timestamp());
+        }
         let mut query = String::from("UPDATE Services SET ");
         let mut has_updates = false;
 
@@ -360,7 +367,8 @@ impl Service {
             invert,
             config,
             tags,
-            last_push_at
+            last_push_at,
+            next_run_at
         });
 
         // Remove the trailing comma and space
@@ -385,7 +393,8 @@ impl Service {
             invert,
             config,
             tags,
-            last_push_at
+            last_push_at,
+            next_run_at
         });
 
         // bind to service_id
@@ -618,6 +627,7 @@ mod tests {
 
     #[sqlx::test(fixtures("users", "services"))]
     async fn update_settings_and_config(pool: SqlitePool) -> sqlx::Result<()> {
+        Service::set_next_run(&pool, 1, Utc::now().timestamp() + 86_400).await?;
         let updated = Service::update(
             &pool,
             1,
@@ -636,6 +646,10 @@ mod tests {
         assert_eq!(service.timeout, 3);
         assert_eq!(service.config, http("https://new.example.com"));
         assert_eq!(service.interval, 5, "untouched fields are kept");
+        assert!(
+            service.next_run_at <= Utc::now().timestamp(),
+            "a config change is checked right away"
+        );
 
         assert_eq!(
             Service::update(&pool, 1, ServiceForUpdate::default()).await?,
