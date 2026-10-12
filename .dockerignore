@@ -1,8 +1,13 @@
-target
+# Send only what the Dockerfile uses.
+*
+!crates
+!Cargo.toml
+!Cargo.lock
+!frontend
 
-.git
-.gitattributes
-
-README.md
-
-Dockerfile
+# Built or installed inside the image; host copies are large and may hold
+# binaries for the wrong platform.
+**/node_modules
+**/target
+frontend/.svelte-kit
+frontend/build
