@@ -20,7 +20,15 @@
     { value: 'tcp', label: 'TCP Port' },
     { value: 'dns', label: 'DNS' },
     { value: 'tls', label: 'TLS Certificate' },
+    { value: 'docker', label: 'Docker Container' },
+    { value: 'database', label: 'Database' },
     { value: 'push', label: 'Push (heartbeat)' }
+  ];
+
+  const databaseEngines = [
+    { value: 'postgres', label: 'PostgreSQL', port: 5432 },
+    { value: 'mysql', label: 'MySQL / MariaDB', port: 3306 },
+    { value: 'redis', label: 'Redis', port: 6379 }
   ];
 
   const recordTypes = ['A', 'AAAA', 'CNAME', 'MX', 'NS', 'TXT'].map((t) => ({
@@ -65,6 +73,14 @@
    * @property {number | string} warn_days - TLS: days before expiry to report down.
    * @property {string} push_token - Push: the secret in the push URL.
    * @property {number | string} grace_secs - Push: extra seconds before a heartbeat is late.
+   * @property {string} container - Docker: the container name or id.
+   * @property {string} docker_host - Docker: `unix://` or `tcp://` address of the daemon.
+   * @property {string} db_engine - Database: postgres, mysql or redis.
+   * @property {number | string} db_port - Database: the port, empty for the engine's default.
+   * @property {string} db_username - Database: the user to connect as.
+   * @property {string} db_password - Database: the password.
+   * @property {string} db_name - Database: the database name, or number for Redis.
+   * @property {boolean} db_tls - Database: require TLS.
    * @property {number[]} channel_ids - Channels that receive this service's alerts.
    * @property {string} tags - Comma-separated labels.
    */
@@ -96,6 +112,14 @@
       warn_days: 14,
       push_token: newPushToken(),
       grace_secs: 0,
+      container: '',
+      docker_host: '',
+      db_engine: 'postgres',
+      db_port: '',
+      db_username: '',
+      db_password: '',
+      db_name: '',
+      db_tls: false,
       channel_ids: [],
       tags: ''
     };
@@ -164,6 +188,23 @@
           host: newService.host,
           port: Number(newService.port) || 443,
           warn_days: Number(newService.warn_days)
+        };
+      case 'docker':
+        return {
+          type: 'docker',
+          container: newService.container,
+          docker_host: newService.docker_host || null
+        };
+      case 'database':
+        return {
+          type: 'database',
+          engine: newService.db_engine,
+          host: newService.host,
+          port: newService.db_port === '' ? null : Number(newService.db_port),
+          username: newService.db_username || null,
+          password: newService.db_password || null,
+          database: newService.db_name || null,
+          tls: newService.db_tls
         };
       case 'push':
         return {
@@ -459,6 +500,108 @@
           />
         </div>
       {/if}
+    {:else if newService.service_type === 'docker'}
+      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
+        <Label for="container" class="sm:text-right">Container</Label>
+        <Input
+          id="container"
+          bind:value={newService.container}
+          placeholder="Container name or id"
+          class="col-span-3"
+          required
+        />
+      </div>
+      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
+        <Label for="docker_host" class="sm:text-right">Docker Host</Label>
+        <div class="col-span-3 space-y-1">
+          <Input
+            id="docker_host"
+            bind:value={newService.docker_host}
+            placeholder="unix:///var/run/docker.sock"
+          />
+          <p class="text-xs text-muted-foreground">
+            Or <code>tcp://host:2375</code>. When Stamon runs in Docker, mount the socket into its
+            container.
+          </p>
+        </div>
+      </div>
+    {:else if newService.service_type === 'database'}
+      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
+        <Label for="db_engine" class="sm:text-right">Engine</Label>
+        <Select.Root
+          selected={databaseEngines.find((e) => e.value === newService.db_engine)}
+          onSelectedChange={(/** @type {{ value: string } | undefined} */ v) =>
+            (newService.db_engine = v?.value ?? 'postgres')}
+          portal={null}
+        >
+          <Select.Trigger class="w-[200px]">
+            <Select.Value placeholder="PostgreSQL" />
+          </Select.Trigger>
+          <Select.Content>
+            {#each databaseEngines as engine}
+              <Select.Item value={engine.value} label={engine.label}>{engine.label}</Select.Item>
+            {/each}
+          </Select.Content>
+          <Select.Input name="db_engine" id="db_engine" />
+        </Select.Root>
+      </div>
+      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
+        <Label for="db_host" class="sm:text-right">Host</Label>
+        <div class="col-span-3 grid grid-cols-3 gap-2">
+          <Input
+            id="db_host"
+            bind:value={newService.host}
+            placeholder="db.internal"
+            class="col-span-2"
+            required
+          />
+          <Input
+            id="db_port"
+            bind:value={newService.db_port}
+            type="number"
+            min="1"
+            max="65535"
+            placeholder={`${databaseEngines.find((e) => e.value === newService.db_engine)?.port ?? ''}`}
+            aria-label="Port"
+          />
+        </div>
+      </div>
+      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
+        <Label for="db_username" class="sm:text-right">Credentials</Label>
+        <div class="col-span-3 grid grid-cols-2 gap-2">
+          <Input
+            id="db_username"
+            bind:value={newService.db_username}
+            placeholder="Username"
+            autocomplete="off"
+          />
+          <Input
+            id="db_password"
+            bind:value={newService.db_password}
+            type="password"
+            placeholder="Password"
+            autocomplete="new-password"
+          />
+        </div>
+      </div>
+      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
+        <Label for="db_name" class="sm:text-right">Database</Label>
+        <Input
+          id="db_name"
+          bind:value={newService.db_name}
+          placeholder={newService.db_engine === 'redis' ? 'Database number, e.g. 0' : 'Optional'}
+          class="col-span-3"
+        />
+      </div>
+      {#if newService.db_engine !== 'redis'}
+        <div class="grid grid-cols-4 items-center gap-4">
+          <Label for="db_tls" class="sm:text-right">Require TLS</Label>
+          <Switch id="db_tls" bind:checked={newService.db_tls} class="sm:col-span-3" />
+        </div>
+      {/if}
+      <p class="text-xs text-muted-foreground sm:col-start-2">
+        Use a read-only account: the check only connects and runs a trivial query.
+      </p>
     {:else if newService.service_type === 'push'}
       <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
         <Label for="push_url" class="sm:text-right">Push URL</Label>
