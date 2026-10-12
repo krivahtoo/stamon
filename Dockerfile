@@ -32,15 +32,20 @@ RUN apk add --no-cache musl-dev pkgconfig openssl-dev
 # set the workdir
 WORKDIR /app
 
+# set by buildx for each platform being built
+ARG TARGETARCH
+
 # do a release build
 # make sure to use cache to avoid unnecessary rebuild
 # use a bind mount to avoid copying the whole source into the container
+# caches are per architecture: the amd64 and arm64 builds run at the same
+# time and would otherwise unpack crates into, and build in, the same place
 RUN --mount=type=bind,source=crates,target=crates \
     --mount=type=bind,source=Cargo.toml,target=Cargo.toml \
     --mount=type=bind,source=Cargo.lock,target=Cargo.lock \
-    --mount=type=cache,target=/app/target/ \
-    --mount=type=cache,target=/usr/local/cargo/registry/ \
-    --mount=type=cache,target=/usr/local/cargo/git/ \
+    --mount=type=cache,id=cargo-target-${TARGETARCH},target=/app/target/ \
+    --mount=type=cache,id=cargo-registry-${TARGETARCH},target=/usr/local/cargo/registry/ \
+    --mount=type=cache,id=cargo-git-${TARGETARCH},target=/usr/local/cargo/git/ \
     cargo build --locked --release --package server && \
     cp ./target/release/server /bin/server
 
