@@ -1,5 +1,9 @@
 # pnpm 10+ skips dependency build scripts unless they are listed here, and
 # pnpm 11 fails the install when one is left undecided.
+# Older pnpm (CI pins 9.x) requires a packages list in this file.
+packages:
+  - .
+
 allowBuilds:
   # Checks that the right platform binary is installed.
   esbuild: true
