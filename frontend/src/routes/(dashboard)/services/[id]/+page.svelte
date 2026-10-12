@@ -222,7 +222,13 @@
         {data.service.active ? (status?.label ?? 'Unknown') : 'Paused'}
       </div>
       <p class="text-xs text-muted-foreground">
-        {stats?.status_since ? `Since ${timeAgo(stats.status_since)}` : 'No checks yet'}
+        {#if !data.service.active}
+          Checks are paused
+        {:else if stats?.status_since}
+          Since {timeAgo(stats.status_since)}
+        {:else}
+          No checks yet
+        {/if}
       </p>
     </Card.Content>
   </Card.Root>

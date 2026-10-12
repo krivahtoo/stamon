@@ -78,9 +78,12 @@ const MAX_TAG_LEN: usize = 32;
 /// Trim tags and drop empty ones and repeats, ignoring case.
 pub fn clean_tags(tags: Vec<String>) -> Vec<String> {
     let mut cleaned: Vec<String> = Vec::new();
+    let mut seen: Vec<String> = Vec::new();
     for tag in tags {
         let tag = tag.trim();
-        if !tag.is_empty() && !cleaned.iter().any(|t| t.eq_ignore_ascii_case(tag)) {
+        let key = tag.to_lowercase();
+        if !tag.is_empty() && !seen.contains(&key) {
+            seen.push(key);
             cleaned.push(tag.to_owned());
         }
     }
@@ -759,6 +762,10 @@ mod tests {
         assert_eq!(
             clean_tags(tags(&[" prod ", "", "API", "api", "eu-west"])),
             tags(&["prod", "API", "eu-west"])
+        );
+        assert_eq!(
+            clean_tags(tags(&["Équipe", "équipe", "ÉQUIPE"])),
+            tags(&["Équipe"])
         );
 
         let too_many = ServiceForCreate {

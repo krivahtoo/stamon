@@ -223,8 +223,10 @@ impl Log {
         .await
     }
 
-    /// When the service's current status began: the first log after the
-    /// last one with a different status.
+    /// When the service's current status began: the first log with that
+    /// status after the last one with a different status. Pending, failed
+    /// and maintenance results say nothing about the service, so they do
+    /// not end a run.
     pub async fn status_since(
         pool: &SqlitePool,
         service_id: u32,
@@ -234,8 +236,10 @@ impl Log {
             r#"SELECT MIN(time)
                FROM Logs
                WHERE service_id = ?1
+                 AND status = ?2
                  AND id > COALESCE(
-                     (SELECT MAX(id) FROM Logs WHERE service_id = ?1 AND status != ?2), 0)"#,
+                     (SELECT MAX(id) FROM Logs
+                      WHERE service_id = ?1 AND status != ?2 AND status NOT IN (0, 3, 4)), 0)"#,
         )
         .bind(service_id)
         .bind(status)
@@ -530,6 +534,21 @@ mod tests {
         let since = Log::status_since(&pool, 1, Status::Up).await?.unwrap();
         let minutes = (Utc::now() - since).num_minutes();
         assert_eq!(minutes, 30, "since the recovery 30 minutes ago");
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services"))]
+    async fn status_since_ignores_maintenance_and_retries(pool: SqlitePool) -> sqlx::Result<()> {
+        insert_at(&pool, Status::Down, 60, 1).await;
+        insert_at(&pool, Status::Up, 50, 1).await;
+        insert_at(&pool, Status::Maintenance, 40, 0).await;
+        insert_at(&pool, Status::Pending, 30, 1).await;
+        insert_at(&pool, Status::Failed, 25, 0).await;
+        insert_at(&pool, Status::Up, 20, 1).await;
+
+        let since = Log::status_since(&pool, 1, Status::Up).await?.unwrap();
+        let minutes = (Utc::now() - since).num_minutes();
+        assert_eq!(minutes, 50, "maintenance and retries do not end the Up run");
         Ok(())
     }
 
