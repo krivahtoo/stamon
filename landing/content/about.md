@@ -1,7 +1,7 @@
 +++
 title = "About"
 description = "About"
-weight = 3
+weight = 4
 +++
 
 # Stamon
