@@ -4,7 +4,7 @@ description = "About"
 weight = 4
 +++
 
-# Stamon
+## Stamon
 
 **Stamon** is a lightweight status monitoring software designed to provide real-time
 insights into the health and performance of your services and resources.
@@ -12,7 +12,7 @@ insights into the health and performance of your services and resources.
 Written in Rust for backend performance and Svelte for a responsive frontend,
 **Stamon** ensures efficient monitoring with a minimal resource footprint.
 
-# Inspiration for Stamon
+## Inspiration for Stamon
 
 The idea for StaMon was born from a frustrating experience at a tech startup when an unexpected outage occurred late on a Friday evening. The team struggled for hours to diagnose the issue, revealing the limitations of existing monitoring tools, which were often too complex, expensive, or ineffective for their needs. This incident highlighted the need for a simple, lightweight solution that could provide real-time alerts and historical insights to quickly identify and resolve issues.
 
