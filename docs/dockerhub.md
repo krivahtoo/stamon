@@ -70,7 +70,7 @@ docker compose up -d
 
 ## Monitoring Docker containers
 
-Docker checks read container state from the Docker API. To monitor containers on the same host, mount the Docker socket (read-only is enough):
+Docker checks read container state from the Docker API. To monitor containers on the same host, mount the Docker socket:
 
 ```yaml
 services:
@@ -81,9 +81,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 ```
 
-> **Warning:** access to the Docker socket is equivalent to root access on the host. Only mount it if you trust everyone who can manage monitors.
+> **Warning:** access to the Docker socket is equivalent to root access on the host. Only mount it if you trust everyone who can manage monitors. Mounting it read-only (`:ro`) doesn't change that: the Docker API behind it still allows every operation.
 
-A daemon exposed over TCP (`tcp://host:2375`) also works. TLS-protected daemons aren't supported yet.
+Stamon can also reach a daemon over TCP (`tcp://host:2375`). That port has no authentication, so anyone who can reach it controls the daemon and the host. Only use it on a trusted, isolated network, never one exposed to the internet. TLS-protected daemons aren't supported yet.
 
 ## Tags
 
