@@ -1,0 +1,13 @@
+[krivahtoo]
+name = "Noah Cheptoo"
+role = "Maintainer"
+links = [
+  { name = "GitHub", path = "https://github.com/krivahtoo", icon = "github" },
+]
+
+[est-1y]
+name = "Esther Akinyi"
+role = "Maintainer"
+links = [
+  { name = "GitHub", path = "https://github.com/Est-1y", icon = "github" },
+]

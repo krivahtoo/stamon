@@ -1,0 +1,76 @@
+# The URL the site will be built for
+base_url = "https://stamon.org"
+
+title = "Stamon"
+description = "A lightweight self-hosted status monitoring tool, written in Rust."
+author = "Noah Cheptoo"
+default_language = "en"
+theme = "devlab-theme"
+
+# Compile the theme stylesheets.
+compile_sass = true
+
+# Build the index used by the header search.
+build_search_index = true
+
+# Publish blog posts in an Atom feed.
+generate_feeds = true
+feed_filenames = ["atom.xml"]
+taxonomies = [
+  { name = "tags", paginate_by = 10 },
+  { name = "authors", feed = true },
+]
+
+[search]
+index_format = "elasticlunr_javascript"
+include_title = true
+include_description = true
+include_content = true
+
+[markdown]
+insert_anchor_links = "right"
+
+[markdown.highlighting]
+light_theme = "github-light"
+dark_theme = "github-dark"
+
+[extra]
+# Used by the `issue` shortcode.
+repository_url = "https://github.com/krivahtoo/stamon"
+
+[extra.devlab.home]
+layout = "wide"
+
+[extra.devlab.brand]
+logo_text = "stamon"
+footer_text = "Stamon"
+show_logo_mark = true
+logo_mark_path = "/stamon-min.svg"
+
+[extra.devlab.announcement]
+show = true
+key = "stamon-release-v0.3.0"
+label = "v0.3.0"
+message = "Stamon 0.3.0: new checks, alerts and public status pages"
+path = "/blog/stamon-v0-3-0/"
+dismissible = true
+
+[extra.devlab.footer]
+show = true
+note = "Made by Noah Cheptoo and Esther Akinyi."
+links = [
+  { name = "GitHub", path = "https://github.com/krivahtoo/stamon", icon = "github" },
+  { name = "Atom feed", path = "/atom.xml", icon = "rss" },
+]
+
+[extra.devlab.navigation]
+links = [
+  { name = "Home", path = "/" },
+  { name = "Docs", collection = "docs" },
+  { name = "Blog", path = "/blog/" },
+  { name = "Changelog", path = "/docs/changelog/" },
+  { name = "About", path = "/about/" },
+]
+
+[extra.devlab.collections.docs]
+section = "docs/_index.md"
