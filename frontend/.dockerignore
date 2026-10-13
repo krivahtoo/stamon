@@ -1,9 +1,0 @@
-node_modules
-
-.eslintignore
-.eslintrc.cjs
-
-.prettierrc
-.pretieriignore
-
-README.md
