@@ -57,10 +57,11 @@ dismissible = true
 
 [extra.devlab.footer]
 show = true
-note = "Made by Noah Cheptoo and Esther Akinyi."
+note = "Made by Noah Cheptoo."
 links = [
   { name = "GitHub", path = "https://github.com/krivahtoo/stamon", icon = "github" },
   { name = "Atom feed", path = "/atom.xml", icon = "rss" },
+  { name = "About", path = "/about/", icon = "info" },
 ]
 
 [extra.devlab.navigation]
@@ -68,9 +69,19 @@ links = [
   { name = "Home", path = "/" },
   { name = "Docs", collection = "docs" },
   { name = "Blog", path = "/blog/" },
-  { name = "Changelog", path = "/docs/changelog/" },
-  { name = "About", path = "/about/" },
+  { name = "Changelog", path = "/changelog/" },
 ]
 
 [extra.devlab.collections.docs]
 section = "docs/_index.md"
+navigation = [
+  { section = "docs/getting-started/_index.md" },
+  { label = "Use Stamon" },
+  { section = "docs/monitors/_index.md" },
+  { section = "docs/features/_index.md" },
+  { label = "Run Stamon" },
+  { section = "docs/self-hosting/_index.md" },
+  { section = "docs/reference/_index.md" },
+  { label = "Contribute" },
+  { section = "docs/development/_index.md" },
+]
