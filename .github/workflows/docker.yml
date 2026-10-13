@@ -10,6 +10,12 @@ on:
 
 jobs:
   docker:
+    # A merged release PR pushes its release commit to main, and the release
+    # workflow also dispatches this build on the new tag. Build that commit
+    # only once, from the tag; the tag build also moves edge.
+    if: >-
+      github.event_name != 'push'
+      || !startsWith(github.event.head_commit.message, 'chore(main): release')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,7 +28,7 @@ jobs:
           images: |
             k4htoo/stamon
           tags: |
-            type=edge,branch=main,enable=${{ !startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=edge,enable=${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
