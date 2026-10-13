@@ -31,5 +31,7 @@ Channel settings are only visible to admins.
 ## Test and history
 
 - **Test** sends a sample alert right away.
-- Failed deliveries are retried 3 times. The **History** list shows every alert
-  and whether it was delivered.
+- Each alert is tried up to 3 times in all (2 retries). The **History** list
+  shows the final result of each delivery, with the error if it failed.
+- Alerts queued for a channel that has since been deactivated or deleted are
+  skipped and don't appear in History.

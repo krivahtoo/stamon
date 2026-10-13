@@ -39,6 +39,7 @@ on port 3000 with a bearer token, and the server allows this origin.
 Run these before opening a pull request:
 
 ```sh
+cargo check --all-features
 cargo fmt --check
 cargo clippy --workspace
 cargo test --workspace

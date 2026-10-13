@@ -17,12 +17,13 @@ The first account registered is an admin.
 ## Manage users {#manage-users}
 
 Admins add users through the API for now. Get `$TOKEN` by signing in, as shown
-in [First run](@/docs/getting-started/first-run.md#add-users).
+in [First run](@/docs/getting-started/first-run.md#add-users), and replace the
+example password with a unique one.
 
 ```sh
 # Create a user
 curl -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"username":"alice","password":"a-strong-password","role":"viewer"}' \
+  -d '{"username":"alice","password":"REPLACE-WITH-A-UNIQUE-PASSWORD","role":"viewer"}' \
   http://localhost:3000/api/users
 
 # Change a user's role, or deactivate them (user id 2 here)
@@ -31,8 +32,9 @@ curl -X PUT -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json
   http://localhost:3000/api/users/2
 ```
 
-Role changes and deactivation apply to changes right away; a deactivated user
-can still view until their sign-in expires (60 minutes). Admins can't change
+Role changes and deactivation apply right away: every request is checked
+against the user's current role, so a deactivated user is refused on their next
+request, even with an unexpired sign-in. Admins can't change
 their own role or status.
 
 ## Hidden secrets

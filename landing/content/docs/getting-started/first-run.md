@@ -13,7 +13,7 @@ registration is closed.
 
 Admins add more users through the API for now (a dashboard page is planned).
 Sign in to get a token, then create the user with a role of `viewer`, `editor`
-or `admin`:
+or `admin`. Replace the example password with a unique one:
 
 ```sh
 TOKEN=$(curl -s -H 'Content-Type: application/json' \
@@ -21,7 +21,7 @@ TOKEN=$(curl -s -H 'Content-Type: application/json' \
   http://localhost:3000/api/login | jq -r .token)
 
 curl -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"username":"alice","password":"a-strong-password","role":"editor"}' \
+  -d '{"username":"alice","password":"REPLACE-WITH-A-UNIQUE-PASSWORD","role":"editor"}' \
   http://localhost:3000/api/users
 ```
 

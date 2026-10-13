@@ -24,6 +24,17 @@ Every monitor has these settings:
 - **Tags**: labels for grouping and finding services.
 - **Alert channels**: where alerts go (see [Alerts](@/docs/features/alerts.md)).
 
+## Uptime and statistics {#stats}
+
+Each service's page shows its uptime over the last 24 hours, 7 days and 30
+days, its average response time over 24 hours and 7 days, the number of checks
+in 30 days, and how long it has been in its current status. The dashboard shows how many services are up, down or
+failing, and recent incidents.
+
+Uptime is the share of *up* results among up and down ones; see
+[how uptime is calculated](@/docs/self-hosting/backups-and-data.md#uptime).
+Use **tags** to group services and find them quickly.
+
 ## Check types {#check-types}
 
 | Type | Up when |

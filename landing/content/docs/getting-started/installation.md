@@ -19,18 +19,24 @@ source.
 {% <devlab.tabs sync="install-method" label="Installation method"> %}
 {% <devlab.tab name="Docker" value="docker" selected={true}> %}
 ```sh
-docker run -d -e JWT_SECRET="change-me" -p 3000:3000 -v stamon-data:/app/data k4htoo/stamon
+docker run -d -e JWT_SECRET="$(openssl rand -base64 48)" -p 3000:3000 -v stamon-data:/app/data k4htoo/stamon
 ```
 {% </devlab.tab> %}
 {% <devlab.tab name="Docker Compose" value="compose"> %}
-Create a `compose.yml` file:
+Create a `.env` file with a secret generated for this deployment:
+
+```sh
+echo "JWT_SECRET=$(openssl rand -base64 48)" > .env
+```
+
+Then create a `compose.yml` file:
 
 ```yml
 services:
   stamon:
     image: k4htoo/stamon
     environment:
-      JWT_SECRET: "A_very_secure_secret"
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
     ports:
       - "3000:3000"
     volumes:
@@ -70,7 +76,7 @@ docker compose up -d
 
    ```sh
    cargo build --release
-   DATA_PATH=./data JWT_SECRET="change-me" ASSETS_PATH=./frontend/build ./target/release/server
+   DATA_PATH=./data JWT_SECRET="$(openssl rand -base64 48)" ASSETS_PATH=./frontend/build ./target/release/server
    ```
 {% </devlab.steps> %}
 {% </devlab.tab> %}
@@ -81,8 +87,9 @@ Stamon listens on port **3000**. Open <http://localhost:3000> and continue with
 
 {% <devlab.callout type="warning" title="Keep the data and the secret"> %}
 The `stamon-data` volume (or `DATA_PATH`) holds the database, so keep it when
-you replace the container. Generate a strong `JWT_SECRET`, for example with
-`openssl rand -base64 48`.
+you replace the container. `JWT_SECRET` signs sign-in tokens: generate a unique
+one for each deployment, never reuse an example value, and keep it the same
+across restarts, or everyone is signed out.
 {% </devlab.callout> %}
 
 All settings are listed in [Configuration](@/docs/self-hosting/configuration.md).

@@ -5,8 +5,10 @@ weight = 6
 +++
 
 Name the container (or its id). The monitor is up while the container is
-running and not reported unhealthy. A container whose health check is still
-*starting* counts as up, so restarts don't cause alerts.
+running and not reported unhealthy. While a container is stopped or restarting,
+it is down. Once it is running, a health check that is still *starting* counts
+as up; only *unhealthy* counts as down. Use [retries](@/docs/monitors/_index.md#settings)
+to ride out short restarts.
 
 ## Connect to Docker
 

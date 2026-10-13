@@ -47,5 +47,6 @@ configured:
 - A delivery fails if the receiver doesn't answer with a 2xx status within 10
   seconds. Redirects aren't followed, so a 3xx response counts as a failure.
 - Failed deliveries are tried 3 times in all, 2 and 4 seconds apart.
-- Every attempt's outcome appears in the alert **History**, with the error for
-  failures.
+- The alert **History** records one entry per delivery: its final result after
+  all attempts, with the last error for failures. Individual failed attempts
+  only appear in the server log.

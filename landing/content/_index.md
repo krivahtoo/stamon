@@ -29,7 +29,7 @@ description = "Everything you need to know when a service goes down, in a single
 items = [
   { kicker = "Reliability", title = "Fewer false alarms", description = "Retries before a service is marked down, and an invert option for checks that should fail.", path = "@/docs/monitors/_index.md" },
   { kicker = "Planning", title = "Maintenance windows", description = "Planned downtime isn't checked, doesn't alert and doesn't count against uptime.", path = "@/docs/features/maintenance-windows.md" },
-  { kicker = "Insight", title = "Uptime and latency stats", description = "Track uptime and response times, and organise services with tags.", path = "@/docs/self-hosting/backups-and-data.md" },
+  { kicker = "Insight", title = "Uptime and latency stats", description = "Track uptime and response times, and organise services with tags.", path = "@/docs/monitors/_index.md#stats" },
   { kicker = "Teams", title = "Roles", description = "Viewer, editor and admin roles, with real-time updates in the dashboard.", path = "@/docs/features/users-and-roles.md" },
 ]
 

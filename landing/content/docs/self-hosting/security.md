@@ -28,7 +28,9 @@ weight = 3
 {% <devlab.callout type="warning" title="The Docker socket is root access"> %}
 Mounting `/var/run/docker.sock` for [Docker monitors](@/docs/monitors/docker.md)
 gives Stamon root-equivalent access to the host. Only mount it if you trust
-everyone who can manage monitors, and mount it read-only (`:ro`).
+everyone who can manage monitors. Mounting it read-only (`:ro`) doesn't help:
+it only stops the file being replaced, and the Docker API behind it still
+allows every operation.
 {% </devlab.callout> %}
 
 The image runs as root inside the container.

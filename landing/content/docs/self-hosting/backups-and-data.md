@@ -12,12 +12,13 @@ in Docker). The database runs in WAL mode, so `stamon.db-wal` and
 
 ## Back up
 
-The simplest safe backup is to stop Stamon and copy the directory:
+The simplest safe backup is to stop Stamon and copy the directory. This uses
+the volume attached to the Stamon container, whatever Compose named it:
 
 ```sh
 docker compose stop stamon
-docker run --rm -v stamon-data:/data -v "$PWD":/backup alpine \
-  tar czf /backup/stamon-$(date +%F).tar.gz -C /data .
+docker run --rm --volumes-from "$(docker compose ps -aq stamon)" -v "$PWD":/backup alpine \
+  tar czf /backup/stamon-$(date +%F).tar.gz -C /app/data .
 docker compose start stamon
 ```
 
