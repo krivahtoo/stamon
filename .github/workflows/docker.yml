@@ -66,3 +66,13 @@ jobs:
           repository: k4htoo/stamon
           readme-filepath: ./docs/dockerhub.md
           short-description: Lightweight self-hosted status monitoring, written in Rust
+
+      # Move the public demo onto the new release.
+      - name: Redeploy the demo
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$RENDER_DEPLOY_HOOK" ]; then
+            curl -fsS -X POST "$RENDER_DEPLOY_HOOK" > /dev/null
+          fi

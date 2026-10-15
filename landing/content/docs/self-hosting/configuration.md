@@ -13,6 +13,7 @@ Stamon is configured with environment variables.
 | `ASSETS_PATH` | Directory of the built frontend | `assets` (`/assets/` in the Docker image) |
 | `LOG_RETENTION_DAYS` | Days to keep check logs and alert history; `0` keeps them forever | `90` |
 | `RUST_LOG` | Log filter, e.g. `info` or `server=debug` | None |
+| `DEMO_MODE` | Run as a public sandbox: seed sample data and a shared `demo` account, check only public addresses, and turn off alerts, Docker and database checks, and account management. Only for instances anyone can use | `false` |
 
 ## Network
 

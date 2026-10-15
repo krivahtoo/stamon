@@ -32,7 +32,7 @@
 - **Uptime and latency stats**, **tags** for organising services, and **roles** (viewer, editor, admin) for teams.
 - **Real-time** updates in the dashboard, and a **lightweight** single binary backed by SQLite.
 
-See the [usage guide](https://stamon.org/usage/) for how each feature works.
+See the [usage guide](https://stamon.org/usage/) for how each feature works, or try the [live demo](https://demo.stamon.org).
 
 ## 🚀 Quick Start
 
@@ -81,6 +81,7 @@ The volume keeps the database when the container is replaced. Generate a strong 
 | `ASSETS_PATH` | `assets` (`/assets/` in Docker) | Directory of the built frontend. |
 | `LOG_RETENTION_DAYS` | `90` | Days to keep check logs and alert history; `0` keeps them forever. |
 | `RUST_LOG` | | Log filter, e.g. `info` or `server=debug`. |
+| `DEMO_MODE` | `false` | Run as a public sandbox (sample data, public checks only, no alerts). Only for instances anyone can use; see [docs/demo.md](docs/demo.md). |
 
 The server listens on port `3000`; publish it on another port with `-p 8080:3000`.
 
