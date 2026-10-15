@@ -9,10 +9,9 @@
 
   *A lightweight self-hosted status monitoring tool, written in Rust.*
 
-  [![Rust CI](https://github.com/krivahtoo/stamon/actions/workflows/rust.yml/badge.svg)](https://github.com/krivahtoo/stamon/actions/workflows/rust.yml)
-  [![Node CI](https://github.com/krivahtoo/stamon/actions/workflows/node.yml/badge.svg)](https://github.com/krivahtoo/stamon/actions/workflows/node.yml)
-  [![ALX Portfolio Project](https://img.shields.io/badge/ALX-Portfolio_Project-%2331c554?logo=alx&label=&labelColor=%23002B56)](https://www.alxafrica.com/)
+  [![CI](https://github.com/krivahtoo/stamon/actions/workflows/ci.yml/badge.svg)](https://github.com/krivahtoo/stamon/actions/workflows/ci.yml)
   ![Docker Image Version](https://img.shields.io/docker/v/k4htoo/stamon?logo=docker&sort=semver)
+  ![Docker Pulls](https://img.shields.io/docker/pulls/k4htoo/stamon)
   ![GitHub last commit](https://img.shields.io/github/last-commit/krivahtoo/stamon?style=flat&logo=git&logoColor=%23F05032)
   ![GitHub License](https://img.shields.io/github/license/krivahtoo/stamon)
 </div>
