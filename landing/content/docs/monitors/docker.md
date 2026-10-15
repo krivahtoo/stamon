@@ -15,6 +15,10 @@ to ride out short restarts.
 Stamon talks to the Docker API at `unix:///var/run/docker.sock` by default, or
 at a `tcp://host:2375` address. TLS-protected daemons aren't supported yet.
 
+A daemon on `tcp://host:2375` has no authentication: anyone who can reach that
+port controls Docker, and through it the host. Only use it on a trusted,
+isolated network, never one exposed to the internet.
+
 When Stamon runs in Docker, mount the host's socket into its container:
 
 ```yml
