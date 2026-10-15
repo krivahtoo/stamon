@@ -5,6 +5,20 @@ weight = 5
 aliases = ["/docs/changelog/"]
 +++
 
+## [0.4.0](https://github.com/krivahtoo/stamon/compare/v0.3.0...v0.4.0) (2026-10-15)
+
+
+### Features
+
+* move the landing site to the DevLab theme ([#174](https://github.com/krivahtoo/stamon/issues/174)) ([64004bf](https://github.com/krivahtoo/stamon/commit/64004bf8b1a79206f5d22f6f5051b8a63abdee7e))
+* publish the Docker Hub overview on release ([#173](https://github.com/krivahtoo/stamon/issues/173)) ([680dcdc](https://github.com/krivahtoo/stamon/commit/680dcdc8ef353e3d4dc7321f3d3b17fe4137a1df))
+
+
+### Bug Fixes
+
+* build the release commit's image only once ([#172](https://github.com/krivahtoo/stamon/issues/172)) ([4eb73df](https://github.com/krivahtoo/stamon/commit/4eb73df754b208764c2d21e3f5d4a0c1b7f4e003))
+* send only what the Docker build uses as context ([#171](https://github.com/krivahtoo/stamon/issues/171)) ([4aa1714](https://github.com/krivahtoo/stamon/commit/4aa1714780bbe1aa30f5ec7fbe60674dbf9b43bb))
+
 ## [0.3.0](https://github.com/krivahtoo/stamon/compare/v0.2.0...v0.3.0) (2026-10-12)
 
 
