@@ -151,6 +151,55 @@ impl ServiceForUpdate {
     }
 }
 
+/// Most services the public demo holds, so visitors can't load it down.
+pub const DEMO_MAX_SERVICES: u32 = 50;
+/// Shortest check interval in the public demo, in seconds.
+const DEMO_MIN_INTERVAL: u16 = 60;
+
+impl ServiceForCreate {
+    /// The public demo's limits, on top of [`Self::validate`].
+    pub fn validate_demo(&self) -> Result<(), String> {
+        validate_demo(
+            Some(self.interval),
+            Some(self.retry_interval),
+            Some(&self.config),
+        )
+    }
+}
+
+impl ServiceForUpdate {
+    /// The public demo's limits, on top of [`Self::validate`].
+    pub fn validate_demo(&self) -> Result<(), String> {
+        validate_demo(
+            self.interval,
+            self.retry_interval,
+            self.config.as_ref().map(|Json(config)| config),
+        )
+    }
+}
+
+fn validate_demo(
+    interval: Option<u16>,
+    retry_interval: Option<u16>,
+    config: Option<&CheckConfig>,
+) -> Result<(), String> {
+    if interval.is_some_and(|i| i < DEMO_MIN_INTERVAL) {
+        return Err(format!(
+            "interval must be at least {DEMO_MIN_INTERVAL} seconds in the demo"
+        ));
+    }
+    // 0 retries at the normal interval.
+    if retry_interval.is_some_and(|i| i != 0 && i < DEMO_MIN_INTERVAL) {
+        return Err(format!(
+            "retry_interval must be at least {DEMO_MIN_INTERVAL} seconds in the demo"
+        ));
+    }
+    match config {
+        Some(config) => config.validate_public(),
+        None => Ok(()),
+    }
+}
+
 fn validate_fields(
     name: Option<&str>,
     interval: Option<u16>,
@@ -169,6 +218,12 @@ fn validate_fields(
 }
 
 impl Service {
+    pub async fn count(pool: &SqlitePool) -> sqlx::Result<u32> {
+        sqlx::query_scalar("SELECT COUNT(*) FROM Services")
+            .fetch_one(pool)
+            .await
+    }
+
     pub async fn get(pool: &SqlitePool, service_id: u32) -> sqlx::Result<Option<Service>> {
         let service = sqlx::query_as::<_, Service>(
             r#"SELECT *
@@ -886,6 +941,47 @@ mod tests {
         };
         assert!(bad_config.validate().is_err());
         assert!(ServiceForUpdate::default().validate().is_ok());
+    }
+
+    #[test]
+    fn demo_limits() {
+        let valid = ServiceForCreate {
+            retry_interval: 0,
+            ..new_service("svc", http("https://example.com"))
+        };
+        assert!(valid.validate_demo().is_ok());
+
+        let invalid = [
+            ServiceForCreate {
+                interval: 30,
+                ..valid.clone()
+            },
+            ServiceForCreate {
+                retry_interval: 30,
+                ..valid.clone()
+            },
+            ServiceForCreate {
+                config: http("http://169.254.169.254/latest/meta-data"),
+                ..valid.clone()
+            },
+            ServiceForCreate {
+                config: serde_json::from_value(json!({ "type": "docker", "container": "web" }))
+                    .unwrap(),
+                ..valid.clone()
+            },
+        ];
+        for service in invalid {
+            assert!(service.validate_demo().is_err(), "{service:?}");
+        }
+
+        let update = ServiceForUpdate {
+            config: Some(Json(CheckConfig::Ping(PingConfig {
+                host: "127.0.0.1".into(),
+            }))),
+            ..Default::default()
+        };
+        assert!(update.validate_demo().is_err());
+        assert!(ServiceForUpdate::default().validate_demo().is_ok());
     }
 
     #[sqlx::test]

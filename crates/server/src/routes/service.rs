@@ -16,10 +16,14 @@ use sqlx::types::Json as SqlJson;
 use crate::{
     AppState,
     auth::{Claims, EditorClaims, ViewerClaims, can_edit},
+    config::env_config,
     models::{
         channel::Channel,
         log::Log,
-        service::{Service, ServiceForCreate, ServiceForUpdate, clean_tags, fill_push_token},
+        service::{
+            DEMO_MAX_SERVICES, Service, ServiceForCreate, ServiceForUpdate, clean_tags,
+            fill_push_token,
+        },
     },
 };
 
@@ -84,6 +88,23 @@ async fn add_service(
     service.tags = clean_tags(std::mem::take(&mut service.tags));
     if let Err(message) = service.validate() {
         return bad_request(message);
+    }
+    if env_config().demo {
+        if let Err(message) = service.validate_demo() {
+            return bad_request(message);
+        }
+        match Service::count(&state.pool).await {
+            Ok(count) if count >= DEMO_MAX_SERVICES => {
+                return bad_request(format!(
+                    "The demo holds at most {DEMO_MAX_SERVICES} services; delete one first"
+                ));
+            }
+            Ok(_) => (),
+            Err(e) => {
+                error!("Error counting services: {e}");
+                return json_response(500, "Internal server error");
+            }
+        }
     }
     if let Some(response) = push_token_rejection(&state, &service.config, None).await {
         return response;
@@ -255,6 +276,11 @@ async fn update_service(
         *tags = clean_tags(std::mem::take(tags));
     }
     if let Err(message) = service.validate() {
+        return bad_request(message);
+    }
+    if env_config().demo
+        && let Err(message) = service.validate_demo()
+    {
         return bad_request(message);
     }
     if let Some(SqlJson(config)) = &service.config

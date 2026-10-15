@@ -60,6 +60,15 @@ fn parse_resolver(resolver: &str) -> Result<SocketAddr, String> {
         .map_err(|_| format!("resolver must be an IP address or ip:port, got {resolver}"))
 }
 
+/// The nameserver the check asks, when it isn't the system's.
+pub(crate) fn resolver_addr(config: &DnsConfig) -> Option<SocketAddr> {
+    config
+        .resolver
+        .as_deref()
+        .filter(|r| !r.trim().is_empty())
+        .and_then(|r| parse_resolver(r).ok())
+}
+
 /// Compare answers ignoring case and the trailing dot of names.
 fn normalize(value: &str) -> String {
     value.trim().trim_end_matches('.').to_lowercase()

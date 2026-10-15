@@ -67,6 +67,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Run database migrations
     models::setup(&pool).await?;
 
+    if env.demo {
+        info!("Running as a public demo");
+        models::demo::seed(&pool).await?;
+    }
+
     let serve_dir = ServeDir::new(&env.assets_path)
         .not_found_service(ServeFile::new(env.assets_path.join("404.html")));
     info!("Serving assets at: {}", env.assets_path.to_string_lossy());

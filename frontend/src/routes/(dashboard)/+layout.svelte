@@ -8,6 +8,11 @@
   import { navItems } from '$lib/data/nav.js';
   import services from '$lib/store/services.js';
   import stats from '$lib/store/stats.js';
+  import demo from '$lib/store/demo.js';
+  import FlaskConical from 'lucide-svelte/icons/flask-conical';
+  import X from 'lucide-svelte/icons/x';
+
+  let showDemoBanner = true;
 
   onMount(async () => {
     if ($user) {
@@ -22,6 +27,13 @@
           const data = await res.json();
           // console.log(data);
           services.set(data.services);
+        }
+      });
+
+      cfetch('/check').then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+          demo.set(!!data.demo);
         }
       });
 
@@ -42,6 +54,29 @@
 
     <div class="flex flex-col">
       <Header {navItems} />
+
+      {#if $demo && showDemoBanner}
+        <div
+          class="flex items-center gap-2 border-b bg-muted/50 px-4 py-2 text-sm text-muted-foreground lg:px-6"
+        >
+          <FlaskConical class="h-4 w-4 shrink-0" />
+          <p class="flex-1">
+            This is the public demo: data resets every hour and alerts aren't sent.
+            <a href="https://stamon.org/" class="font-medium underline underline-offset-4">
+              Install Stamon
+            </a>
+            to monitor your own services.
+          </p>
+          <button
+            type="button"
+            class="rounded p-1 hover:bg-muted"
+            aria-label="Dismiss"
+            on:click={() => (showDemoBanner = false)}
+          >
+            <X class="h-4 w-4" />
+          </button>
+        </div>
+      {/if}
 
       <main
         class="flex max-h-[calc(100vh-60px)] flex-1 flex-col gap-4 overflow-y-auto overscroll-y-contain p-4 lg:gap-6 lg:p-6"
