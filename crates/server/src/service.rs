@@ -8,30 +8,34 @@ use tracing::{debug, error, info};
 
 use crate::{
     job::CheckJob,
-    models::{log::Log, notification::Notification, service::Service},
+    models::{log::Log, notification::Notification, service::Service, settings::Settings},
 };
 
 #[derive(Clone)]
 pub struct TimerService {
     pub pool: SqlitePool,
-    /// Days of logs and alert history to keep; 0 keeps them forever.
-    pub retention_days: u32,
+    /// Days of logs and alert history to keep when Settings has none saved.
+    pub default_retention_days: u32,
 }
 
 impl TimerService {
-    pub fn new(pool: SqlitePool, retention_days: u32) -> Self {
+    pub fn new(pool: SqlitePool, default_retention_days: u32) -> Self {
         Self {
             pool,
-            retention_days,
+            default_retention_days,
         }
     }
 
-    /// Delete logs and alert history past the retention period.
+    /// Delete logs and alert history past the retention period. It is read on
+    /// every run so a change in Settings applies without a restart.
     async fn prune(&self) -> sqlx::Result<()> {
-        if self.retention_days == 0 {
+        let retention_days = Settings::load(&self.pool, self.default_retention_days)
+            .await?
+            .log_retention_days;
+        if retention_days == 0 {
             return Ok(());
         }
-        let before = Utc::now() - TimeDelta::days(self.retention_days.into());
+        let before = Utc::now() - TimeDelta::days(retention_days.into());
         let logs = Log::prune(&self.pool, before).await?;
         let notifications = Notification::prune(&self.pool, before).await?;
         if logs + notifications > 0 {

@@ -4,6 +4,7 @@ import Users from 'lucide-svelte/icons/users';
 import Monitor from 'lucide-svelte/icons/monitor';
 import MessageSquareText from 'lucide-svelte/icons/message-square-text';
 import Wrench from 'lucide-svelte/icons/wrench';
+import Settings from 'lucide-svelte/icons/settings';
 
 export const navItems = [
   {
@@ -37,5 +38,10 @@ export const navItems = [
     name: 'Team',
     path: '/users/',
     icon: Users
+  },
+  {
+    name: 'Settings',
+    path: '/settings/',
+    icon: Settings
   }
 ];

@@ -12,10 +12,10 @@ use tracing::error;
 use super::demo_forbidden;
 use crate::{
     AppState,
-    auth::{AdminClaims, Claims, ViewerClaims},
+    auth::{AdminClaims, Claims, ViewerClaims, verify_password},
     models::{
         UserForRegister,
-        user::{User, UserForUpdate},
+        user::{MIN_PASSWORD_LEN, PasswordChange, ProfileUpdate, User, UserForUpdate},
     },
 };
 
@@ -125,9 +125,73 @@ async fn update_user(
     }
 }
 
+/// Longest timezone name accepted; IANA names are well under this.
+const MAX_TIMEZONE_LEN: usize = 64;
+
+#[debug_handler(state = AppState)]
+async fn update_profile(
+    ViewerClaims(Claims { user_id, .. }): ViewerClaims,
+    State(state): State<AppState>,
+    Json(update): Json<ProfileUpdate>,
+) -> Response {
+    if let Some(response) = demo_forbidden() {
+        return response;
+    }
+    let timezone = update
+        .timezone
+        .as_deref()
+        .map(str::trim)
+        .filter(|tz| !tz.is_empty());
+    if timezone.is_some_and(|tz| tz.len() > MAX_TIMEZONE_LEN) {
+        return message(StatusCode::BAD_REQUEST, "Timezone is too long");
+    }
+    match User::set_timezone(&state.pool, user_id, timezone).await {
+        Ok(_) => message(StatusCode::OK, "Profile updated"),
+        Err(e) => {
+            error!("{e}");
+            message(StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
+        }
+    }
+}
+
+#[debug_handler(state = AppState)]
+async fn change_password(
+    ViewerClaims(Claims { user_id, .. }): ViewerClaims,
+    State(state): State<AppState>,
+    Json(change): Json<PasswordChange>,
+) -> Response {
+    if let Some(response) = demo_forbidden() {
+        return response;
+    }
+    if change.new.chars().count() < MIN_PASSWORD_LEN {
+        return message(
+            StatusCode::BAD_REQUEST,
+            &format!("New password must be at least {MIN_PASSWORD_LEN} characters"),
+        );
+    }
+    let user = match User::get(&state.pool, user_id).await {
+        Ok(user) => user,
+        Err(e) => {
+            error!("{e}");
+            return message(StatusCode::INTERNAL_SERVER_ERROR, "Internal server error");
+        }
+    };
+    if !verify_password(&change.current, &user.password) {
+        return message(StatusCode::BAD_REQUEST, "Current password is incorrect");
+    }
+    match User::set_password(&state.pool, user_id, change.new).await {
+        Ok(_) => message(StatusCode::OK, "Password changed"),
+        Err(e) => {
+            error!("{e}");
+            message(StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
+        }
+    }
+}
+
 pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/users", get(list_users).post(create_user))
         .route("/users/{id}", put(update_user))
-        .route("/user", get(get_user))
+        .route("/user", get(get_user).put(update_profile))
+        .route("/user/password", put(change_password))
 }

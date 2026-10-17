@@ -21,6 +21,7 @@ mod logs;
 mod maintenance;
 mod push;
 mod service;
+mod settings;
 mod status_pages;
 
 pub use status_pages::page_shell;
@@ -58,6 +59,7 @@ pub fn routes() -> Router<AppState> {
         .merge(logs::routes())
         .merge(maintenance::routes())
         .merge(push::routes())
+        .merge(settings::routes())
         .merge(users::routes())
         .merge(stats_route)
         .fallback(root)

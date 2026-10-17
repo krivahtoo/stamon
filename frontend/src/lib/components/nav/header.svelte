@@ -7,7 +7,6 @@
   import Search from 'lucide-svelte/icons/search';
   import Sun from 'lucide-svelte/icons/sun';
   import Moon from 'lucide-svelte/icons/moon';
-  import Languages from 'lucide-svelte/icons/languages';
   import Settings from 'lucide-svelte/icons/settings';
   import LogOut from 'lucide-svelte/icons/log-out';
   import UserRoundCog from 'lucide-svelte/icons/user-round-cog';
@@ -16,7 +15,6 @@
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import * as Sheet from '$lib/components/ui/sheet/index.js';
-  import * as Card from '$lib/components/ui/card/index.js';
   import user from '$lib/store/user.js';
   import services from '$lib/store/services.js';
   import { token } from '$lib/store/auth.js';
@@ -103,19 +101,6 @@
           </a>
         {/each}
       </nav>
-      <div class="mt-auto">
-        <Card.Root>
-          <Card.Header>
-            <Card.Title>Upgrade to Pro</Card.Title>
-            <Card.Description>
-              Unlock all features and get unlimited access to our support team.
-            </Card.Description>
-          </Card.Header>
-          <Card.Content>
-            <Button size="sm" class="w-full">Upgrade</Button>
-          </Card.Content>
-        </Card.Root>
-      </div>
     </Sheet.Content>
   </Sheet.Root>
   <div class="hidden w-full flex-1 sm:block">
@@ -137,20 +122,6 @@
       </div>
     </form>
   </div>
-  <DropdownMenu.Root>
-    <DropdownMenu.Trigger asChild let:builder>
-      <Button builders={[builder]} variant="link" size="icon" class="hidden sm:flex">
-        <Languages class="h-5 w-5" />
-        <span class="sr-only">Toggle user menu</span>
-      </Button>
-    </DropdownMenu.Trigger>
-    <DropdownMenu.Content align="end">
-      <DropdownMenu.Label>Select language</DropdownMenu.Label>
-      <DropdownMenu.Separator />
-      <DropdownMenu.Item>English</DropdownMenu.Item>
-      <DropdownMenu.Item>French</DropdownMenu.Item>
-    </DropdownMenu.Content>
-  </DropdownMenu.Root>
   <DropdownMenu.Root>
     <DropdownMenu.Trigger asChild let:builder>
       <Button builders={[builder]} variant="link" size="icon">
@@ -184,11 +155,13 @@
         </div>
       </DropdownMenu.Label>
       <DropdownMenu.Separator />
-      <DropdownMenu.Item href="/settings/account">
+      <DropdownMenu.Item href="/settings/">
         <UserRoundCog class="text-foreground-alt mr-2 size-5" />
         Account
       </DropdownMenu.Item>
-      <DropdownMenu.Item href="/settings">
+      <DropdownMenu.Item
+        href={$user?.role === 'admin' ? '/settings/general/' : '/settings/appearance/'}
+      >
         <Settings class="mr-2 size-5 text-foreground" />
         Settings
       </DropdownMenu.Item>

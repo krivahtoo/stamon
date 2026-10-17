@@ -12,7 +12,7 @@
   import { Switch } from '$lib/components/ui/switch/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
   import user from '$lib/store/user.js';
-  import { cfetch } from '$lib/utils.js';
+  import { cfetch, formatDateTime } from '$lib/utils.js';
 
   /**
    * @typedef {Object} Window
@@ -176,9 +176,6 @@
     if (window.apply_to_all) return 'All services';
     return window.service_ids.map((id) => serviceNames.get(id) ?? `#${id}`).join(', ');
   }
-
-  /** @param {string} time */
-  const formatTime = (time) => new Date(time).toLocaleString();
 </script>
 
 <div class="flex items-center justify-between">
@@ -219,7 +216,7 @@
                 <Badge variant={group.variant}>{group.label}</Badge>
               </div>
               <Card.Description>
-                {formatTime(window.starts_at)} – {formatTime(window.ends_at)}
+                {formatDateTime(window.starts_at)} – {formatDateTime(window.ends_at)}
               </Card.Description>
             </Card.Header>
             <Card.Content class="space-y-1 text-sm">

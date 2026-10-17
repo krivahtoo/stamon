@@ -2,6 +2,7 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { cubicOut } from 'svelte/easing';
 import { token } from './store/auth.js';
+import user from './store/user.js';
 import { dev } from '$app/environment';
 import { get } from 'svelte/store';
 
@@ -24,6 +25,22 @@ export function cfetch(path, options = { credentials: 'same-origin' }) {
   }
   options = { ...options, headers };
   return fetch(url, options);
+}
+
+/**
+ * A date and time in the signed-in user's timezone, or the browser's when they
+ * haven't picked one.
+ * @param {string | number | Date} time
+ * @returns {string}
+ */
+export function formatDateTime(time) {
+  const timeZone = get(user)?.timezone ?? undefined;
+  try {
+    return new Date(time).toLocaleString(undefined, { timeZone });
+  } catch {
+    // An unknown timezone name falls back to the browser's.
+    return new Date(time).toLocaleString();
+  }
 }
 
 /**
