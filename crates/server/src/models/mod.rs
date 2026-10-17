@@ -5,6 +5,7 @@ pub use self::user::{UserForLogin, UserForRegister};
 
 pub mod channel;
 pub mod config;
+pub mod demo;
 pub mod log;
 pub mod maintenance;
 pub mod notification;

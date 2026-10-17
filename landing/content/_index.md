@@ -10,6 +10,7 @@ image = "/screenshot.png"
 image_alt = "The Stamon dashboard listing monitored services with their status and response times."
 actions = [
   { label = "Install", path = "@/docs/getting-started/installation.md" },
+  { label = "Try the demo", path = "https://demo.stamon.org" },
   { label = "View on GitHub", path = "https://github.com/krivahtoo/stamon" },
 ]
 

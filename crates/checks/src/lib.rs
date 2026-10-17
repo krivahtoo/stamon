@@ -14,6 +14,7 @@ mod docker;
 mod http;
 mod ping;
 mod push;
+mod targets;
 mod tcp;
 mod tls;
 
@@ -23,6 +24,7 @@ pub use docker::DockerConfig;
 pub use http::{HttpConfig, HttpMethod};
 pub use ping::PingConfig;
 pub use push::PushConfig;
+pub use targets::is_public;
 pub use tcp::TcpConfig;
 pub use tls::TlsConfig;
 
@@ -41,6 +43,16 @@ pub enum CheckConfig {
     Database(DatabaseConfig),
     /// Passive: the service reports in instead of being checked.
     Push(PushConfig),
+}
+
+/// Which addresses checks may connect to.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum Targets {
+    #[default]
+    Any,
+    /// Only public addresses, and no Docker or database checks. For
+    /// instances anyone can use, such as the public demo.
+    Public,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -139,19 +151,17 @@ impl CheckConfig {
 
     /// Run the check, treating anything slower than `timeout` as down.
     pub async fn check(&self, timeout: Duration) -> CheckOutcome {
+        self.check_targets(timeout, Targets::Any).await
+    }
+
+    /// Run the check, connecting only to the `targets` allowed, and treating
+    /// anything slower than `timeout` as down.
+    pub async fn check_targets(&self, timeout: Duration, targets: Targets) -> CheckOutcome {
         let start = Instant::now();
         let check = async {
-            match self {
-                CheckConfig::Http(config) => http::check(config).await,
-                CheckConfig::Ping(config) => ping::check(config, timeout).await,
-                CheckConfig::Tcp(config) => tcp::check(config).await,
-                CheckConfig::Dns(config) => dns::check(config).await,
-                CheckConfig::Tls(config) => tls::check(config, timeout).await,
-                CheckConfig::Docker(config) => docker::check(config).await,
-                CheckConfig::Database(config) => database::check(config).await,
-                CheckConfig::Push(_) => CheckOutcome::error(
-                    "Push monitors wait for heartbeats instead of being checked",
-                ),
+            match targets {
+                Targets::Any => self.run(timeout).await,
+                Targets::Public => targets::check(self, timeout).await,
             }
         };
         match tokio::time::timeout(timeout, check).await {
@@ -160,6 +170,21 @@ impl CheckConfig {
                 start.elapsed(),
                 format!("Timed out after {}s", timeout.as_secs_f32()),
             ),
+        }
+    }
+
+    async fn run(&self, timeout: Duration) -> CheckOutcome {
+        match self {
+            CheckConfig::Http(config) => http::check(config).await,
+            CheckConfig::Ping(config) => ping::check(config, timeout).await,
+            CheckConfig::Tcp(config) => tcp::check(config).await,
+            CheckConfig::Dns(config) => dns::check(config).await,
+            CheckConfig::Tls(config) => tls::check(config, timeout).await,
+            CheckConfig::Docker(config) => docker::check(config).await,
+            CheckConfig::Database(config) => database::check(config).await,
+            CheckConfig::Push(_) => {
+                CheckOutcome::error("Push monitors wait for heartbeats instead of being checked")
+            }
         }
     }
 }

@@ -41,16 +41,23 @@ impl TlsConfig {
 /// Up while the server's certificate is more than `warn_days` from expiring.
 pub(crate) async fn check(config: &TlsConfig, timeout: Duration) -> CheckOutcome {
     let start = Instant::now();
+    let host = config.host.trim();
+    match tokio::net::lookup_host((host, config.port)).await {
+        Ok(addrs) => check_addrs(config, addrs.collect(), timeout).await,
+        Err(e) => CheckOutcome::down(start.elapsed(), format!("Failed to resolve {host}: {e}")),
+    }
+}
+
+/// Like [`check`], connecting to `addrs` instead of resolving the host.
+pub(crate) async fn check_addrs(
+    config: &TlsConfig,
+    addrs: Vec<SocketAddr>,
+    timeout: Duration,
+) -> CheckOutcome {
+    let start = Instant::now();
     let host = config.host.trim().to_owned();
     let port = config.port;
     let timeout_secs = timeout.as_secs().max(1);
-
-    let addrs: Vec<SocketAddr> = match tokio::net::lookup_host((host.as_str(), port)).await {
-        Ok(addrs) => addrs.collect(),
-        Err(e) => {
-            return CheckOutcome::down(start.elapsed(), format!("Failed to resolve {host}: {e}"));
-        }
-    };
 
     // The certificate lookup uses blocking sockets. Like a TCP connect, try
     // each address until one answers.

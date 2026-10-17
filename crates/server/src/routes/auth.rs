@@ -11,13 +11,14 @@ use serde_json::json;
 use sqlx::Row;
 use tracing::{debug, error};
 
+use super::demo_forbidden;
 use crate::{
     AppState,
     auth::{Claims, verify_password},
     config::env_config,
     extractors::json::Json,
     models::{
-        UserForLogin, UserForRegister,
+        UserForLogin, UserForRegister, demo,
         user::{User, UserRole},
     },
 };
@@ -102,6 +103,9 @@ async fn register(
     State(state): State<AppState>,
     Json(mut user): Json<UserForRegister>,
 ) -> Response {
+    if let Some(response) = demo_forbidden() {
+        return response;
+    }
     let users_exists: bool = match sqlx::query("SELECT EXISTS(SELECT 1 FROM users)")
         .fetch_one(&state.pool)
         .await
@@ -175,7 +179,14 @@ async fn check(State(state): State<AppState>) -> Response {
         )
             .into_response();
     }
-    Json(json!({"message": "Already setup"})).into_response()
+    let demo = env_config().demo;
+    Json(json!({
+        "message": "Already setup",
+        "demo": demo,
+        // The shared demo account, so the login page can fill it in.
+        "demo_login": demo.then(|| json!({ "username": demo::USERNAME, "password": demo::PASSWORD })),
+    }))
+    .into_response()
 }
 
 pub fn routes() -> Router<AppState> {

@@ -5,9 +5,11 @@
   import { Label } from '$lib/components/ui/label/index.js';
   import { Checkbox } from '$lib/components/ui/checkbox/index.js';
   import CircleAlert from 'lucide-svelte/icons/circle-alert';
+  import FlaskConical from 'lucide-svelte/icons/flask-conical';
   import LoaderCircle from 'lucide-svelte/icons/loader-circle';
   import * as Alert from '$lib/components/ui/alert/index.js';
   import user from '$lib/store/user.js';
+  import demo from '$lib/store/demo.js';
   import { token } from '$lib/store/auth.js';
   import { goto } from '$app/navigation';
   import { cfetch } from '$lib/utils.js';
@@ -17,6 +19,9 @@
 
   /** @type {string[]} */
   let errors = [];
+
+  /** @type {{ username: string, password: string } | null} */
+  let demoLogin = null;
 
   let is_loading = false;
 
@@ -87,7 +92,7 @@
         });
         errors = [`${e}`];
       } finally {
-        newUser.password = '';
+        newUser.password = demoLogin?.password ?? '';
         is_loading = false;
       }
     }
@@ -106,6 +111,13 @@
         let res = await cfetch('/check');
         if (res.status === 404) {
           goto('/register');
+        } else if (res.ok) {
+          let data = await res.json();
+          demo.set(!!data.demo);
+          if (data.demo_login) {
+            demoLogin = data.demo_login;
+            newUser = { ...data.demo_login };
+          }
         }
       }
     } catch {
@@ -128,6 +140,16 @@
   <Card.Content>
     <form on:submit|preventDefault={login}>
       <div class="grid gap-4">
+        {#if demoLogin}
+          <Alert.Root>
+            <FlaskConical class="h-4 w-4" />
+            <Alert.Title>Public demo</Alert.Title>
+            <Alert.Description>
+              Sign in as <code>{demoLogin.username}</code> / <code>{demoLogin.password}</code>.
+              Anyone can change the data, which resets every hour. Alerts aren't sent.
+            </Alert.Description>
+          </Alert.Root>
+        {/if}
         {#if errors.length > 0}
           <Alert.Root variant="destructive">
             <CircleAlert class="h-4 w-4" />

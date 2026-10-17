@@ -151,6 +151,55 @@ impl ServiceForUpdate {
     }
 }
 
+/// Most services the public demo holds, so visitors can't load it down.
+pub const DEMO_MAX_SERVICES: u32 = 50;
+/// Shortest check interval in the public demo, in seconds.
+const DEMO_MIN_INTERVAL: u16 = 60;
+
+impl ServiceForCreate {
+    /// The public demo's limits, on top of [`Self::validate`].
+    pub fn validate_demo(&self) -> Result<(), String> {
+        validate_demo(
+            Some(self.interval),
+            Some(self.retry_interval),
+            Some(&self.config),
+        )
+    }
+}
+
+impl ServiceForUpdate {
+    /// The public demo's limits, on top of [`Self::validate`].
+    pub fn validate_demo(&self) -> Result<(), String> {
+        validate_demo(
+            self.interval,
+            self.retry_interval,
+            self.config.as_ref().map(|Json(config)| config),
+        )
+    }
+}
+
+fn validate_demo(
+    interval: Option<u16>,
+    retry_interval: Option<u16>,
+    config: Option<&CheckConfig>,
+) -> Result<(), String> {
+    if interval.is_some_and(|i| i < DEMO_MIN_INTERVAL) {
+        return Err(format!(
+            "interval must be at least {DEMO_MIN_INTERVAL} seconds in the demo"
+        ));
+    }
+    // 0 retries at the normal interval.
+    if retry_interval.is_some_and(|i| i != 0 && i < DEMO_MIN_INTERVAL) {
+        return Err(format!(
+            "retry_interval must be at least {DEMO_MIN_INTERVAL} seconds in the demo"
+        ));
+    }
+    match config {
+        Some(config) => config.validate_public(),
+        None => Ok(()),
+    }
+}
+
 fn validate_fields(
     name: Option<&str>,
     interval: Option<u16>,
@@ -169,6 +218,13 @@ fn validate_fields(
 }
 
 impl Service {
+    #[cfg(test)]
+    pub async fn count(pool: &SqlitePool) -> sqlx::Result<u32> {
+        sqlx::query_scalar("SELECT COUNT(*) FROM Services")
+            .fetch_one(pool)
+            .await
+    }
+
     pub async fn get(pool: &SqlitePool, service_id: u32) -> sqlx::Result<Option<Service>> {
         let service = sqlx::query_as::<_, Service>(
             r#"SELECT *
@@ -184,11 +240,26 @@ impl Service {
 
     /// Returns the new service's id.
     pub async fn insert(pool: &SqlitePool, service: ServiceForCreate) -> sqlx::Result<u32> {
+        Self::insert_capped(pool, service, None)
+            .await
+            .map(|id| id.expect("uncapped insert always adds a row"))
+    }
+
+    /// Like [`Self::insert`], but adds nothing and returns `None` when there
+    /// are already `max` services. One statement, so concurrent requests
+    /// can't go past the cap.
+    pub async fn insert_capped(
+        pool: &SqlitePool,
+        service: ServiceForCreate,
+        max: Option<u32>,
+    ) -> sqlx::Result<Option<u32>> {
         let result = sqlx::query(
             r#"INSERT INTO Services (
                    user_id, active, name, interval, timeout, retry, retry_interval, invert,
                    last_push_at, config, tags
-               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"#,
+               )
+               SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+               WHERE ?12 IS NULL OR (SELECT COUNT(*) FROM Services) < ?12"#,
         )
         .bind(service.user_id)
         .bind(service.active.unwrap_or(true))
@@ -201,9 +272,10 @@ impl Service {
         .bind(initial_push_at(&service.config))
         .bind(Json(service.config))
         .bind(Json(service.tags))
+        .bind(max)
         .execute(pool)
         .await?;
-        Ok(result.last_insert_rowid() as u32)
+        Ok((result.rows_affected() > 0).then(|| result.last_insert_rowid() as u32))
     }
 
     pub async fn delete(pool: &SqlitePool, service_id: u32) -> sqlx::Result<u64> {
@@ -886,6 +958,73 @@ mod tests {
         };
         assert!(bad_config.validate().is_err());
         assert!(ServiceForUpdate::default().validate().is_ok());
+    }
+
+    #[sqlx::test(fixtures("users"))]
+    async fn insert_capped_stops_at_max(pool: SqlitePool) -> sqlx::Result<()> {
+        let service = || new_service("svc", http("https://example.com"));
+        assert!(
+            Service::insert_capped(&pool, service(), Some(2))
+                .await?
+                .is_some()
+        );
+        assert!(
+            Service::insert_capped(&pool, service(), Some(2))
+                .await?
+                .is_some()
+        );
+        assert_eq!(
+            Service::insert_capped(&pool, service(), Some(2)).await?,
+            None
+        );
+        assert_eq!(Service::count(&pool).await?, 2);
+        assert!(
+            Service::insert_capped(&pool, service(), None)
+                .await?
+                .is_some()
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn demo_limits() {
+        let valid = ServiceForCreate {
+            retry_interval: 0,
+            ..new_service("svc", http("https://example.com"))
+        };
+        assert!(valid.validate_demo().is_ok());
+
+        let invalid = [
+            ServiceForCreate {
+                interval: 30,
+                ..valid.clone()
+            },
+            ServiceForCreate {
+                retry_interval: 30,
+                ..valid.clone()
+            },
+            ServiceForCreate {
+                config: http("http://169.254.169.254/latest/meta-data"),
+                ..valid.clone()
+            },
+            ServiceForCreate {
+                config: serde_json::from_value(json!({ "type": "docker", "container": "web" }))
+                    .unwrap(),
+                ..valid.clone()
+            },
+        ];
+        for service in invalid {
+            assert!(service.validate_demo().is_err(), "{service:?}");
+        }
+
+        let update = ServiceForUpdate {
+            config: Some(Json(CheckConfig::Ping(PingConfig {
+                host: "127.0.0.1".into(),
+            }))),
+            ..Default::default()
+        };
+        assert!(update.validate_demo().is_err());
+        assert!(ServiceForUpdate::default().validate_demo().is_ok());
     }
 
     #[sqlx::test]
