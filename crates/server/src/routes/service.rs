@@ -89,22 +89,9 @@ async fn add_service(
     if let Err(message) = service.validate() {
         return bad_request(message);
     }
-    if env_config().demo {
-        if let Err(message) = service.validate_demo() {
-            return bad_request(message);
-        }
-        match Service::count(&state.pool).await {
-            Ok(count) if count >= DEMO_MAX_SERVICES => {
-                return bad_request(format!(
-                    "The demo holds at most {DEMO_MAX_SERVICES} services; delete one first"
-                ));
-            }
-            Ok(_) => (),
-            Err(e) => {
-                error!("Error counting services: {e}");
-                return json_response(500, "Internal server error");
-            }
-        }
+    let demo = env_config().demo;
+    if demo && let Err(message) = service.validate_demo() {
+        return bad_request(message);
     }
     if let Some(response) = push_token_rejection(&state, &service.config, None).await {
         return response;
@@ -114,8 +101,14 @@ async fn add_service(
     }
     service.user_id = Some(user_id);
     let channel_ids = std::mem::take(&mut service.channel_ids);
-    let id = match Service::insert(&state.pool, service).await {
-        Ok(id) => id,
+    let max = demo.then_some(DEMO_MAX_SERVICES);
+    let id = match Service::insert_capped(&state.pool, service, max).await {
+        Ok(Some(id)) => id,
+        Ok(None) => {
+            return bad_request(format!(
+                "The demo holds at most {DEMO_MAX_SERVICES} services; delete one first"
+            ));
+        }
         Err(e) => {
             error!("Error adding service: {e}");
             return json_response(500, "Internal server error");

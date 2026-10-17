@@ -67,9 +67,10 @@ jobs:
           readme-filepath: ./docs/dockerhub.md
           short-description: Lightweight self-hosted status monitoring, written in Rust
 
-      # Move the public demo onto the new release.
+      # Move the public demo onto the new release. Prereleases don't move
+      # the latest tag the demo runs.
       - name: Redeploy the demo
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: contains(steps.meta.outputs.tags, 'k4htoo/stamon:latest')
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |

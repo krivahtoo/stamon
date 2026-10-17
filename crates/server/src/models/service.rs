@@ -218,6 +218,7 @@ fn validate_fields(
 }
 
 impl Service {
+    #[cfg(test)]
     pub async fn count(pool: &SqlitePool) -> sqlx::Result<u32> {
         sqlx::query_scalar("SELECT COUNT(*) FROM Services")
             .fetch_one(pool)
@@ -239,11 +240,26 @@ impl Service {
 
     /// Returns the new service's id.
     pub async fn insert(pool: &SqlitePool, service: ServiceForCreate) -> sqlx::Result<u32> {
+        Self::insert_capped(pool, service, None)
+            .await
+            .map(|id| id.expect("uncapped insert always adds a row"))
+    }
+
+    /// Like [`Self::insert`], but adds nothing and returns `None` when there
+    /// are already `max` services. One statement, so concurrent requests
+    /// can't go past the cap.
+    pub async fn insert_capped(
+        pool: &SqlitePool,
+        service: ServiceForCreate,
+        max: Option<u32>,
+    ) -> sqlx::Result<Option<u32>> {
         let result = sqlx::query(
             r#"INSERT INTO Services (
                    user_id, active, name, interval, timeout, retry, retry_interval, invert,
                    last_push_at, config, tags
-               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"#,
+               )
+               SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+               WHERE ?12 IS NULL OR (SELECT COUNT(*) FROM Services) < ?12"#,
         )
         .bind(service.user_id)
         .bind(service.active.unwrap_or(true))
@@ -256,9 +272,10 @@ impl Service {
         .bind(initial_push_at(&service.config))
         .bind(Json(service.config))
         .bind(Json(service.tags))
+        .bind(max)
         .execute(pool)
         .await?;
-        Ok(result.last_insert_rowid() as u32)
+        Ok((result.rows_affected() > 0).then(|| result.last_insert_rowid() as u32))
     }
 
     pub async fn delete(pool: &SqlitePool, service_id: u32) -> sqlx::Result<u64> {
@@ -941,6 +958,32 @@ mod tests {
         };
         assert!(bad_config.validate().is_err());
         assert!(ServiceForUpdate::default().validate().is_ok());
+    }
+
+    #[sqlx::test(fixtures("users"))]
+    async fn insert_capped_stops_at_max(pool: SqlitePool) -> sqlx::Result<()> {
+        let service = || new_service("svc", http("https://example.com"));
+        assert!(
+            Service::insert_capped(&pool, service(), Some(2))
+                .await?
+                .is_some()
+        );
+        assert!(
+            Service::insert_capped(&pool, service(), Some(2))
+                .await?
+                .is_some()
+        );
+        assert_eq!(
+            Service::insert_capped(&pool, service(), Some(2)).await?,
+            None
+        );
+        assert_eq!(Service::count(&pool).await?, 2);
+        assert!(
+            Service::insert_capped(&pool, service(), None)
+                .await?
+                .is_some()
+        );
+        Ok(())
     }
 
     #[test]
