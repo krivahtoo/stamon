@@ -5,6 +5,22 @@ weight = 5
 aliases = ["/docs/changelog/"]
 +++
 
+## [0.4.0](https://github.com/krivahtoo/stamon/compare/v0.3.0...v0.4.0) (2026-10-18)
+
+
+### Features
+
+* add a demo mode and deploy the public demo to Render ([#199](https://github.com/krivahtoo/stamon/issues/199)) ([59b6960](https://github.com/krivahtoo/stamon/commit/59b696065e1ddf5bcaf3e95d5603eeee13179963))
+* move the landing site to the DevLab theme ([#174](https://github.com/krivahtoo/stamon/issues/174)) ([64004bf](https://github.com/krivahtoo/stamon/commit/64004bf8b1a79206f5d22f6f5051b8a63abdee7e))
+* publish the Docker Hub overview on release ([#173](https://github.com/krivahtoo/stamon/issues/173)) ([680dcdc](https://github.com/krivahtoo/stamon/commit/680dcdc8ef353e3d4dc7321f3d3b17fe4137a1df))
+* replace placeholder settings with real ones ([#200](https://github.com/krivahtoo/stamon/issues/200)) ([f08c930](https://github.com/krivahtoo/stamon/commit/f08c93013ee792735c0a8f23bf762f3fbc2b222c))
+
+
+### Bug Fixes
+
+* build the release commit's image only once ([#172](https://github.com/krivahtoo/stamon/issues/172)) ([4eb73df](https://github.com/krivahtoo/stamon/commit/4eb73df754b208764c2d21e3f5d4a0c1b7f4e003))
+* send only what the Docker build uses as context ([#171](https://github.com/krivahtoo/stamon/issues/171)) ([4aa1714](https://github.com/krivahtoo/stamon/commit/4aa1714780bbe1aa30f5ec7fbe60674dbf9b43bb))
+
 ## [0.3.0](https://github.com/krivahtoo/stamon/compare/v0.2.0...v0.3.0) (2026-10-12)
 
 
