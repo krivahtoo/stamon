@@ -9,6 +9,7 @@ use axum_macros::debug_handler;
 use serde_json::json;
 use tracing::error;
 
+use super::demo_forbidden;
 use crate::{
     AppState,
     auth::{AdminClaims, Claims, ViewerClaims},
@@ -71,6 +72,9 @@ async fn create_user(
     State(state): State<AppState>,
     Json(user): Json<UserForRegister>,
 ) -> Response {
+    if let Some(response) = demo_forbidden() {
+        return response;
+    }
     if user.username.trim().is_empty() || user.password.is_empty() {
         return message(
             StatusCode::BAD_REQUEST,
@@ -101,6 +105,9 @@ async fn update_user(
     Path(user_id): Path<u32>,
     Json(update): Json<UserForUpdate>,
 ) -> Response {
+    if let Some(response) = demo_forbidden() {
+        return response;
+    }
     // Prevents an admin from locking everyone out by demoting or disabling themselves.
     if user_id == claims.user_id {
         return message(

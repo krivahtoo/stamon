@@ -1,10 +1,17 @@
-use axum::{Json, Router, extract::State, http::StatusCode, routing::get};
+use axum::{
+    Json, Router,
+    extract::State,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    routing::get,
+};
 use serde_json::{Value, json};
 use tracing::error;
 
 use crate::{
     AppState,
     auth::ViewerClaims,
+    config::env_config,
     models::service::{Service, Stats},
 };
 
@@ -18,6 +25,17 @@ mod status_pages;
 
 pub use status_pages::page_shell;
 mod users;
+
+/// The response for actions turned off in the public demo, when it is one.
+pub(crate) fn demo_forbidden() -> Option<Response> {
+    env_config().demo.then(|| {
+        (
+            StatusCode::FORBIDDEN,
+            Json(json!({ "error": "Disabled in the demo", "message": "Disabled in the demo" })),
+        )
+            .into_response()
+    })
+}
 
 async fn stats(_: ViewerClaims, State(state): State<AppState>) -> (StatusCode, Json<Value>) {
     match Service::get_stats(&state.pool).await {

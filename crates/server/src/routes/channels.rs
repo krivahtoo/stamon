@@ -12,6 +12,7 @@ use serde::Deserialize;
 use serde_json::json;
 use tracing::error;
 
+use super::demo_forbidden;
 use crate::{
     AppState,
     auth::{AdminClaims, ViewerClaims},
@@ -109,6 +110,9 @@ async fn test_channel(
     State(state): State<AppState>,
     Path(channel_id): Path<u32>,
 ) -> Response {
+    if let Some(response) = demo_forbidden() {
+        return response;
+    }
     let channel = match Channel::get(&state.pool, channel_id).await {
         Ok(Some(channel)) => channel,
         Ok(None) => return message(StatusCode::NOT_FOUND, "Channel not found"),

@@ -1,0 +1,24 @@
+# Render Blueprint for the public demo at demo.stamon.org (see docs/demo.md).
+# The free plan has no disk, so every deploy starts from fresh demo data.
+services:
+  - type: web
+    name: stamon-demo
+    runtime: image
+    image:
+      url: docker.io/k4htoo/stamon:latest
+    plan: free
+    healthCheckPath: /api/check
+    # Deploys come from the deploy hook: hourly, and after each release.
+    autoDeploy: false
+    domains:
+      - demo.stamon.org
+    envVars:
+      - key: DEMO_MODE
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: LOG_RETENTION_DAYS
+        value: "1"
+      # Stamon listens on 3000; Render routes traffic to PORT.
+      - key: PORT
+        value: "3000"

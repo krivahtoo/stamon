@@ -217,9 +217,13 @@ fn status_matches(code: u16, expected: Option<u16>) -> bool {
 }
 
 pub(crate) async fn check(config: &HttpConfig) -> CheckOutcome {
+    check_with(config, client()).await
+}
+
+pub(crate) async fn check_with(config: &HttpConfig, client: &Client) -> CheckOutcome {
     let start = Instant::now();
 
-    let mut request = client().request(config.method.into(), &config.url);
+    let mut request = client.request(config.method.into(), &config.url);
     for (name, value) in &config.headers {
         request = request.header(name, value);
     }

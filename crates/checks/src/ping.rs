@@ -33,13 +33,21 @@ fn strip_port(target: &str) -> &str {
     }
 }
 
-/// Resolve a ping target, which may be an IP address, a hostname or a URL.
-async fn resolve(target: &str) -> Result<IpAddr, String> {
+/// The host of a ping target, which may be an IP address, a hostname or a URL.
+pub(crate) fn host(target: &str) -> String {
     let host = reqwest::Url::parse(target)
         .ok()
         .and_then(|url| url.host_str().map(str::to_owned))
         .unwrap_or_else(|| strip_port(target.trim()).to_owned());
-    let host = host.trim_start_matches('[').trim_end_matches(']');
+    host.trim_start_matches('[')
+        .trim_end_matches(']')
+        .to_owned()
+}
+
+/// Resolve a ping target, which may be an IP address, a hostname or a URL.
+async fn resolve(target: &str) -> Result<IpAddr, String> {
+    let host = host(target);
+    let host = host.as_str();
 
     if let Ok(ip) = host.parse::<IpAddr>() {
         return Ok(ip);

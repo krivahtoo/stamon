@@ -3,13 +3,14 @@ use std::time::Duration;
 use alerts::{Alert, AlertStatus};
 use apalis::prelude::{Context, Data, Storage, Worker};
 use apalis_sql::sqlite::SqliteStorage;
-use checks::{CheckConfig, CheckOutcome, CheckStatus};
+use checks::{CheckConfig, CheckOutcome, CheckStatus, Targets};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, error};
 
 use crate::{
     AppState,
+    config::env_config,
     job::AlertJob,
     models::{
         channel::Channel,
@@ -175,8 +176,14 @@ pub async fn job_monitor(job: CheckJob, worker: Worker<Context>, state: Data<App
             )),
         },
         None => {
+            // The demo is open to anyone, so it mustn't reach its own network.
+            let targets = if env_config().demo {
+                Targets::Public
+            } else {
+                Targets::Any
+            };
             svc.config
-                .check(Duration::from_secs(svc.timeout.max(1).into()))
+                .check_targets(Duration::from_secs(svc.timeout.max(1).into()), targets)
                 .await
         }
     };

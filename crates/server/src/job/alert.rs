@@ -7,6 +7,7 @@ use tracing::{error, warn};
 
 use crate::{
     AppState,
+    config::env_config,
     models::{
         channel::Channel,
         notification::{DeliveryStatus, Notification, NotificationForCreate},
@@ -35,25 +36,12 @@ pub async fn deliver(job: AlertJob, state: Data<AppState>) {
         }
     };
 
-    let mut error = None;
-    for attempt in 1..=ATTEMPTS {
-        match channel.config.send(&job.alert).await {
-            Ok(()) => {
-                error = None;
-                break;
-            }
-            Err(e) => {
-                warn!(
-                    "Alert to channel {} failed (attempt {attempt}/{ATTEMPTS}): {e}",
-                    channel.id
-                );
-                error = Some(e);
-                if attempt < ATTEMPTS {
-                    tokio::time::sleep(Duration::from_secs(2u64.pow(attempt))).await;
-                }
-            }
-        }
-    }
+    // Anyone can add services to the demo, so it never sends alerts.
+    let error = if env_config().demo {
+        Some("Alerts aren't sent in the demo".to_string())
+    } else {
+        send(&channel, &job.alert).await
+    };
 
     let notification = NotificationForCreate {
         service_id: Some(job.alert.service_id),
@@ -70,4 +58,25 @@ pub async fn deliver(job: AlertJob, state: Data<AppState>) {
     if let Err(e) = Notification::insert(&state.pool, notification).await {
         error!("Failed to record alert delivery: {e}");
     }
+}
+
+/// Send with retries; returns the last error if every attempt failed.
+async fn send(channel: &Channel, alert: &Alert) -> Option<String> {
+    let mut error = None;
+    for attempt in 1..=ATTEMPTS {
+        match channel.config.send(alert).await {
+            Ok(()) => return None,
+            Err(e) => {
+                warn!(
+                    "Alert to channel {} failed (attempt {attempt}/{ATTEMPTS}): {e}",
+                    channel.id
+                );
+                error = Some(e);
+                if attempt < ATTEMPTS {
+                    tokio::time::sleep(Duration::from_secs(2u64.pow(attempt))).await;
+                }
+            }
+        }
+    }
+    error
 }

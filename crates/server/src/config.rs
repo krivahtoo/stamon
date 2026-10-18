@@ -13,6 +13,10 @@ pub struct EnvConfig {
 
     /// Days to keep check logs and alert history; 0 keeps them forever.
     pub log_retention_days: u32,
+
+    /// Run as a public demo: seed sample data, check only public addresses,
+    /// and turn off alerts and account management.
+    pub demo: bool,
 }
 
 impl EnvConfig {
@@ -40,6 +44,9 @@ impl EnvConfig {
             Err(_) => 90,
         };
 
+        let demo = std::env::var("DEMO_MODE")
+            .is_ok_and(|value| matches!(value.trim().to_lowercase().as_str(), "1" | "true"));
+
         Ok(EnvConfig {
             data_path,
             assets_path,
@@ -47,6 +54,7 @@ impl EnvConfig {
             port: 3000,
             jwt_secret,
             log_retention_days,
+            demo,
         })
     }
 }
