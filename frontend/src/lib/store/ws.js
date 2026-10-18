@@ -79,5 +79,11 @@ const options = {
   }
 };
 
+// Match the page's scheme: browsers block ws:// from pages served over HTTPS
+const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
+
 // Create a new websocket
-export const ws = websocket(dev ? 'ws://localhost:3000/ws' : `ws://${location.host}/ws`, options);
+export const ws = websocket(
+  dev ? 'ws://localhost:3000/ws' : `${scheme}://${location.host}/ws`,
+  options
+);

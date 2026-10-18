@@ -57,8 +57,5 @@ server {
 
 ## Known limitations
 
-- **Live updates over HTTPS:** the dashboard connects to `ws://` even when the
-  page is served over HTTPS, and browsers block that. Pages still load and
-  refresh, but don't update live until this is fixed.
 - **Client addresses:** Stamon doesn't read `X-Forwarded-For`, so its logs show
   the proxy's address.
