@@ -57,7 +57,8 @@
     <div class="flex-1">
       <nav class="grid items-start px-2 text-sm font-medium lg:px-4">
         {#each navItems as item, idx (idx)}
-          {@const isActive = activeUrl === item.path}
+          {@const isActive =
+            activeUrl === item.path || (item.path !== '/' && !!activeUrl?.startsWith(item.path))}
           <a
             href={item.path}
             class={cn(

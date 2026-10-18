@@ -16,6 +16,8 @@ Render's free plan with `DEMO_MODE=true`.
   caps the demo at 50 services.
 - Records alerts in the delivery history without sending them, and turns off
   test alerts, registration and user changes.
+- Makes Settings read-only: the theme still changes, but timezone, password
+  and instance settings can't be saved.
 
 ## Resets
 

@@ -178,6 +178,9 @@ impl IntoResponse for AuthError {
     }
 }
 
+/// How long a sign-in lasts before the token expires.
+pub const TOKEN_MINUTES: i64 = 60;
+
 pub fn hash(val: String) -> String {
     let salt = SaltString::generate(&mut OsRng);
     Argon2::default()

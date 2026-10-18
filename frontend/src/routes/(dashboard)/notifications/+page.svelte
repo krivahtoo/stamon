@@ -9,7 +9,7 @@
   import { Switch } from '$lib/components/ui/switch/index.js';
   import * as Table from '$lib/components/ui/table/index.js';
   import user from '$lib/store/user.js';
-  import { cfetch } from '$lib/utils.js';
+  import { cfetch, formatDateTime } from '$lib/utils.js';
   import ChannelForm from './channel-form.svelte';
 
   /**
@@ -143,11 +143,6 @@
     }
     await load();
   }
-
-  /** @param {string} time */
-  function formatTime(time) {
-    return new Date(time).toLocaleString();
-  }
 </script>
 
 <div class="flex items-center justify-between">
@@ -246,7 +241,7 @@
           {#each history as delivery (delivery.id)}
             <Table.Row>
               <Table.Cell class="whitespace-nowrap text-muted-foreground"
-                >{formatTime(delivery.sent_at)}</Table.Cell
+                >{formatDateTime(delivery.sent_at)}</Table.Cell
               >
               <Table.Cell>
                 <div class="font-medium">{delivery.title}</div>

@@ -11,9 +11,21 @@ Stamon is configured with environment variables.
 | `JWT_SECRET` | Secret used to sign login tokens | Required |
 | `DATA_PATH` | Directory for the SQLite database; created if missing | Required (`/app/data` in the Docker image) |
 | `ASSETS_PATH` | Directory of the built frontend | `assets` (`/assets/` in the Docker image) |
-| `LOG_RETENTION_DAYS` | Days to keep check logs and alert history; `0` keeps them forever | `90` |
+| `LOG_RETENTION_DAYS` | Days to keep check logs and alert history; `0` keeps them forever. An admin can override it in **Settings → General** | `90` |
 | `RUST_LOG` | Log filter, e.g. `info` or `server=debug` | None |
 | `DEMO_MODE` | Run as a public sandbox: seed sample data and a shared `demo` account, check only public addresses, and turn off alerts, Docker and database checks, and account management. Only for instances anyone can use | `false` |
+
+## Settings
+
+Admins can change some settings from **Settings → General** in the dashboard
+without restarting. They are stored in the database and take precedence over
+the environment:
+
+- **Data retention**, which overrides `LOG_RETENTION_DAYS`.
+- **New service defaults**: the check interval, timeout, retries and retry
+  interval a new service starts with.
+
+Each user can set their own timezone and password under **Settings → Account**.
 
 ## Network
 

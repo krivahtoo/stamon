@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   import { fly } from 'svelte/transition';
   import { toast } from 'svelte-sonner';
   import ChevronLeft from 'lucide-svelte/icons/chevron-left';
@@ -85,15 +86,15 @@
    * @property {string} tags - Comma-separated labels.
    */
 
+  /** Scheduling defaults, replaced by the ones saved in Settings once loaded. */
+  let defaults = { retry: 1, retry_interval: 30, interval: 60, timeout: 20 };
+
   /** @returns {NewService} */
   function emptyService() {
     return {
       name: '',
       service_type: '',
-      retry: 1,
-      retry_interval: 30,
-      interval: 60,
-      timeout: 20,
+      ...defaults,
       invert: false,
       url: '',
       method: 'GET',
@@ -127,6 +128,23 @@
 
   /** @type {NewService} */
   let newService = emptyService();
+
+  onMount(async () => {
+    const res = await cfetch('/settings').catch(() => null);
+    if (!res?.ok) return;
+    const { settings } = await res.json();
+    const loaded = {
+      retry: settings.default_retry,
+      retry_interval: settings.default_retry_interval,
+      interval: settings.default_interval,
+      timeout: settings.default_timeout
+    };
+    // Keep values the user already typed or restored from a snapshot.
+    for (const key of /** @type {(keyof typeof defaults)[]} */ (Object.keys(loaded))) {
+      if (newService[key] === defaults[key]) newService[key] = loaded[key];
+    }
+    defaults = loaded;
+  });
 
   /** @type {import('../$types').Snapshot<NewService>} */
   export const snapshot = {

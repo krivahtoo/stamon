@@ -40,15 +40,18 @@ struct AppStateInner {
     tx: broadcast::Sender<WsEvent>,
 }
 
+/// The release version, set by the release build, or the crate version.
+pub const VERSION: &str = match option_env!("STAMON_VERSION") {
+    Some(version) => version,
+    None => env!("CARGO_PKG_VERSION"),
+};
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
 
     let env = env_config();
-    info!(
-        "Running stamon version: {}",
-        option_env!("STAMON_VERSION").unwrap_or(env!("CARGO_PKG_VERSION"))
-    );
+    info!("Running stamon version: {}", VERSION);
 
     if !Sqlite::database_exists(&env.db_file).await.unwrap_or(false) {
         info!("Creating database {}", env.db_file);

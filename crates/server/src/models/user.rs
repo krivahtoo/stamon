@@ -55,6 +55,21 @@ pub struct UserForUpdate {
     pub active: Option<bool>,
 }
 
+/// What users change about their own account.
+#[derive(Debug, Deserialize)]
+pub struct ProfileUpdate {
+    pub timezone: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct PasswordChange {
+    pub current: String,
+    pub new: String,
+}
+
+/// Shortest password accepted when changing one.
+pub const MIN_PASSWORD_LEN: usize = 8;
+
 #[derive(sqlx::FromRow, Serialize, Deserialize)]
 pub struct UserForLogin {
     pub username: String,
@@ -124,6 +139,33 @@ impl User {
         .bind(user_id)
         .execute(pool)
         .await?;
+        Ok(result.rows_affected())
+    }
+
+    /// Set the user's timezone; `None` follows the browser's.
+    pub async fn set_timezone(
+        pool: &SqlitePool,
+        user_id: u32,
+        timezone: Option<&str>,
+    ) -> sqlx::Result<u64> {
+        let result = sqlx::query("UPDATE Users SET timezone = ? WHERE id = ?")
+            .bind(timezone)
+            .bind(user_id)
+            .execute(pool)
+            .await?;
+        Ok(result.rows_affected())
+    }
+
+    pub async fn set_password(
+        pool: &SqlitePool,
+        user_id: u32,
+        password: String,
+    ) -> sqlx::Result<u64> {
+        let result = sqlx::query("UPDATE Users SET password = ? WHERE id = ?")
+            .bind(hash(password))
+            .bind(user_id)
+            .execute(pool)
+            .await?;
         Ok(result.rows_affected())
     }
 }
@@ -339,6 +381,33 @@ mod tests {
                 ("boss".to_owned(), UserRole::Admin),
             ]
         );
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn set_timezone_and_password(pool: SqlitePool) -> sqlx::Result<()> {
+        User::insert(
+            &pool,
+            UserForRegister {
+                username: "tz".to_string(),
+                role: None,
+                password: "oldpassword".to_string(),
+                timezone: None,
+            },
+        )
+        .await?;
+        let user = User::find_by_username(&pool, "tz").await?.unwrap();
+
+        User::set_timezone(&pool, user.id, Some("Africa/Nairobi")).await?;
+        User::set_password(&pool, user.id, "newpassword".to_string()).await?;
+
+        let user = User::get(&pool, user.id).await?;
+        assert_eq!(user.timezone.as_deref(), Some("Africa/Nairobi"));
+        assert!(crate::auth::verify_password("newpassword", &user.password));
+        assert!(!crate::auth::verify_password("oldpassword", &user.password));
+
+        User::set_timezone(&pool, user.id, None).await?;
+        assert!(User::get(&pool, user.id).await?.timezone.is_none());
         Ok(())
     }
 }

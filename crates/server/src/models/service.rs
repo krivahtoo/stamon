@@ -154,7 +154,7 @@ impl ServiceForUpdate {
 /// Most services the public demo holds, so visitors can't load it down.
 pub const DEMO_MAX_SERVICES: u32 = 50;
 /// Shortest check interval in the public demo, in seconds.
-const DEMO_MIN_INTERVAL: u16 = 60;
+pub(crate) const DEMO_MIN_INTERVAL: u16 = 60;
 
 impl ServiceForCreate {
     /// The public demo's limits, on top of [`Self::validate`].

@@ -40,6 +40,26 @@ impl Config {
         Ok(result.rows_affected())
     }
 
+    /// Insert `name`, or replace its value and category when it exists.
+    pub async fn upsert(
+        executor: impl sqlx::SqliteExecutor<'_>,
+        name: &str,
+        value: &str,
+        category: Option<&str>,
+    ) -> sqlx::Result<u64> {
+        let result = sqlx::query(
+            "INSERT INTO Configs (name, value, category, last_updated) VALUES (?, ?, ?, ?)
+             ON CONFLICT(name) DO UPDATE SET value = excluded.value, category = excluded.category",
+        )
+        .bind(name)
+        .bind(value)
+        .bind(category)
+        .bind(Utc::now())
+        .execute(executor)
+        .await?;
+        Ok(result.rows_affected())
+    }
+
     pub async fn get_by_name(pool: &SqlitePool, name: &str) -> sqlx::Result<Option<Config>> {
         sqlx::query_as("SELECT * FROM Configs WHERE name = ?")
             .bind(name)
@@ -153,6 +173,18 @@ mod tests {
         // Get configs for nonexistent category
         let configs = Config::list_by_category(&pool, "nonexistent").await?;
         assert_eq!(configs.len(), 0);
+
+        Ok(())
+    }
+
+    #[sqlx::test]
+    async fn upsert_replaces_existing_value(pool: SqlitePool) -> sqlx::Result<()> {
+        Config::upsert(&pool, "retention", "30", Some("general")).await?;
+        Config::upsert(&pool, "retention", "7", Some("general")).await?;
+
+        let configs = Config::list_by_category(&pool, "general").await?;
+        assert_eq!(configs.len(), 1);
+        assert_eq!(configs[0].value, "7");
 
         Ok(())
     }

@@ -14,7 +14,7 @@ use tracing::{debug, error};
 use super::demo_forbidden;
 use crate::{
     AppState,
-    auth::{Claims, verify_password},
+    auth::{Claims, TOKEN_MINUTES, verify_password},
     config::env_config,
     extractors::json::Json,
     models::{
@@ -72,7 +72,7 @@ async fn login(State(state): State<AppState>, Json(user_login): Json<UserForLogi
 
     let now = Utc::now();
     let issued_at = now.timestamp() as usize;
-    let expiry = (now + Duration::minutes(60)).timestamp() as usize;
+    let expiry = (now + Duration::minutes(TOKEN_MINUTES)).timestamp() as usize;
     let claims: Claims = Claims {
         user_id: user.id,
         expiry,

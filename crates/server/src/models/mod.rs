@@ -10,6 +10,7 @@ pub mod log;
 pub mod maintenance;
 pub mod notification;
 pub mod service;
+pub mod settings;
 pub mod status_page;
 pub mod user;
 
