@@ -28,7 +28,7 @@ dependencies = [
 
 [[package]]
 name = "alerts"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "axum",
  "chrono",
@@ -390,7 +390,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "checks"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "axum",
  "hickory-resolver",
@@ -2361,7 +2361,7 @@ dependencies = [
 
 [[package]]
 name = "server"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "alerts",
  "apalis",
@@ -2727,7 +2727,7 @@ dependencies = [
 
 [[package]]
 name = "ssl-exp"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "chrono",
  "openssl",
