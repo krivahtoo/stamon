@@ -49,10 +49,10 @@ logo_mark_path = "/stamon-min.svg"
 
 [extra.devlab.announcement]
 show = true
-key = "stamon-release-v0.3.0"
-label = "v0.3.0"
-message = "Stamon 0.3.0: new checks, alerts and public status pages"
-path = "/blog/stamon-v0-3-0/"
+key = "stamon-release-v0.4.0"
+label = "v0.4.0"
+message = "Stamon 0.4.0: a public demo and real settings"
+path = "/blog/stamon-v0-4-0/"
 dismissible = true
 
 [extra.devlab.footer]
