@@ -19,7 +19,12 @@
       const { ws } = await import('$lib/store/ws');
       // Initialize websocket connection and initial states
       if (get(ws.status) === 'CLOSED') {
-        ws.open();
+        // A failed connection must not stop the initial data from loading
+        try {
+          ws.open();
+        } catch (err) {
+          console.error(err);
+        }
       }
       //
       cfetch('/services').then(async (res) => {
