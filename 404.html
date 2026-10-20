@@ -1,0 +1,863 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!doctype html>
+<html
+  lang="en"
+  dir="ltr"
+  data-announcement-active="true"
+  data-announcement-key="stamon-release-v0.4.0"
+>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  
+  
+  
+  
+  <title>
+Page not found | Stamon
+</title>
+  
+<script>
+  (function () {
+    var storageKey = "devlab-theme-color-mode";
+    var announcementStorageKey = "devlab-announcement-dismissed";
+    var root = document.documentElement;
+    var defaultMode = "system";
+
+    function isValidMode(mode) {
+      return mode === "light" || mode === "dark" || mode === "system";
+    }
+
+    function getSystemTheme() {
+      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    }
+
+    function resolveTheme(mode) {
+      return mode === "system" ? getSystemTheme() : mode;
+    }
+
+    function getStoredMode() {
+      try {
+        return localStorage.getItem(storageKey);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    var storedMode = getStoredMode();
+    var mode = isValidMode(storedMode) ? storedMode : defaultMode;
+
+    if (!isValidMode(mode)) {
+      mode = "system";
+    }
+
+    root.dataset.themeDefault = defaultMode;
+    root.dataset.themeMode = mode;
+    root.dataset.theme = resolveTheme(mode);
+
+    if (root.dataset.announcementKey) {
+      try {
+        if (localStorage.getItem(announcementStorageKey) === root.dataset.announcementKey) {
+          root.dataset.announcementDismissed = "true";
+        }
+      } catch (_) {
+        // Keep the announcement visible when persistent storage is unavailable.
+      }
+    }
+  })();
+</script>
+
+
+
+<meta name="description" content="A lightweight self-hosted status monitoring tool, written in Rust.">
+
+<meta property="og:title" content="Stamon">
+<meta property="og:description" content="A lightweight self-hosted status monitoring tool, written in Rust.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Stamon">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Stamon">
+<meta name="twitter:description" content="A lightweight self-hosted status monitoring tool, written in Rust.">
+
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1120" media="(prefers-color-scheme: dark)">
+
+
+
+
+
+
+<link rel="alternate" type="application/atom+xml" title="Stamon" href="https://stamon.org/atom.xml">
+
+
+<link rel="icon" href="https://stamon.org/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://stamon.org/main.css">
+
+<link rel="stylesheet" href="https://stamon.org/print.css" media="print">
+
+  
+  
+</head>
+
+
+
+
+<body class="has-site-search">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  
+
+  <div class="site-shell">
+    
+    
+
+
+
+
+<aside
+  class="site-announcement"
+  aria-label="Announcement"
+  data-announcement
+  data-announcement-key="stamon-release-v0.4.0"
+>
+  <div class="site-announcement-inner">
+    <span class="site-announcement-spacer" aria-hidden="true"></span>
+
+    
+    <a
+      class="site-announcement-content"
+      href="https://stamon.org/blog/stamon-v0-4-0"
+    >
+      <span class="site-announcement-label">v0.4.0</span>
+      <span class="site-announcement-message">Stamon 0.4.0: a public demo and real settings</span>
+      <span class="site-announcement-arrow" aria-hidden="true">→</span>
+    </a>
+    
+
+    
+    <button
+      class="site-announcement-dismiss"
+      type="button"
+      aria-label="Dismiss announcement"
+      title="Dismiss announcement"
+      data-announcement-dismiss
+    >
+      
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
+
+    </button>
+    
+  </div>
+</aside>
+
+    
+    <header class="site-header site-header-has-menu">
+  <div class="site-header-inner">
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a class="site-logo" href="https://stamon.org">
+  
+  
+  <img
+    class="site-logo-mark site-logo-mark-image"
+    src="https://stamon.org/stamon-min.svg"
+    alt=""
+    width="32"
+    height="32"
+  >
+  
+  
+
+  
+  <span class="site-logo-text">stamon</span>
+  
+</a>
+
+
+
+    
+    <nav class="site-nav" aria-label="Main navigation">
+      
+      
+
+
+
+
+
+
+
+<a
+  class="site-nav-link "
+  href="https://stamon.org"
+  
+>
+  Home
+</a>
+
+      
+      
+
+
+
+
+
+
+
+
+
+<a
+  class="site-nav-link "
+  href="https://stamon.org/docs/"
+  
+>
+  Docs
+</a>
+
+      
+      
+
+
+
+
+
+
+
+<a
+  class="site-nav-link "
+  href="https://stamon.org/blog"
+  
+>
+  Blog
+</a>
+
+      
+      
+
+
+
+
+
+
+
+<a
+  class="site-nav-link "
+  href="https://stamon.org/changelog"
+  
+>
+  Changelog
+</a>
+
+      
+    </nav>
+    
+
+    
+
+
+
+
+
+<div
+  class="site-search"
+  data-search
+  data-search-index-format="elasticlunr_javascript"
+  data-search-start-label="Start typing to search."
+  data-search-no-results-label="No results found."
+  data-search-unavailable-label="Search is currently unavailable."
+  data-search-results-count-label="Results found: {count}."
+>
+  <label class="site-search-label" for="site-search-input">
+    Search
+  </label>
+
+  <input
+    id="site-search-input"
+    class="site-search-input"
+    type="text"
+    inputmode="search"
+    enterkeyhint="search"
+    placeholder="Search..."
+    autocomplete="off"
+    role="combobox"
+    aria-autocomplete="list"
+    aria-controls="site-search-results"
+    aria-expanded="false"
+    aria-haspopup="listbox"
+    data-search-input
+  >
+
+  <kbd class="site-search-shortcut" data-search-shortcut aria-hidden="true">Ctrl+K</kbd>
+
+  <div class="site-search-results" data-search-results hidden>
+    <div
+      id="site-search-results"
+      class="site-search-list"
+      role="listbox"
+      aria-label="Search results"
+      data-search-list
+    ></div>
+    <p class="site-search-empty" data-search-message hidden></p>
+  </div>
+
+  <p
+    class="site-search-status"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+    data-search-status
+  ></p>
+</div>
+
+
+    
+
+
+
+
+<button
+  class="theme-toggle"
+  type="button"
+  data-theme-toggle
+  data-theme-light-label="Light theme"
+  data-theme-dark-label="Dark theme"
+  data-theme-system-label="System theme"
+  aria-label="System theme"
+  title="System theme"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="theme-toggle-svg system" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10" /><path d="M7 20h10" /><path d="M9 16v4" /><path d="M15 16v4" /></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="theme-toggle-svg sun" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.828 14.828a4 4 0 1 0 -5.656 -5.656a4 4 0 0 0 5.656 5.656" /><path d="M6.343 17.657l-1.414 1.414" /><path d="M6.343 6.343l-1.414 -1.414" /><path d="M17.657 6.343l1.414 -1.414" /><path d="M17.657 17.657l1.414 1.414" /><path d="M4 12h-2" /><path d="M12 4v-2" /><path d="M20 12h2" /><path d="M12 20v2" /></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="theme-toggle-svg moon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008" /><path d="M17 4a2 2 0 0 0 2 2a2 2 0 0 0 -2 2a2 2 0 0 0 -2 -2a2 2 0 0 0 2 -2" /><path d="M19 11h2m-1 -1v2" /></svg>
+</button>
+
+
+
+
+
+
+    
+    <button
+      class="site-menu-button"
+      type="button"
+      aria-label="Open menu"
+      aria-controls="site-menu"
+      aria-expanded="false"
+      data-site-menu-toggle
+    >
+      <span class="site-menu-button-icon" aria-hidden="true"></span>
+    </button>
+    
+  </div>
+</header>
+
+    
+    <div class="site-menu-backdrop" data-site-menu-backdrop hidden></div>
+
+<div
+  id="site-menu"
+  class="site-menu"
+  role="dialog"
+  aria-label="Mobile navigation"
+  aria-modal="true"
+  aria-hidden="true"
+  data-site-menu
+  data-site-menu-initial-panel="main"
+  inert
+>
+  <div class="site-menu-header">
+    <p class="site-menu-title">Menu</p>
+
+    <button
+      class="site-menu-close"
+      type="button"
+      aria-label="Close menu"
+      data-site-menu-close
+    >
+      &times;
+    </button>
+  </div>
+
+  
+
+<div id="site-menu-panel-main" class="site-menu-panel" data-site-menu-panel="main">
+  <nav class="site-menu-nav" aria-label="Main mobile navigation">
+    
+    
+    
+
+
+
+
+
+
+
+<a
+  class="site-menu-link "
+  href="https://stamon.org"
+  
+>
+  Home
+</a>
+
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+<a
+  class="site-menu-link "
+  href="https://stamon.org/docs/"
+  
+>
+  Docs
+</a>
+
+    
+    
+    
+    
+
+
+
+
+
+
+
+<a
+  class="site-menu-link "
+  href="https://stamon.org/blog"
+  
+>
+  Blog
+</a>
+
+    
+    
+    
+    
+
+
+
+
+
+
+
+<a
+  class="site-menu-link "
+  href="https://stamon.org/changelog"
+  
+>
+  Changelog
+</a>
+
+    
+    
+  </nav>
+</div>
+
+  
+
+
+</div>
+
+    
+    
+    <main id="main-content" class="site-main site-main-not-found" tabindex="-1">
+      
+      
+<section class="not-found" aria-labelledby="not-found-title">
+  <p class="not-found-code" aria-hidden="true">404</p>
+
+  <h1 id="not-found-title">Page not found</h1>
+
+  <p class="not-found-description">
+    The page may have moved, been removed, or never existed.
+  </p>
+
+  <div class="not-found-actions">
+    <a class="button button-primary" href="https://stamon.org">Go home</a>
+  </div>
+
+  
+  <p class="not-found-hint">
+    Search in the header can help find docs, posts and examples.
+  </p>
+  
+</section>
+
+      
+    </main>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    
+
+<div class="site-footer-info">
+
+<p class="site-footer-note">Made by Noah Cheptoo.</p>
+
+
+<p class="site-footer-copyright">&copy; 2026 Stamon</p>
+</div>
+
+
+<nav class="site-footer-links" aria-label="Footer links">
+  
+
+  
+  
+  
+  
+  
+  
+  <a
+    class="site-footer-link"
+    href="https://github.com/krivahtoo/stamon"
+    aria-label="GitHub"
+  >
+    
+    <span class="site-footer-link-mark" aria-hidden="true">
+      
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" /></svg>
+
+    </span>
+    
+    
+  </a>
+  
+  
+  
+  
+  
+  
+  
+  <a
+    class="site-footer-link"
+    href="https://stamon.org/atom.xml"
+    aria-label="Atom feed"
+  >
+    
+    <span class="site-footer-link-mark" aria-hidden="true">
+      
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M4 4a16 16 0 0 1 16 16" /><path d="M4 11a9 9 0 0 1 9 9" /></svg>
+
+    </span>
+    
+    
+  </a>
+  
+  
+  
+  
+  
+  
+  
+  <a
+    class="site-footer-link"
+    href="https://stamon.org/about"
+    aria-label="About"
+  >
+    
+    <span class="site-footer-link-mark" aria-hidden="true">
+      
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 9h.01" /><path d="M11 12h1v4h1" /></svg>
+
+    </span>
+    
+    
+  </a>
+  
+  
+</nav>
+
+
+  </div>
+</footer>
+
+
+    
+  </div>
+  
+  
+
+<script defer src="https://stamon.org/js/announcement.js"></script>
+
+
+
+
+
+
+
+
+<script>
+  (function () {
+    var sources = [
+      "https://stamon.org/elasticlunr.min.js",
+      
+      
+      "https://stamon.org/search_index.en.js",
+      "https://stamon.org/js/search.js"
+    ];
+    var loading = false;
+
+    function loadSearch() {
+      if (loading) {
+        return;
+      }
+      loading = true;
+
+      for (var i = 0; i < sources.length; i++) {
+        var script = document.createElement("script");
+        script.src = sources[i];
+        script.async = false;
+        document.head.appendChild(script);
+      }
+    }
+
+    document.addEventListener("focusin", function (event) {
+      var target = event.target;
+      if (target && target.matches && target.matches("[data-search-input]")) {
+        loadSearch();
+      }
+    }, true);
+
+    document.addEventListener("keydown", function (event) {
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        !event.altKey &&
+        event.key.toLowerCase() === "k"
+      ) {
+        var input = document.querySelector("[data-search-input]");
+        if (input) {
+          event.preventDefault();
+          document.dispatchEvent(new Event("devlab:search-open"));
+          input.focus();
+        }
+        loadSearch();
+      }
+    }, true);
+  })();
+</script>
+
+<script defer src="https://stamon.org/js/theme.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script defer src="https://stamon.org/js/site-menu.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

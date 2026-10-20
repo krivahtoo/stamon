@@ -1,0 +1,3221 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!doctype html>
+<html
+  lang="en"
+  dir="ltr"
+  data-announcement-active="true"
+  data-announcement-key="stamon-release-v0.4.0"
+>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <title>Alert payloads | Stamon</title>
+  
+<script>
+  (function () {
+    var storageKey = "devlab-theme-color-mode";
+    var announcementStorageKey = "devlab-announcement-dismissed";
+    var root = document.documentElement;
+    var defaultMode = "system";
+
+    function isValidMode(mode) {
+      return mode === "light" || mode === "dark" || mode === "system";
+    }
+
+    function getSystemTheme() {
+      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    }
+
+    function resolveTheme(mode) {
+      return mode === "system" ? getSystemTheme() : mode;
+    }
+
+    function getStoredMode() {
+      try {
+        return localStorage.getItem(storageKey);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    var storedMode = getStoredMode();
+    var mode = isValidMode(storedMode) ? storedMode : defaultMode;
+
+    if (!isValidMode(mode)) {
+      mode = "system";
+    }
+
+    root.dataset.themeDefault = defaultMode;
+    root.dataset.themeMode = mode;
+    root.dataset.theme = resolveTheme(mode);
+
+    if (root.dataset.announcementKey) {
+      try {
+        if (localStorage.getItem(announcementStorageKey) === root.dataset.announcementKey) {
+          root.dataset.announcementDismissed = "true";
+        }
+      } catch (_) {
+        // Keep the announcement visible when persistent storage is unavailable.
+      }
+    }
+  })();
+</script>
+
+
+
+<meta name="description" content="What each notification channel receives.">
+<link rel="canonical" href="https://stamon.org/docs/reference/webhook-payload/">
+
+<meta property="og:title" content="Alert payloads">
+<meta property="og:description" content="What each notification channel receives.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://stamon.org/docs/reference/webhook-payload/">
+<meta property="og:site_name" content="Stamon">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Alert payloads">
+<meta name="twitter:description" content="What each notification channel receives.">
+
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1120" media="(prefers-color-scheme: dark)">
+
+
+
+
+
+
+
+
+<link rel="alternate" type="application/atom+xml" title="Stamon" href="https://stamon.org/atom.xml">
+
+
+<link rel="icon" href="https://stamon.org/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://stamon.org/main.css">
+
+<link rel="stylesheet" href="https://stamon.org/print.css" media="print">
+
+  
+  
+</head>
+
+
+
+
+<body class="has-site-search">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  
+
+  <div class="site-shell">
+    
+    
+
+
+
+
+<aside
+  class="site-announcement"
+  aria-label="Announcement"
+  data-announcement
+  data-announcement-key="stamon-release-v0.4.0"
+>
+  <div class="site-announcement-inner">
+    <span class="site-announcement-spacer" aria-hidden="true"></span>
+
+    
+    <a
+      class="site-announcement-content"
+      href="https://stamon.org/blog/stamon-v0-4-0"
+    >
+      <span class="site-announcement-label">v0.4.0</span>
+      <span class="site-announcement-message">Stamon 0.4.0: a public demo and real settings</span>
+      <span class="site-announcement-arrow" aria-hidden="true">→</span>
+    </a>
+    
+
+    
+    <button
+      class="site-announcement-dismiss"
+      type="button"
+      aria-label="Dismiss announcement"
+      title="Dismiss announcement"
+      data-announcement-dismiss
+    >
+      
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
+
+    </button>
+    
+  </div>
+</aside>
+
+    
+    <header class="site-header site-header-has-menu">
+  <div class="site-header-inner">
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a class="site-logo" href="https://stamon.org">
+  
+  
+  <img
+    class="site-logo-mark site-logo-mark-image"
+    src="https://stamon.org/stamon-min.svg"
+    alt=""
+    width="32"
+    height="32"
+  >
+  
+  
+
+  
+  <span class="site-logo-text">stamon</span>
+  
+</a>
+
+
+
+    
+    <nav class="site-nav" aria-label="Main navigation">
+      
+      
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-nav-link "
+  href="https://stamon.org"
+  
+>
+  Home
+</a>
+
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-nav-link is-active"
+  href="https://stamon.org/docs/"
+  aria-current="location"
+>
+  Docs
+</a>
+
+      
+      
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-nav-link "
+  href="https://stamon.org/blog"
+  
+>
+  Blog
+</a>
+
+      
+      
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-nav-link "
+  href="https://stamon.org/changelog"
+  
+>
+  Changelog
+</a>
+
+      
+    </nav>
+    
+
+    
+
+
+
+
+
+<div
+  class="site-search"
+  data-search
+  data-search-index-format="elasticlunr_javascript"
+  data-search-start-label="Start typing to search."
+  data-search-no-results-label="No results found."
+  data-search-unavailable-label="Search is currently unavailable."
+  data-search-results-count-label="Results found: {count}."
+>
+  <label class="site-search-label" for="site-search-input">
+    Search
+  </label>
+
+  <input
+    id="site-search-input"
+    class="site-search-input"
+    type="text"
+    inputmode="search"
+    enterkeyhint="search"
+    placeholder="Search..."
+    autocomplete="off"
+    role="combobox"
+    aria-autocomplete="list"
+    aria-controls="site-search-results"
+    aria-expanded="false"
+    aria-haspopup="listbox"
+    data-search-input
+  >
+
+  <kbd class="site-search-shortcut" data-search-shortcut aria-hidden="true">Ctrl+K</kbd>
+
+  <div class="site-search-results" data-search-results hidden>
+    <div
+      id="site-search-results"
+      class="site-search-list"
+      role="listbox"
+      aria-label="Search results"
+      data-search-list
+    ></div>
+    <p class="site-search-empty" data-search-message hidden></p>
+  </div>
+
+  <p
+    class="site-search-status"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+    data-search-status
+  ></p>
+</div>
+
+
+    
+
+
+
+
+<button
+  class="theme-toggle"
+  type="button"
+  data-theme-toggle
+  data-theme-light-label="Light theme"
+  data-theme-dark-label="Dark theme"
+  data-theme-system-label="System theme"
+  aria-label="System theme"
+  title="System theme"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="theme-toggle-svg system" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10" /><path d="M7 20h10" /><path d="M9 16v4" /><path d="M15 16v4" /></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="theme-toggle-svg sun" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.828 14.828a4 4 0 1 0 -5.656 -5.656a4 4 0 0 0 5.656 5.656" /><path d="M6.343 17.657l-1.414 1.414" /><path d="M6.343 6.343l-1.414 -1.414" /><path d="M17.657 6.343l1.414 -1.414" /><path d="M17.657 17.657l1.414 1.414" /><path d="M4 12h-2" /><path d="M12 4v-2" /><path d="M20 12h2" /><path d="M12 20v2" /></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="theme-toggle-svg moon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008" /><path d="M17 4a2 2 0 0 0 2 2a2 2 0 0 0 -2 2a2 2 0 0 0 -2 -2a2 2 0 0 0 2 -2" /><path d="M19 11h2m-1 -1v2" /></svg>
+</button>
+
+
+
+
+
+
+    
+    <button
+      class="site-menu-button"
+      type="button"
+      aria-label="Open menu"
+      aria-controls="site-menu"
+      aria-expanded="false"
+      data-site-menu-toggle
+    >
+      <span class="site-menu-button-icon" aria-hidden="true"></span>
+    </button>
+    
+  </div>
+</header>
+
+    
+    <div class="site-menu-backdrop" data-site-menu-backdrop hidden></div>
+
+<div
+  id="site-menu"
+  class="site-menu"
+  role="dialog"
+  aria-label="Mobile navigation"
+  aria-modal="true"
+  aria-hidden="true"
+  data-site-menu
+  data-site-menu-initial-panel="docs"
+  inert
+>
+  <div class="site-menu-header">
+    <p class="site-menu-title">Menu</p>
+
+    <button
+      class="site-menu-close"
+      type="button"
+      aria-label="Close menu"
+      data-site-menu-close
+    >
+      &times;
+    </button>
+  </div>
+
+  
+
+<div id="site-menu-panel-main" class="site-menu-panel" data-site-menu-panel="main">
+  <nav class="site-menu-nav" aria-label="Main mobile navigation">
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-menu-link "
+  href="https://stamon.org"
+  
+>
+  Home
+</a>
+
+    
+    
+    
+    <div class="site-menu-link-row">
+      
+
+
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-menu-link is-active"
+  href="https://stamon.org/docs/"
+  aria-current="location"
+>
+  <span>Docs</span>
+</a>
+
+      <button
+        class="site-menu-link-disclosure"
+        type="button"
+        aria-label="Open documentation navigation"
+        aria-controls="site-menu-panel-docs"
+        aria-expanded="false"
+        data-site-menu-panel-target="docs"
+      >
+        <span class="site-menu-link-indicator" aria-hidden="true">&rsaquo;</span>
+      </button>
+    </div>
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-menu-link "
+  href="https://stamon.org/blog"
+  
+>
+  Blog
+</a>
+
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-menu-link "
+  href="https://stamon.org/changelog"
+  
+>
+  Changelog
+</a>
+
+    
+    
+  </nav>
+</div>
+
+  
+
+<div id="site-menu-panel-docs" class="site-menu-panel" data-site-menu-panel="docs" hidden>
+  
+  <button
+    class="site-menu-back"
+    type="button"
+    aria-controls="site-menu-panel-main"
+    data-site-menu-panel-target="main"
+  >
+    <span aria-hidden="true">&larr;</span>
+    Back to main menu
+  </button>
+  
+
+  <nav class="site-menu-nav site-menu-docs-nav" aria-label="Documentation mobile navigation">
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<ul class="docs-nav-list">
+  
+  
+  
+  
+  
+
+
+
+<li
+  class="docs-nav-group"
+  data-docs-nav-group="https://stamon.org/docs/getting-started/"
+  
+>
+  <div class="docs-nav-group-row">
+    <a
+      class="docs-nav-link docs-nav-section-link "
+      href="https://stamon.org/docs/getting-started/"
+      
+    >
+      Getting started
+    </a>
+
+    <button
+      class="docs-nav-group-toggle"
+      type="button"
+      aria-label="Toggle section: Getting started"
+      aria-controls="site-menu-docs-section-1-children"
+      aria-expanded="false"
+      data-docs-nav-toggle
+      hidden
+    >
+      <span class="docs-nav-group-indicator" aria-hidden="true">&rsaquo;</span>
+    </button>
+  </div>
+
+  <ul
+    id="site-menu-docs-section-1-children"
+    class="docs-nav-list docs-nav-group-links"
+    data-docs-nav-children
+  >
+    
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/getting-started/installation/"
+    
+  >
+    Installation
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/getting-started/first-run/"
+    
+  >
+    First run
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/getting-started/quick-tour/"
+    
+  >
+    Quick tour
+  </a>
+</li>
+
+
+
+
+
+  </ul>
+</li>
+
+
+  
+  
+  
+  <li class="docs-nav-label"><p class="docs-nav-label-text" dir="auto">Use Stamon</p></li>
+  
+  
+  
+  
+  
+
+
+
+<li
+  class="docs-nav-group"
+  data-docs-nav-group="https://stamon.org/docs/monitors/"
+  
+>
+  <div class="docs-nav-group-row">
+    <a
+      class="docs-nav-link docs-nav-section-link "
+      href="https://stamon.org/docs/monitors/"
+      
+    >
+      Monitors
+    </a>
+
+    <button
+      class="docs-nav-group-toggle"
+      type="button"
+      aria-label="Toggle section: Monitors"
+      aria-controls="site-menu-docs-section-3-children"
+      aria-expanded="false"
+      data-docs-nav-toggle
+      hidden
+    >
+      <span class="docs-nav-group-indicator" aria-hidden="true">&rsaquo;</span>
+    </button>
+  </div>
+
+  <ul
+    id="site-menu-docs-section-3-children"
+    class="docs-nav-list docs-nav-group-links"
+    data-docs-nav-children
+  >
+    
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/http/"
+    
+  >
+    HTTP(S)
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/ping/"
+    
+  >
+    Ping
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/tcp/"
+    
+  >
+    TCP port
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/dns/"
+    
+  >
+    DNS
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/tls/"
+    
+  >
+    TLS certificate
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/docker/"
+    
+  >
+    Docker container
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/database/"
+    
+  >
+    Database
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/push/"
+    
+  >
+    Push
+  </a>
+</li>
+
+
+
+
+
+  </ul>
+</li>
+
+
+  
+  
+  
+  
+  
+
+
+
+<li
+  class="docs-nav-group"
+  data-docs-nav-group="https://stamon.org/docs/features/"
+  
+>
+  <div class="docs-nav-group-row">
+    <a
+      class="docs-nav-link docs-nav-section-link "
+      href="https://stamon.org/docs/features/"
+      
+    >
+      Features
+    </a>
+
+    <button
+      class="docs-nav-group-toggle"
+      type="button"
+      aria-label="Toggle section: Features"
+      aria-controls="site-menu-docs-section-4-children"
+      aria-expanded="false"
+      data-docs-nav-toggle
+      hidden
+    >
+      <span class="docs-nav-group-indicator" aria-hidden="true">&rsaquo;</span>
+    </button>
+  </div>
+
+  <ul
+    id="site-menu-docs-section-4-children"
+    class="docs-nav-list docs-nav-group-links"
+    data-docs-nav-children
+  >
+    
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/features/alerts/"
+    
+  >
+    Alerts
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/features/maintenance-windows/"
+    
+  >
+    Maintenance windows
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/features/status-pages/"
+    
+  >
+    Status pages
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/features/users-and-roles/"
+    
+  >
+    Users and roles
+  </a>
+</li>
+
+
+
+
+
+  </ul>
+</li>
+
+
+  
+  
+  
+  <li class="docs-nav-label"><p class="docs-nav-label-text" dir="auto">Run Stamon</p></li>
+  
+  
+  
+  
+  
+
+
+
+<li
+  class="docs-nav-group"
+  data-docs-nav-group="https://stamon.org/docs/self-hosting/"
+  
+>
+  <div class="docs-nav-group-row">
+    <a
+      class="docs-nav-link docs-nav-section-link "
+      href="https://stamon.org/docs/self-hosting/"
+      
+    >
+      Self-hosting
+    </a>
+
+    <button
+      class="docs-nav-group-toggle"
+      type="button"
+      aria-label="Toggle section: Self-hosting"
+      aria-controls="site-menu-docs-section-6-children"
+      aria-expanded="false"
+      data-docs-nav-toggle
+      hidden
+    >
+      <span class="docs-nav-group-indicator" aria-hidden="true">&rsaquo;</span>
+    </button>
+  </div>
+
+  <ul
+    id="site-menu-docs-section-6-children"
+    class="docs-nav-list docs-nav-group-links"
+    data-docs-nav-children
+  >
+    
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/self-hosting/configuration/"
+    
+  >
+    Configuration
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/self-hosting/reverse-proxy/"
+    
+  >
+    Reverse proxy
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/self-hosting/security/"
+    
+  >
+    Security
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/self-hosting/upgrading/"
+    
+  >
+    Upgrading
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/self-hosting/backups-and-data/"
+    
+  >
+    Backups and data
+  </a>
+</li>
+
+
+
+
+
+  </ul>
+</li>
+
+
+  
+  
+  
+  
+  
+
+
+
+<li
+  class="docs-nav-group is-active-branch"
+  data-docs-nav-group="https://stamon.org/docs/reference/"
+  data-docs-nav-active-branch
+>
+  <div class="docs-nav-group-row">
+    <a
+      class="docs-nav-link docs-nav-section-link "
+      href="https://stamon.org/docs/reference/"
+      
+    >
+      Reference
+    </a>
+
+    <button
+      class="docs-nav-group-toggle"
+      type="button"
+      aria-label="Toggle section: Reference"
+      aria-controls="site-menu-docs-section-7-children"
+      aria-expanded="true"
+      data-docs-nav-toggle
+      hidden
+    >
+      <span class="docs-nav-group-indicator" aria-hidden="true">&rsaquo;</span>
+    </button>
+  </div>
+
+  <ul
+    id="site-menu-docs-section-7-children"
+    class="docs-nav-list docs-nav-group-links"
+    data-docs-nav-children
+  >
+    
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/reference/api/"
+    
+  >
+    HTTP API
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link is-active"
+    href="https://stamon.org/docs/reference/webhook-payload/"
+    aria-current="page"
+  >
+    Alert payloads
+  </a>
+</li>
+
+
+
+
+
+  </ul>
+</li>
+
+
+  
+  
+  
+  <li class="docs-nav-label"><p class="docs-nav-label-text" dir="auto">Contribute</p></li>
+  
+  
+  
+  
+  
+
+
+
+<li
+  class="docs-nav-group"
+  data-docs-nav-group="https://stamon.org/docs/development/"
+  
+>
+  <div class="docs-nav-group-row">
+    <a
+      class="docs-nav-link docs-nav-section-link "
+      href="https://stamon.org/docs/development/"
+      
+    >
+      Development
+    </a>
+
+    <button
+      class="docs-nav-group-toggle"
+      type="button"
+      aria-label="Toggle section: Development"
+      aria-controls="site-menu-docs-section-9-children"
+      aria-expanded="false"
+      data-docs-nav-toggle
+      hidden
+    >
+      <span class="docs-nav-group-indicator" aria-hidden="true">&rsaquo;</span>
+    </button>
+  </div>
+
+  <ul
+    id="site-menu-docs-section-9-children"
+    class="docs-nav-list docs-nav-group-links"
+    data-docs-nav-children
+  >
+    
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/development/setup/"
+    
+  >
+    Development setup
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/development/architecture/"
+    
+  >
+    Architecture
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/development/adding-a-check/"
+    
+  >
+    Adding a check type
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/development/adding-a-channel/"
+    
+  >
+    Adding a notification channel
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/development/releasing/"
+    
+  >
+    Releasing
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/development/writing-docs/"
+    
+  >
+    Writing docs
+  </a>
+</li>
+
+
+
+
+
+  </ul>
+</li>
+
+
+  
+  
+  
+</ul>
+
+
+
+
+  </nav>
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<footer class="site-footer site-footer-compact">
+  <div class="site-footer-inner">
+    
+
+<div class="site-footer-info">
+
+<p class="site-footer-note">Made by Noah Cheptoo.</p>
+
+
+<p class="site-footer-copyright">&copy; 2026 Stamon</p>
+</div>
+
+
+<nav class="site-footer-links" aria-label="Footer links">
+  
+
+  
+  
+  
+  
+  
+  
+  <a
+    class="site-footer-link"
+    href="https://github.com/krivahtoo/stamon"
+    aria-label="GitHub"
+  >
+    
+    <span class="site-footer-link-mark" aria-hidden="true">
+      
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" /></svg>
+
+    </span>
+    
+    
+  </a>
+  
+  
+  
+  
+  
+  
+  
+  <a
+    class="site-footer-link"
+    href="https://stamon.org/atom.xml"
+    aria-label="Atom feed"
+  >
+    
+    <span class="site-footer-link-mark" aria-hidden="true">
+      
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M4 4a16 16 0 0 1 16 16" /><path d="M4 11a9 9 0 0 1 9 9" /></svg>
+
+    </span>
+    
+    
+  </a>
+  
+  
+  
+  
+  
+  
+  
+  <a
+    class="site-footer-link"
+    href="https://stamon.org/about"
+    aria-label="About"
+  >
+    
+    <span class="site-footer-link-mark" aria-hidden="true">
+      
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 9h.01" /><path d="M11 12h1v4h1" /></svg>
+
+    </span>
+    
+    
+  </a>
+  
+  
+</nav>
+
+
+  </div>
+</footer>
+
+
+</div>
+
+
+</div>
+
+    
+    
+    <main id="main-content" class="site-main site-main-docs" tabindex="-1">
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="docs-shell">
+  
+<aside
+  id="docs-sidebar"
+  class="docs-sidebar"
+  aria-label="Documentation"
+>
+  
+
+  <nav class="docs-sidebar-nav" aria-label="Documentation">
+    <p class="docs-sidebar-title">Documentation</p>
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<ul class="docs-nav-list">
+  
+  
+  
+  
+  
+
+
+
+<li
+  class="docs-nav-group"
+  data-docs-nav-group="https://stamon.org/docs/getting-started/"
+  
+>
+  <div class="docs-nav-group-row">
+    <a
+      class="docs-nav-link docs-nav-section-link "
+      href="https://stamon.org/docs/getting-started/"
+      
+    >
+      Getting started
+    </a>
+
+    <button
+      class="docs-nav-group-toggle"
+      type="button"
+      aria-label="Toggle section: Getting started"
+      aria-controls="docs-sidebar-section-1-children"
+      aria-expanded="false"
+      data-docs-nav-toggle
+      hidden
+    >
+      <span class="docs-nav-group-indicator" aria-hidden="true">&rsaquo;</span>
+    </button>
+  </div>
+
+  <ul
+    id="docs-sidebar-section-1-children"
+    class="docs-nav-list docs-nav-group-links"
+    data-docs-nav-children
+  >
+    
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/getting-started/installation/"
+    
+  >
+    Installation
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/getting-started/first-run/"
+    
+  >
+    First run
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/getting-started/quick-tour/"
+    
+  >
+    Quick tour
+  </a>
+</li>
+
+
+
+
+
+  </ul>
+</li>
+
+
+  
+  
+  
+  <li class="docs-nav-label"><p class="docs-nav-label-text" dir="auto">Use Stamon</p></li>
+  
+  
+  
+  
+  
+
+
+
+<li
+  class="docs-nav-group"
+  data-docs-nav-group="https://stamon.org/docs/monitors/"
+  
+>
+  <div class="docs-nav-group-row">
+    <a
+      class="docs-nav-link docs-nav-section-link "
+      href="https://stamon.org/docs/monitors/"
+      
+    >
+      Monitors
+    </a>
+
+    <button
+      class="docs-nav-group-toggle"
+      type="button"
+      aria-label="Toggle section: Monitors"
+      aria-controls="docs-sidebar-section-3-children"
+      aria-expanded="false"
+      data-docs-nav-toggle
+      hidden
+    >
+      <span class="docs-nav-group-indicator" aria-hidden="true">&rsaquo;</span>
+    </button>
+  </div>
+
+  <ul
+    id="docs-sidebar-section-3-children"
+    class="docs-nav-list docs-nav-group-links"
+    data-docs-nav-children
+  >
+    
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/http/"
+    
+  >
+    HTTP(S)
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/ping/"
+    
+  >
+    Ping
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/tcp/"
+    
+  >
+    TCP port
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/dns/"
+    
+  >
+    DNS
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/tls/"
+    
+  >
+    TLS certificate
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/docker/"
+    
+  >
+    Docker container
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/database/"
+    
+  >
+    Database
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/monitors/push/"
+    
+  >
+    Push
+  </a>
+</li>
+
+
+
+
+
+  </ul>
+</li>
+
+
+  
+  
+  
+  
+  
+
+
+
+<li
+  class="docs-nav-group"
+  data-docs-nav-group="https://stamon.org/docs/features/"
+  
+>
+  <div class="docs-nav-group-row">
+    <a
+      class="docs-nav-link docs-nav-section-link "
+      href="https://stamon.org/docs/features/"
+      
+    >
+      Features
+    </a>
+
+    <button
+      class="docs-nav-group-toggle"
+      type="button"
+      aria-label="Toggle section: Features"
+      aria-controls="docs-sidebar-section-4-children"
+      aria-expanded="false"
+      data-docs-nav-toggle
+      hidden
+    >
+      <span class="docs-nav-group-indicator" aria-hidden="true">&rsaquo;</span>
+    </button>
+  </div>
+
+  <ul
+    id="docs-sidebar-section-4-children"
+    class="docs-nav-list docs-nav-group-links"
+    data-docs-nav-children
+  >
+    
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/features/alerts/"
+    
+  >
+    Alerts
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/features/maintenance-windows/"
+    
+  >
+    Maintenance windows
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/features/status-pages/"
+    
+  >
+    Status pages
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/features/users-and-roles/"
+    
+  >
+    Users and roles
+  </a>
+</li>
+
+
+
+
+
+  </ul>
+</li>
+
+
+  
+  
+  
+  <li class="docs-nav-label"><p class="docs-nav-label-text" dir="auto">Run Stamon</p></li>
+  
+  
+  
+  
+  
+
+
+
+<li
+  class="docs-nav-group"
+  data-docs-nav-group="https://stamon.org/docs/self-hosting/"
+  
+>
+  <div class="docs-nav-group-row">
+    <a
+      class="docs-nav-link docs-nav-section-link "
+      href="https://stamon.org/docs/self-hosting/"
+      
+    >
+      Self-hosting
+    </a>
+
+    <button
+      class="docs-nav-group-toggle"
+      type="button"
+      aria-label="Toggle section: Self-hosting"
+      aria-controls="docs-sidebar-section-6-children"
+      aria-expanded="false"
+      data-docs-nav-toggle
+      hidden
+    >
+      <span class="docs-nav-group-indicator" aria-hidden="true">&rsaquo;</span>
+    </button>
+  </div>
+
+  <ul
+    id="docs-sidebar-section-6-children"
+    class="docs-nav-list docs-nav-group-links"
+    data-docs-nav-children
+  >
+    
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/self-hosting/configuration/"
+    
+  >
+    Configuration
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/self-hosting/reverse-proxy/"
+    
+  >
+    Reverse proxy
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/self-hosting/security/"
+    
+  >
+    Security
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/self-hosting/upgrading/"
+    
+  >
+    Upgrading
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/self-hosting/backups-and-data/"
+    
+  >
+    Backups and data
+  </a>
+</li>
+
+
+
+
+
+  </ul>
+</li>
+
+
+  
+  
+  
+  
+  
+
+
+
+<li
+  class="docs-nav-group is-active-branch"
+  data-docs-nav-group="https://stamon.org/docs/reference/"
+  data-docs-nav-active-branch
+>
+  <div class="docs-nav-group-row">
+    <a
+      class="docs-nav-link docs-nav-section-link "
+      href="https://stamon.org/docs/reference/"
+      
+    >
+      Reference
+    </a>
+
+    <button
+      class="docs-nav-group-toggle"
+      type="button"
+      aria-label="Toggle section: Reference"
+      aria-controls="docs-sidebar-section-7-children"
+      aria-expanded="true"
+      data-docs-nav-toggle
+      hidden
+    >
+      <span class="docs-nav-group-indicator" aria-hidden="true">&rsaquo;</span>
+    </button>
+  </div>
+
+  <ul
+    id="docs-sidebar-section-7-children"
+    class="docs-nav-list docs-nav-group-links"
+    data-docs-nav-children
+  >
+    
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/reference/api/"
+    
+  >
+    HTTP API
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link is-active"
+    href="https://stamon.org/docs/reference/webhook-payload/"
+    aria-current="page"
+  >
+    Alert payloads
+  </a>
+</li>
+
+
+
+
+
+  </ul>
+</li>
+
+
+  
+  
+  
+  <li class="docs-nav-label"><p class="docs-nav-label-text" dir="auto">Contribute</p></li>
+  
+  
+  
+  
+  
+
+
+
+<li
+  class="docs-nav-group"
+  data-docs-nav-group="https://stamon.org/docs/development/"
+  
+>
+  <div class="docs-nav-group-row">
+    <a
+      class="docs-nav-link docs-nav-section-link "
+      href="https://stamon.org/docs/development/"
+      
+    >
+      Development
+    </a>
+
+    <button
+      class="docs-nav-group-toggle"
+      type="button"
+      aria-label="Toggle section: Development"
+      aria-controls="docs-sidebar-section-9-children"
+      aria-expanded="false"
+      data-docs-nav-toggle
+      hidden
+    >
+      <span class="docs-nav-group-indicator" aria-hidden="true">&rsaquo;</span>
+    </button>
+  </div>
+
+  <ul
+    id="docs-sidebar-section-9-children"
+    class="docs-nav-list docs-nav-group-links"
+    data-docs-nav-children
+  >
+    
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/development/setup/"
+    
+  >
+    Development setup
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/development/architecture/"
+    
+  >
+    Architecture
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/development/adding-a-check/"
+    
+  >
+    Adding a check type
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/development/adding-a-channel/"
+    
+  >
+    Adding a notification channel
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/development/releasing/"
+    
+  >
+    Releasing
+  </a>
+</li>
+
+
+
+
+<li class="docs-nav-item">
+  <a
+    class="docs-nav-link "
+    href="https://stamon.org/docs/development/writing-docs/"
+    
+  >
+    Writing docs
+  </a>
+</li>
+
+
+
+
+
+  </ul>
+</li>
+
+
+  
+  
+  
+</ul>
+
+
+
+
+  </nav>
+
+  
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<footer class="site-footer site-footer-compact">
+  <div class="site-footer-inner">
+    
+
+<div class="site-footer-info">
+
+<p class="site-footer-note">Made by Noah Cheptoo.</p>
+
+
+<p class="site-footer-copyright">&copy; 2026 Stamon</p>
+</div>
+
+
+<nav class="site-footer-links" aria-label="Footer links">
+  
+
+  
+  
+  
+  
+  
+  
+  <a
+    class="site-footer-link"
+    href="https://github.com/krivahtoo/stamon"
+    aria-label="GitHub"
+  >
+    
+    <span class="site-footer-link-mark" aria-hidden="true">
+      
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" /></svg>
+
+    </span>
+    
+    
+  </a>
+  
+  
+  
+  
+  
+  
+  
+  <a
+    class="site-footer-link"
+    href="https://stamon.org/atom.xml"
+    aria-label="Atom feed"
+  >
+    
+    <span class="site-footer-link-mark" aria-hidden="true">
+      
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M4 4a16 16 0 0 1 16 16" /><path d="M4 11a9 9 0 0 1 9 9" /></svg>
+
+    </span>
+    
+    
+  </a>
+  
+  
+  
+  
+  
+  
+  
+  <a
+    class="site-footer-link"
+    href="https://stamon.org/about"
+    aria-label="About"
+  >
+    
+    <span class="site-footer-link-mark" aria-hidden="true">
+      
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 9h.01" /><path d="M11 12h1v4h1" /></svg>
+
+    </span>
+    
+    
+  </a>
+  
+  
+</nav>
+
+
+  </div>
+</footer>
+
+
+</aside>
+
+
+  <article class="docs-content content">
+    
+    
+
+
+
+
+
+
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol class="breadcrumbs-list">
+    <li class="breadcrumbs-item">
+      <a href="https://stamon.org/docs/">Documentation</a>
+    </li>
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <li class="breadcrumbs-item">
+      <a href="https://stamon.org/docs/reference/">Reference</a>
+    </li>
+    
+    
+    
+    
+    
+
+    <li class="breadcrumbs-item" aria-current="page">
+      <span>Alert payloads</span>
+    </li>
+  </ol>
+</nav>
+
+
+
+
+    
+
+    
+<header class="page-header">
+  <div class="docs-page-heading">
+  <h1>Alert payloads</h1>
+  </div>
+  
+
+  <p class="page-description">What each notification channel receives.</p>
+  
+
+</header>
+
+
+    
+    
+    
+<details class="docs-toc-inline" data-devlab-toc>
+  <summary>On this page</summary>
+  <nav aria-label="On this page">
+    
+  
+  <ul class="docs-toc-list">
+    
+    <li class="docs-toc-item docs-toc-level-2">
+      
+      <a href="https://stamon.org/docs/reference/webhook-payload/#webhook">
+        Webhook
+      </a>
+      
+    </li>
+    
+    <li class="docs-toc-item docs-toc-level-2">
+      
+      <a href="https://stamon.org/docs/reference/webhook-payload/#other-channels">
+        Other channels
+      </a>
+      
+    </li>
+    
+    <li class="docs-toc-item docs-toc-level-2">
+      
+      <a href="https://stamon.org/docs/reference/webhook-payload/#delivery">
+        Delivery
+      </a>
+      
+    </li>
+    
+  </ul>
+  
+
+  </nav>
+</details>
+
+
+
+    <h2 id="webhook">Webhook<a class="zola-anchor" href="#webhook" aria-label="Anchor link for: webhook">
+  <span class="content-icon content-icon-sm" aria-hidden="true">
+    
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg>
+
+  </span>
+</a>
+</h2>
+<p>Webhook channels receive a <code>POST</code> with a JSON body, plus any headers you
+configured:</p>
+<pre class="giallo" style="color-scheme: light dark; color: light-dark(#24292E, #E1E4E8); background-color: light-dark(#FFFFFF, #24292E);" ><code data-lang="json"><span class="giallo-l"><span>{</span></span>
+<span class="giallo-l"><span style="color: light-dark(#005CC5, #79B8FF);">  &quot;</span><span style="color: light-dark(#005CC5, #79B8FF);">service_id</span><span style="color: light-dark(#005CC5, #79B8FF);">&quot;</span><span>:</span><span style="color: light-dark(#005CC5, #79B8FF);"> 7</span><span>,</span></span>
+<span class="giallo-l"><span style="color: light-dark(#005CC5, #79B8FF);">  &quot;</span><span style="color: light-dark(#005CC5, #79B8FF);">service_name</span><span style="color: light-dark(#005CC5, #79B8FF);">&quot;</span><span>:</span><span style="color: light-dark(#032F62, #9ECBFF);"> &quot;</span><span style="color: light-dark(#032F62, #9ECBFF);">API</span><span style="color: light-dark(#032F62, #9ECBFF);">&quot;</span><span>,</span></span>
+<span class="giallo-l"><span style="color: light-dark(#005CC5, #79B8FF);">  &quot;</span><span style="color: light-dark(#005CC5, #79B8FF);">target</span><span style="color: light-dark(#005CC5, #79B8FF);">&quot;</span><span>:</span><span style="color: light-dark(#032F62, #9ECBFF);"> &quot;</span><span style="color: light-dark(#032F62, #9ECBFF);">https://api.example.com</span><span style="color: light-dark(#032F62, #9ECBFF);">&quot;</span><span>,</span></span>
+<span class="giallo-l"><span style="color: light-dark(#005CC5, #79B8FF);">  &quot;</span><span style="color: light-dark(#005CC5, #79B8FF);">status</span><span style="color: light-dark(#005CC5, #79B8FF);">&quot;</span><span>:</span><span style="color: light-dark(#032F62, #9ECBFF);"> &quot;</span><span style="color: light-dark(#032F62, #9ECBFF);">down</span><span style="color: light-dark(#032F62, #9ECBFF);">&quot;</span><span>,</span></span>
+<span class="giallo-l"><span style="color: light-dark(#005CC5, #79B8FF);">  &quot;</span><span style="color: light-dark(#005CC5, #79B8FF);">message</span><span style="color: light-dark(#005CC5, #79B8FF);">&quot;</span><span>:</span><span style="color: light-dark(#032F62, #9ECBFF);"> &quot;</span><span style="color: light-dark(#032F62, #9ECBFF);">Unexpected status code: 500</span><span style="color: light-dark(#032F62, #9ECBFF);">&quot;</span><span>,</span></span>
+<span class="giallo-l"><span style="color: light-dark(#005CC5, #79B8FF);">  &quot;</span><span style="color: light-dark(#005CC5, #79B8FF);">time</span><span style="color: light-dark(#005CC5, #79B8FF);">&quot;</span><span>:</span><span style="color: light-dark(#032F62, #9ECBFF);"> &quot;</span><span style="color: light-dark(#032F62, #9ECBFF);">2026-10-09T12:00:00Z</span><span style="color: light-dark(#032F62, #9ECBFF);">&quot;</span><span>,</span></span>
+<span class="giallo-l"><span style="color: light-dark(#005CC5, #79B8FF);">  &quot;</span><span style="color: light-dark(#005CC5, #79B8FF);">title</span><span style="color: light-dark(#005CC5, #79B8FF);">&quot;</span><span>:</span><span style="color: light-dark(#032F62, #9ECBFF);"> &quot;</span><span style="color: light-dark(#032F62, #9ECBFF);">API is down</span><span style="color: light-dark(#032F62, #9ECBFF);">&quot;</span><span>,</span></span>
+<span class="giallo-l"><span style="color: light-dark(#005CC5, #79B8FF);">  &quot;</span><span style="color: light-dark(#005CC5, #79B8FF);">text</span><span style="color: light-dark(#005CC5, #79B8FF);">&quot;</span><span>:</span><span style="color: light-dark(#032F62, #9ECBFF);"> &quot;</span><span style="color: light-dark(#032F62, #9ECBFF);">🔴 API is down</span><span style="color: light-dark(#005CC5, #79B8FF);">\n</span><span style="color: light-dark(#032F62, #9ECBFF);">Unexpected status code: 500</span><span style="color: light-dark(#005CC5, #79B8FF);">\n</span><span style="color: light-dark(#032F62, #9ECBFF);">Target: https://api.example.com</span><span style="color: light-dark(#005CC5, #79B8FF);">\n</span><span style="color: light-dark(#032F62, #9ECBFF);">Time: 2026-10-09 12:00:00 UTC</span><span style="color: light-dark(#032F62, #9ECBFF);">&quot;</span></span>
+<span class="giallo-l"><span>}</span></span></code></pre><table><thead><tr><th>Field</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>service_id</code>, <code>service_name</code></td><td>The service</td></tr>
+<tr><td><code>target</code></td><td>Its URL, host or container; <code>null</code> for push monitors</td></tr>
+<tr><td><code>status</code></td><td><code>down</code> or <code>up</code></td></tr>
+<tr><td><code>message</code></td><td>Why the check failed; may be <code>null</code></td></tr>
+<tr><td><code>time</code></td><td>When it happened, in RFC 3339</td></tr>
+<tr><td><code>title</code></td><td><code>&lt;name&gt; is down</code> or <code>&lt;name&gt; is back up</code></td></tr>
+<tr><td><code>text</code></td><td>A ready-to-post message: title, message, target and time</td></tr>
+</tbody></table>
+<h2 id="other-channels">Other channels<a class="zola-anchor" href="#other-channels" aria-label="Anchor link for: other-channels">
+  <span class="content-icon content-icon-sm" aria-hidden="true">
+    
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg>
+
+  </span>
+</a>
+</h2>
+<table><thead><tr><th>Channel</th><th>Sends</th></tr></thead><tbody>
+<tr><td>Slack</td><td><code>{"text": text}</code> to the incoming webhook</td></tr>
+<tr><td>Discord</td><td><code>{"content": text}</code> to the webhook</td></tr>
+<tr><td>Telegram</td><td><code>text</code> to the chat, through the bot API</td></tr>
+<tr><td>ntfy</td><td>The message, target and time, with the title as <code>Title</code>, priority <code>high</code> when down, and a red or green circle tag</td></tr>
+<tr><td>Email</td><td>Subject <code>[Stamon] &lt;title&gt;</code>, with the title, message, target and time as plain text</td></tr>
+</tbody></table>
+<h2 id="delivery">Delivery<a class="zola-anchor" href="#delivery" aria-label="Anchor link for: delivery">
+  <span class="content-icon content-icon-sm" aria-hidden="true">
+    
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg>
+
+  </span>
+</a>
+</h2>
+<ul>
+<li>A delivery fails if the receiver doesn't answer with a 2xx status within 10
+seconds. Redirects aren't followed, so a 3xx response counts as a failure.</li>
+<li>Failed deliveries are tried 3 times in all, 2 and 4 seconds apart.</li>
+<li>The alert <strong>History</strong> records one entry per delivery: its final result after
+all attempts, with the last error for failures. Individual failed attempts
+only appear in the server log.</li>
+</ul>
+
+
+    
+
+
+
+
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<nav
+  class="docs-prev-next"
+  aria-label="Documentation pagination"
+>
+  
+  <a
+    class="docs-prev-next-link docs-prev-next-link-previous"
+    href="https://stamon.org/docs/reference/api/"
+  >
+    <span class="docs-prev-next-label"><span class="pagination-arrow" aria-hidden="true">&larr;</span> Previous</span>
+    <span class="docs-prev-next-title">HTTP API</span>
+  </a>
+  
+
+  
+  <a
+    class="docs-prev-next-link docs-prev-next-link-next"
+    href="https://stamon.org/docs/development/setup/"
+  >
+    <span class="docs-prev-next-label">Next <span class="pagination-arrow" aria-hidden="true">&rarr;</span></span>
+    <span class="docs-prev-next-title">Development setup</span>
+  </a>
+  
+</nav>
+
+
+
+    
+  </article>
+
+  
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+<aside class="docs-toc" data-devlab-toc aria-labelledby="docs-toc-title">
+  
+  <p class="docs-toc-title" id="docs-toc-title">On this page</p>
+
+  <nav class="docs-toc-nav" aria-label="On this page">
+    
+  
+  <ul class="docs-toc-list">
+    
+    <li class="docs-toc-item docs-toc-level-2">
+      
+      <a href="https://stamon.org/docs/reference/webhook-payload/#webhook">
+        Webhook
+      </a>
+      
+    </li>
+    
+    <li class="docs-toc-item docs-toc-level-2">
+      
+      <a href="https://stamon.org/docs/reference/webhook-payload/#other-channels">
+        Other channels
+      </a>
+      
+    </li>
+    
+    <li class="docs-toc-item docs-toc-level-2">
+      
+      <a href="https://stamon.org/docs/reference/webhook-payload/#delivery">
+        Delivery
+      </a>
+      
+    </li>
+    
+  </ul>
+  
+
+  </nav>
+  
+
+  
+</aside>
+
+
+</div>
+
+      
+    </main>
+
+    
+  </div>
+  
+  
+
+<script defer src="https://stamon.org/js/announcement.js"></script>
+
+
+
+
+
+
+
+
+<script>
+  (function () {
+    var sources = [
+      "https://stamon.org/elasticlunr.min.js",
+      
+      
+      "https://stamon.org/search_index.en.js",
+      "https://stamon.org/js/search.js"
+    ];
+    var loading = false;
+
+    function loadSearch() {
+      if (loading) {
+        return;
+      }
+      loading = true;
+
+      for (var i = 0; i < sources.length; i++) {
+        var script = document.createElement("script");
+        script.src = sources[i];
+        script.async = false;
+        document.head.appendChild(script);
+      }
+    }
+
+    document.addEventListener("focusin", function (event) {
+      var target = event.target;
+      if (target && target.matches && target.matches("[data-search-input]")) {
+        loadSearch();
+      }
+    }, true);
+
+    document.addEventListener("keydown", function (event) {
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        !event.altKey &&
+        event.key.toLowerCase() === "k"
+      ) {
+        var input = document.querySelector("[data-search-input]");
+        if (input) {
+          event.preventDefault();
+          document.dispatchEvent(new Event("devlab:search-open"));
+          input.focus();
+        }
+        loadSearch();
+      }
+    }, true);
+  })();
+</script>
+
+<script defer src="https://stamon.org/js/theme.js"></script>
+
+
+
+
+
+
+
+<script
+  defer
+  src="https://stamon.org/js/copy-button.js"
+  data-copy-label="Copy"
+  data-copied-label="Copied"
+  data-copy-failed-label="Failed"
+  data-copy-success-message="Code copied to clipboard."
+  data-copy-error-message="Unable to copy code."
+></script>
+
+
+
+
+
+
+
+
+<script defer src="https://stamon.org/js/docs-nav.js"></script>
+
+
+
+
+<script defer src="https://stamon.org/js/toc.js"></script>
+
+
+
+<script defer src="https://stamon.org/js/site-menu.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

@@ -1,0 +1,1099 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!doctype html>
+<html
+  lang="en"
+  dir="ltr"
+  data-announcement-active="true"
+  data-announcement-key="stamon-release-v0.4.0"
+>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <title>Changelog | Stamon</title>
+  
+<script>
+  (function () {
+    var storageKey = "devlab-theme-color-mode";
+    var announcementStorageKey = "devlab-announcement-dismissed";
+    var root = document.documentElement;
+    var defaultMode = "system";
+
+    function isValidMode(mode) {
+      return mode === "light" || mode === "dark" || mode === "system";
+    }
+
+    function getSystemTheme() {
+      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    }
+
+    function resolveTheme(mode) {
+      return mode === "system" ? getSystemTheme() : mode;
+    }
+
+    function getStoredMode() {
+      try {
+        return localStorage.getItem(storageKey);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    var storedMode = getStoredMode();
+    var mode = isValidMode(storedMode) ? storedMode : defaultMode;
+
+    if (!isValidMode(mode)) {
+      mode = "system";
+    }
+
+    root.dataset.themeDefault = defaultMode;
+    root.dataset.themeMode = mode;
+    root.dataset.theme = resolveTheme(mode);
+
+    if (root.dataset.announcementKey) {
+      try {
+        if (localStorage.getItem(announcementStorageKey) === root.dataset.announcementKey) {
+          root.dataset.announcementDismissed = "true";
+        }
+      } catch (_) {
+        // Keep the announcement visible when persistent storage is unavailable.
+      }
+    }
+  })();
+</script>
+
+
+
+<meta name="description" content="Every Stamon release and what changed.">
+<link rel="canonical" href="https://stamon.org/changelog/">
+
+<meta property="og:title" content="Changelog">
+<meta property="og:description" content="Every Stamon release and what changed.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://stamon.org/changelog/">
+<meta property="og:site_name" content="Stamon">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Changelog">
+<meta name="twitter:description" content="Every Stamon release and what changed.">
+
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1120" media="(prefers-color-scheme: dark)">
+
+
+
+
+
+
+
+
+<link rel="alternate" type="application/atom+xml" title="Stamon" href="https://stamon.org/atom.xml">
+
+
+<link rel="icon" href="https://stamon.org/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://stamon.org/main.css">
+
+<link rel="stylesheet" href="https://stamon.org/print.css" media="print">
+
+  
+  
+</head>
+
+
+
+
+<body class="has-site-search">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  
+
+  <div class="site-shell">
+    
+    
+
+
+
+
+<aside
+  class="site-announcement"
+  aria-label="Announcement"
+  data-announcement
+  data-announcement-key="stamon-release-v0.4.0"
+>
+  <div class="site-announcement-inner">
+    <span class="site-announcement-spacer" aria-hidden="true"></span>
+
+    
+    <a
+      class="site-announcement-content"
+      href="https://stamon.org/blog/stamon-v0-4-0"
+    >
+      <span class="site-announcement-label">v0.4.0</span>
+      <span class="site-announcement-message">Stamon 0.4.0: a public demo and real settings</span>
+      <span class="site-announcement-arrow" aria-hidden="true">→</span>
+    </a>
+    
+
+    
+    <button
+      class="site-announcement-dismiss"
+      type="button"
+      aria-label="Dismiss announcement"
+      title="Dismiss announcement"
+      data-announcement-dismiss
+    >
+      
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
+
+    </button>
+    
+  </div>
+</aside>
+
+    
+    <header class="site-header site-header-has-menu">
+  <div class="site-header-inner">
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<a class="site-logo" href="https://stamon.org">
+  
+  
+  <img
+    class="site-logo-mark site-logo-mark-image"
+    src="https://stamon.org/stamon-min.svg"
+    alt=""
+    width="32"
+    height="32"
+  >
+  
+  
+
+  
+  <span class="site-logo-text">stamon</span>
+  
+</a>
+
+
+
+    
+    <nav class="site-nav" aria-label="Main navigation">
+      
+      
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-nav-link "
+  href="https://stamon.org"
+  
+>
+  Home
+</a>
+
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-nav-link "
+  href="https://stamon.org/docs/"
+  
+>
+  Docs
+</a>
+
+      
+      
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-nav-link "
+  href="https://stamon.org/blog"
+  
+>
+  Blog
+</a>
+
+      
+      
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-nav-link is-active"
+  href="https://stamon.org/changelog"
+  aria-current="page"
+>
+  Changelog
+</a>
+
+      
+    </nav>
+    
+
+    
+
+
+
+
+
+<div
+  class="site-search"
+  data-search
+  data-search-index-format="elasticlunr_javascript"
+  data-search-start-label="Start typing to search."
+  data-search-no-results-label="No results found."
+  data-search-unavailable-label="Search is currently unavailable."
+  data-search-results-count-label="Results found: {count}."
+>
+  <label class="site-search-label" for="site-search-input">
+    Search
+  </label>
+
+  <input
+    id="site-search-input"
+    class="site-search-input"
+    type="text"
+    inputmode="search"
+    enterkeyhint="search"
+    placeholder="Search..."
+    autocomplete="off"
+    role="combobox"
+    aria-autocomplete="list"
+    aria-controls="site-search-results"
+    aria-expanded="false"
+    aria-haspopup="listbox"
+    data-search-input
+  >
+
+  <kbd class="site-search-shortcut" data-search-shortcut aria-hidden="true">Ctrl+K</kbd>
+
+  <div class="site-search-results" data-search-results hidden>
+    <div
+      id="site-search-results"
+      class="site-search-list"
+      role="listbox"
+      aria-label="Search results"
+      data-search-list
+    ></div>
+    <p class="site-search-empty" data-search-message hidden></p>
+  </div>
+
+  <p
+    class="site-search-status"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+    data-search-status
+  ></p>
+</div>
+
+
+    
+
+
+
+
+<button
+  class="theme-toggle"
+  type="button"
+  data-theme-toggle
+  data-theme-light-label="Light theme"
+  data-theme-dark-label="Dark theme"
+  data-theme-system-label="System theme"
+  aria-label="System theme"
+  title="System theme"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="theme-toggle-svg system" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10" /><path d="M7 20h10" /><path d="M9 16v4" /><path d="M15 16v4" /></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="theme-toggle-svg sun" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.828 14.828a4 4 0 1 0 -5.656 -5.656a4 4 0 0 0 5.656 5.656" /><path d="M6.343 17.657l-1.414 1.414" /><path d="M6.343 6.343l-1.414 -1.414" /><path d="M17.657 6.343l1.414 -1.414" /><path d="M17.657 17.657l1.414 1.414" /><path d="M4 12h-2" /><path d="M12 4v-2" /><path d="M20 12h2" /><path d="M12 20v2" /></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="theme-toggle-svg moon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454l0 .008" /><path d="M17 4a2 2 0 0 0 2 2a2 2 0 0 0 -2 2a2 2 0 0 0 -2 -2a2 2 0 0 0 2 -2" /><path d="M19 11h2m-1 -1v2" /></svg>
+</button>
+
+
+
+
+
+
+    
+    <button
+      class="site-menu-button"
+      type="button"
+      aria-label="Open menu"
+      aria-controls="site-menu"
+      aria-expanded="false"
+      data-site-menu-toggle
+    >
+      <span class="site-menu-button-icon" aria-hidden="true"></span>
+    </button>
+    
+  </div>
+</header>
+
+    
+    <div class="site-menu-backdrop" data-site-menu-backdrop hidden></div>
+
+<div
+  id="site-menu"
+  class="site-menu"
+  role="dialog"
+  aria-label="Mobile navigation"
+  aria-modal="true"
+  aria-hidden="true"
+  data-site-menu
+  data-site-menu-initial-panel="main"
+  inert
+>
+  <div class="site-menu-header">
+    <p class="site-menu-title">Menu</p>
+
+    <button
+      class="site-menu-close"
+      type="button"
+      aria-label="Close menu"
+      data-site-menu-close
+    >
+      &times;
+    </button>
+  </div>
+
+  
+
+<div id="site-menu-panel-main" class="site-menu-panel" data-site-menu-panel="main">
+  <nav class="site-menu-nav" aria-label="Main mobile navigation">
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-menu-link "
+  href="https://stamon.org"
+  
+>
+  Home
+</a>
+
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-menu-link "
+  href="https://stamon.org/docs/"
+  
+>
+  Docs
+</a>
+
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-menu-link "
+  href="https://stamon.org/blog"
+  
+>
+  Blog
+</a>
+
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+<a
+  class="site-menu-link is-active"
+  href="https://stamon.org/changelog"
+  aria-current="page"
+>
+  Changelog
+</a>
+
+    
+    
+  </nav>
+</div>
+
+  
+
+
+</div>
+
+    
+    
+    <main id="main-content" class="site-main" tabindex="-1">
+      
+      
+<article class="content">
+  
+<header class="page-header">
+  
+  <h1>Changelog</h1>
+  
+  
+
+  <p class="page-description">Every Stamon release and what changed.</p>
+  
+
+</header>
+
+
+  <h2 id="0-4-1-2026-10-20"><a rel="external" href="https://github.com/krivahtoo/stamon/compare/v0.4.0...v0.4.1">0.4.1</a> (2026-10-20)<a class="zola-anchor" href="#0-4-1-2026-10-20" aria-label="Anchor link for: 0-4-1-2026-10-20">
+  <span class="content-icon content-icon-sm" aria-hidden="true">
+    
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg>
+
+  </span>
+</a>
+</h2>
+<h3 id="bug-fixes">Bug Fixes<a class="zola-anchor" href="#bug-fixes" aria-label="Anchor link for: bug-fixes">
+  <span class="content-icon content-icon-sm" aria-hidden="true">
+    
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg>
+
+  </span>
+</a>
+</h3>
+<ul>
+<li>require authentication on the /ws live updates socket (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/204">#204</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/76d6ed0a3243ce5919e71586aba8727a90d05965">76d6ed0</a>)</li>
+<li>resolve the svelte-check errors (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/205">#205</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/4f36fe84091027440e54d9b6380ee8434fe9dfc4">4f36fe8</a>)</li>
+<li>use wss:// for live updates when served over HTTPS (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/202">#202</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/3a09371bed64c4d0d12731c7ecab32cbbdfc80fe">3a09371</a>)</li>
+</ul>
+<h2 id="0-4-0-2026-10-18"><a rel="external" href="https://github.com/krivahtoo/stamon/compare/v0.3.0...v0.4.0">0.4.0</a> (2026-10-18)<a class="zola-anchor" href="#0-4-0-2026-10-18" aria-label="Anchor link for: 0-4-0-2026-10-18">
+  <span class="content-icon content-icon-sm" aria-hidden="true">
+    
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg>
+
+  </span>
+</a>
+</h2>
+<h3 id="features">Features<a class="zola-anchor" href="#features" aria-label="Anchor link for: features">
+  <span class="content-icon content-icon-sm" aria-hidden="true">
+    
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg>
+
+  </span>
+</a>
+</h3>
+<ul>
+<li>add a demo mode and deploy the public demo to Render (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/199">#199</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/59b696065e1ddf5bcaf3e95d5603eeee13179963">59b6960</a>)</li>
+<li>move the landing site to the DevLab theme (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/174">#174</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/64004bf8b1a79206f5d22f6f5051b8a63abdee7e">64004bf</a>)</li>
+<li>publish the Docker Hub overview on release (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/173">#173</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/680dcdc8ef353e3d4dc7321f3d3b17fe4137a1df">680dcdc</a>)</li>
+<li>replace placeholder settings with real ones (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/200">#200</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/f08c93013ee792735c0a8f23bf762f3fbc2b222c">f08c930</a>)</li>
+</ul>
+<h3 id="bug-fixes-1">Bug Fixes<a class="zola-anchor" href="#bug-fixes-1" aria-label="Anchor link for: bug-fixes-1">
+  <span class="content-icon content-icon-sm" aria-hidden="true">
+    
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg>
+
+  </span>
+</a>
+</h3>
+<ul>
+<li>build the release commit's image only once (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/172">#172</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/4eb73df754b208764c2d21e3f5d4a0c1b7f4e003">4eb73df</a>)</li>
+<li>send only what the Docker build uses as context (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/171">#171</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/4aa1714780bbe1aa30f5ec7fbe60674dbf9b43bb">4aa1714</a>)</li>
+</ul>
+<h2 id="0-3-0-2026-10-12"><a rel="external" href="https://github.com/krivahtoo/stamon/compare/v0.2.0...v0.3.0">0.3.0</a> (2026-10-12)<a class="zola-anchor" href="#0-3-0-2026-10-12" aria-label="Anchor link for: 0-3-0-2026-10-12">
+  <span class="content-icon content-icon-sm" aria-hidden="true">
+    
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg>
+
+  </span>
+</a>
+</h2>
+<h3 id="features-1">Features<a class="zola-anchor" href="#features-1" aria-label="Anchor link for: features-1">
+  <span class="content-icon content-icon-sm" aria-hidden="true">
+    
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg>
+
+  </span>
+</a>
+</h3>
+<ul>
+<li>add docker and database checks (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/159">#159</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/f3ec318f54a9b2e1a3295e9e6d522cdd55d333eb">f3ec318</a>)</li>
+<li>add tcp, dns, tls and push checks (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/156">#156</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/e07e7142abe20e14a3ccb205058efb61ad2316b8">e07e714</a>)</li>
+<li>add uptime stats, tags, maintenance windows and status pages (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/158">#158</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/a817428d9d10b37a72a539ca375e7fb4cd755a58">a817428</a>)</li>
+<li>Add ws auto reconnect (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/7652af12832d765656bdf88e590c5a8204fb6902">7652af1</a>)</li>
+<li>Add ws auto reconnect (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/b6e56dd0456bd4d511c0bdc775b9494c59c4be0f">b6e56dd</a>)</li>
+<li><strong>api:</strong> Add dev auto reload support (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/31fedf401619793f3fb2ff4f95ae42936b4b6d82">31fedf4</a>)</li>
+<li><strong>api:</strong> Add dev auto reload support (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/3b24b8ce057253f77f6d7a2dcde78c5e3622c0a6">3b24b8c</a>)</li>
+<li><strong>landing:</strong> Update installation page (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/cb049ff48ad0bf76989f66460bf164bdd2e45e94">cb049ff</a>)</li>
+<li><strong>landing:</strong> Update installation page (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/6a4f4eca4b5303934ab9771640b7ec7a98e70b65">6a4f4ec</a>)</li>
+<li>move checks into a crate with per-type JSON config (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/155">#155</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/f0a222935778b16d0a334eba12aa4e1bf63dc71a">f0a2229</a>)</li>
+<li>send alerts to notification channels (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/157">#157</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/590a0017228a1043289160936ea81b08b5ff984c">590a001</a>)</li>
+<li><strong>ui:</strong> Add base search functionality (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/9902e9968204473fe7320b9c6a61106fcda892ad">9902e99</a>)</li>
+<li><strong>ui:</strong> Update seach functionality (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/4c4f2a1c5596ec75697437eafb91199e4cbd9035">4c4f2a1</a>)</li>
+</ul>
+<h3 id="bug-fixes-2">Bug Fixes<a class="zola-anchor" href="#bug-fixes-2" aria-label="Anchor link for: bug-fixes-2">
+  <span class="content-icon content-icon-sm" aria-hidden="true">
+    
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg>
+
+  </span>
+</a>
+</h3>
+<ul>
+<li>Add comprehensive unit tests across models, auth, utils, and SSL modules (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/143">#143</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/9e2f52cf6f9c7ea45afda2603f47a2ffc73954f3">9e2f52c</a>)</li>
+<li>Add middlewares and extractors (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/75fee096ee4b5e9d6ddd20fa58b3ad4ddef457c0">75fee09</a>)</li>
+<li>address review findings from the merged stack (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/168">#168</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/d924e69b438dccda2e28a148957a57d08e6f9ee3">d924e69</a>)</li>
+<li>allow dependency build scripts so Docker builds pass (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/169">#169</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/569e584391814d24ad9d8295cd02e31ea2d7cb6d">569e584</a>)</li>
+<li><strong>auth:</strong> avoid panic on invalid password hash (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/151">#151</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/650fea9ff9537b955e5bb589dd51d079625d6062">650fea9</a>)</li>
+<li>Bump docker rust image (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/149">#149</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/8eba3db9fb7d9c15d28862ce95ac2601c3724044">8eba3db</a>)</li>
+<li><strong>ci:</strong> Update docker.yml (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/15c1f6ad6904c6cecd636ecd701d22e9f26d7af3">15c1f6a</a>)</li>
+<li><strong>ci:</strong> Update docker.yml (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/bc5f89dd72d8adbba5666cf1ac66576452f8b737">bc5f89d</a>)</li>
+<li><strong>deps:</strong> update axum monorepo (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/77fc97d45f3fd95543ab3bb0a36d0761046b2c97">77fc97d</a>)</li>
+<li><strong>deps:</strong> update axum monorepo (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/ae78b9630b7328c5270bb88bfcf356da65cc1369">ae78b96</a>)</li>
+<li><strong>deps:</strong> update dependency @unovis/svelte to v1.4.5 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/b27925930f3d7af16d68714fbc8aca68abef0767">b279259</a>)</li>
+<li><strong>deps:</strong> update dependency @unovis/svelte to v1.4.5 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/fa398631273d43ed984b89b15f4a81772f1b4e0b">fa39863</a>)</li>
+<li><strong>deps:</strong> update dependency @unovis/ts to v1.5.0 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/42ef2370b9fb89d9553e96acabc08e873b0e930a">42ef237</a>)</li>
+<li><strong>deps:</strong> update dependency @unovis/ts to v1.5.0 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/f109bb0399b4b6b4b89ddef757a3918e006c3d3b">f109bb0</a>)</li>
+<li><strong>deps:</strong> update dependency bits-ui to v0.21.16 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/de76bd83a2115a3394c3900470222fee0a29c6b1">de76bd8</a>)</li>
+<li><strong>deps:</strong> update dependency bits-ui to v0.21.16 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/2efab2e5c8e6c2353f361b3d0f4c407db97b1662">2efab2e</a>)</li>
+<li><strong>deps:</strong> update dependency lucide-svelte to ^0.468.0 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/7c6ac3c3dd64722bd6a707efc46a48e557fbecac">7c6ac3c</a>)</li>
+<li><strong>deps:</strong> update dependency lucide-svelte to ^0.468.0 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/032724824463c572cd205bcb110efc39b1814bbb">0327248</a>)</li>
+<li><strong>deps:</strong> update dependency svelte-sonner to v0.3.28 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/a544a6a0ab24927054ebabc310e9a90dd165d751">a544a6a</a>)</li>
+<li><strong>deps:</strong> update dependency svelte-sonner to v0.3.28 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/ade229009b60c05cd16e7005a1e00e1f0220cb51">ade2290</a>)</li>
+<li><strong>deps:</strong> update dependency tailwind-merge to v2.5.5 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/0a1fd7fd1c37b9092ad1b63bb4871d482cfb5a0a">0a1fd7f</a>)</li>
+<li><strong>deps:</strong> update dependency tailwind-merge to v2.5.5 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/a6a60483314c45f71eb7dd78f2ed7ee74c276eab">a6a6048</a>)</li>
+<li><strong>deps:</strong> update rust crate axum to v0.7.9 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/d65f1c15305750e827ea7545a31ccb5fb8fb6084">d65f1c1</a>)</li>
+<li><strong>deps:</strong> update rust crate axum to v0.7.9 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/b729348c9852d42c3348326c7b9337e11f3b31f0">b729348</a>)</li>
+<li><strong>deps:</strong> update rust crate axum-extra to v0.9.6 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/203e96867617bb9b6f23d51a1bf31401f5aaa2c2">203e968</a>)</li>
+<li><strong>deps:</strong> update rust crate axum-extra to v0.9.6 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/2731016513f871105aa6b9548d658555b09f737f">2731016</a>)</li>
+<li><strong>deps:</strong> update rust crate chrono to v0.4.39 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/ff14d83c3149767b1aa5c3d28eb9764d27bbb609">ff14d83</a>)</li>
+<li><strong>deps:</strong> update rust crate chrono to v0.4.39 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/a041bbf1300c21a1dcb4682b493c38e09e92371c">a041bbf</a>)</li>
+<li><strong>deps:</strong> update rust crate chrono to v0.4.40 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/6d4ade959b6af6143a6a6c8b8c5bff8f7921ea56">6d4ade9</a>)</li>
+<li><strong>deps:</strong> update rust crate chrono to v0.4.40 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/4a1a14b1f37ff1ca9a392ee278a29e5aa2bbecb8">4a1a14b</a>)</li>
+<li><strong>deps:</strong> update rust crate chrono-tz to v0.10.3 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/9a8288fbca987e9c5e237428974decf78e3ea8c2">9a8288f</a>)</li>
+<li><strong>deps:</strong> update rust crate chrono-tz to v0.10.3 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/d265ef74a129fc1e7a5930585135dfb190b49128">d265ef7</a>)</li>
+<li><strong>deps:</strong> update rust crate futures to v0.3.31 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/c3fa4945b96320579a2fe35718d2155ce60f030b">c3fa494</a>)</li>
+<li><strong>deps:</strong> update rust crate futures to v0.3.31 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/f7dc55637c62cef9d9a4a7cc922aca158fc3123d">f7dc556</a>)</li>
+<li><strong>deps:</strong> update rust crate jsonwebtoken to v9.3.1 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/9d239d3fbe8530eee15099d7892ae04f4bdf7999">9d239d3</a>)</li>
+<li><strong>deps:</strong> update rust crate jsonwebtoken to v9.3.1 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/51f60f78632670c895dd93a364fbd1728369d50b">51f60f7</a>)</li>
+<li><strong>deps:</strong> update rust crate openssl to v0.10.68 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/cbecc256dd473d5d26ba00679fa517415d2bf37f">cbecc25</a>)</li>
+<li><strong>deps:</strong> update rust crate openssl to v0.10.68 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/e13189e89fd1978f082ef9df4fef1d63d748f128">e13189e</a>)</li>
+<li><strong>deps:</strong> update rust crate reqwest to v0.12.12 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/b8b6df0cd906a29e61119cd8dc51ca6b6695d79d">b8b6df0</a>)</li>
+<li><strong>deps:</strong> update rust crate reqwest to v0.12.12 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/fb61263b3aff23bb8e4159976ed5c74398afa9a5">fb61263</a>)</li>
+<li><strong>deps:</strong> update rust crate serde to v1.0.217 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/721a4480385ecef75a694e3549da05303a16f9a0">721a448</a>)</li>
+<li><strong>deps:</strong> update rust crate serde to v1.0.217 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/8e914163ff5a2ae4f8b31c719bc059100da54aa2">8e91416</a>)</li>
+<li><strong>deps:</strong> update rust crate serde_json to v1.0.135 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/1cb4c4878a0c8b603c989e569c5f14c3c86d9049">1cb4c48</a>)</li>
+<li><strong>deps:</strong> update rust crate serde_json to v1.0.135 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/ec4e412e7e814516a2eaa2b4d0a89c40344615dd">ec4e412</a>)</li>
+<li><strong>deps:</strong> update rust crate thiserror to v1.0.69 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/ad13ee3e984ba2809d7fbaf2a257fd05650b43f3">ad13ee3</a>)</li>
+<li><strong>deps:</strong> update rust crate thiserror to v1.0.69 (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/6dafe475d9331f7e9a1cfc606611bbbe3578d6a3">6dafe47</a>)</li>
+<li><strong>deps:</strong> update tokio-tracing monorepo (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/c1aa1fca3ec62646fb979b574afe46d4f9b89cca">c1aa1fc</a>)</li>
+<li><strong>deps:</strong> update tokio-tracing monorepo (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/25cb7c795ef0274adcec539696a5e2c2e88e9399">25cb7c7</a>)</li>
+<li>docker build (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/657f9f00b678c4c34bb667e0ebe19368cbbacb44">657f9f0</a>)</li>
+<li>docker build (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/69e616d57922f88429f19e4157f0afe94c598787">69e616d</a>)</li>
+<li>Fix fall through issue (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/3770eae004f1df4dbff17d95b3057d79e9f7af23">3770eae</a>)</li>
+<li>hide push tokens from viewers (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/161">#161</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/7fb06a04ed1453ae7d1b6fa83a4129ab20305937">7fb06a0</a>)</li>
+<li>make monitoring checks run and enforce user roles (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/154">#154</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/8f2dea310e745056d03dc7e0bfa9ea1d99dd5253">8f2dea3</a>)</li>
+<li>refactor and update ui (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/d5b02cd5a1c380849a580a7ead59636497a3be6a">d5b02cd</a>)</li>
+<li>refactor and update ui (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/778801304bf49fc1a8fb2986a06e1fb53dcdb621">7788013</a>)</li>
+<li>Update database schema and dependencies (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/bc9a185afa519e4613bc70a4a090a5cceb69c0f4">bc9a185</a>)</li>
+<li>Update database schema and dependencies (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/ea1944b8bc1239310f61a7f3becf15d7b2e0d954">ea1944b</a>)</li>
+<li>Update error handling (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/f323da31867f4a3c446ce5146b06c0066ee5b3e5">f323da3</a>)</li>
+<li>Update error handling (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/509249691900075c762ad8f1c7acc96dacb8b424">5092496</a>)</li>
+<li>Update landing (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/9ac9abe697fea658bc3dba4804b4612115d6bb85">9ac9abe</a>)</li>
+<li>Update landing (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/90db1b21d158c8dba2f27a85b4d98f0fd49711fe">90db1b2</a>)</li>
+<li>use per-architecture cargo caches in the Docker build (<a rel="external" href="https://github.com/krivahtoo/stamon/issues/170">#170</a>) (<a rel="external" href="https://github.com/krivahtoo/stamon/commit/4ee3f8350abb54ac831c9ccc57b9a1f1cfbbad10">4ee3f83</a>)</li>
+</ul>
+<h2 id="v0-1-0-2024-09-06">v0.1.0 - 2024-09-06<a class="zola-anchor" href="#v0-1-0-2024-09-06" aria-label="Anchor link for: v0-1-0-2024-09-06">
+  <span class="content-icon content-icon-sm" aria-hidden="true">
+    
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></svg>
+
+  </span>
+</a>
+</h2>
+<ul>
+<li>First release!</li>
+</ul>
+
+  
+
+
+</article>
+
+      
+    </main>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    
+
+<div class="site-footer-info">
+
+<p class="site-footer-note">Made by Noah Cheptoo.</p>
+
+
+<p class="site-footer-copyright">&copy; 2026 Stamon</p>
+</div>
+
+
+<nav class="site-footer-links" aria-label="Footer links">
+  
+
+  
+  
+  
+  
+  
+  
+  <a
+    class="site-footer-link"
+    href="https://github.com/krivahtoo/stamon"
+    aria-label="GitHub"
+  >
+    
+    <span class="site-footer-link-mark" aria-hidden="true">
+      
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" /></svg>
+
+    </span>
+    
+    
+  </a>
+  
+  
+  
+  
+  
+  
+  
+  <a
+    class="site-footer-link"
+    href="https://stamon.org/atom.xml"
+    aria-label="Atom feed"
+  >
+    
+    <span class="site-footer-link-mark" aria-hidden="true">
+      
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" class="social-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M4 4a16 16 0 0 1 16 16" /><path d="M4 11a9 9 0 0 1 9 9" /></svg>
+
+    </span>
+    
+    
+  </a>
+  
+  
+  
+  
+  
+  
+  
+  <a
+    class="site-footer-link"
+    href="https://stamon.org/about"
+    aria-label="About"
+  >
+    
+    <span class="site-footer-link-mark" aria-hidden="true">
+      
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 9h.01" /><path d="M11 12h1v4h1" /></svg>
+
+    </span>
+    
+    
+  </a>
+  
+  
+</nav>
+
+
+  </div>
+</footer>
+
+
+    
+  </div>
+  
+  
+
+<script defer src="https://stamon.org/js/announcement.js"></script>
+
+
+
+
+
+
+
+
+<script>
+  (function () {
+    var sources = [
+      "https://stamon.org/elasticlunr.min.js",
+      
+      
+      "https://stamon.org/search_index.en.js",
+      "https://stamon.org/js/search.js"
+    ];
+    var loading = false;
+
+    function loadSearch() {
+      if (loading) {
+        return;
+      }
+      loading = true;
+
+      for (var i = 0; i < sources.length; i++) {
+        var script = document.createElement("script");
+        script.src = sources[i];
+        script.async = false;
+        document.head.appendChild(script);
+      }
+    }
+
+    document.addEventListener("focusin", function (event) {
+      var target = event.target;
+      if (target && target.matches && target.matches("[data-search-input]")) {
+        loadSearch();
+      }
+    }, true);
+
+    document.addEventListener("keydown", function (event) {
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        !event.altKey &&
+        event.key.toLowerCase() === "k"
+      ) {
+        var input = document.querySelector("[data-search-input]");
+        if (input) {
+          event.preventDefault();
+          document.dispatchEvent(new Event("devlab:search-open"));
+          input.focus();
+        }
+        loadSearch();
+      }
+    }, true);
+  })();
+</script>
+
+<script defer src="https://stamon.org/js/theme.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script defer src="https://stamon.org/js/site-menu.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

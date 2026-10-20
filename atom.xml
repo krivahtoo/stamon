@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <title>Stamon</title>
+    <subtitle>A lightweight self-hosted status monitoring tool, written in Rust.</subtitle>
+    <link rel="self" type="application/atom+xml" href="https://stamon.org/atom.xml"/>
+    <link rel="alternate" type="text/html" href="https://stamon.org"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2026-10-18T00:00:00+00:00</updated>
+    <id>https://stamon.org/atom.xml</id>
+    <entry xml:lang="en">
+        <title>Stamon v0.4.0: a public demo and real settings</title>
+        <published>2026-10-18T00:00:00+00:00</published>
+        <updated>2026-10-18T00:00:00+00:00</updated>
+        
+        <author>
+          <name>Noah Cheptoo</name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://stamon.org/blog/stamon-v0-4-0/"/>
+        <id>https://stamon.org/blog/stamon-v0-4-0/</id>
+        
+        <summary type="html">&lt;p&gt;Stamon 0.4.0 is a smaller release than 0.3.0. It makes Stamon easier to try
+before you install it, replaces the placeholder settings pages with real ones,
+and tidies up how Stamon is built and published.&lt;/p&gt;</summary>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>Stamon v0.3.0: new checks, alerts and status pages</title>
+        <published>2026-10-12T00:00:00+00:00</published>
+        <updated>2026-10-12T00:00:00+00:00</updated>
+        
+        <author>
+          <name>Noah Cheptoo</name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://stamon.org/blog/stamon-v0-3-0/"/>
+        <id>https://stamon.org/blog/stamon-v0-3-0/</id>
+        
+        <summary type="html">&lt;p&gt;Stamon 0.3.0 is the biggest release so far. It grows Stamon from an HTTP
+checker into a monitoring tool that can watch most of a small team&#39;s stack,
+tell you when something breaks, and show your users what is going on.&lt;/p&gt;</summary>
+        
+    </entry>
+</feed>
