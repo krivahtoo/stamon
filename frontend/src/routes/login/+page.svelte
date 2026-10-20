@@ -10,7 +10,6 @@
   import * as Alert from '$lib/components/ui/alert/index.js';
   import user from '$lib/store/user.js';
   import demo from '$lib/store/demo.js';
-  import { token } from '$lib/store/auth.js';
   import { goto } from '$app/navigation';
   import { cfetch } from '$lib/utils.js';
   import { onMount } from 'svelte';
@@ -69,8 +68,6 @@
         });
         // console.log(res);
         if (res.ok) {
-          let d = await res.json();
-          token.set(d.token);
           let ures = await cfetch('/user', { credentials: 'same-origin' });
           if (ures.ok) {
             let data = await ures.json();
@@ -107,7 +104,6 @@
         goto('/');
       } else {
         user.set(null);
-        token.set(null);
         let res = await cfetch('/check');
         if (res.status === 404) {
           goto('/register');
@@ -122,7 +118,6 @@
       }
     } catch {
       user.set(null);
-      token.set(null);
     }
   });
 </script>

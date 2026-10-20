@@ -1,7 +1,6 @@
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { cubicOut } from 'svelte/easing';
-import { token } from './store/auth.js';
 import user from './store/user.js';
 import { dev } from '$app/environment';
 import { get } from 'svelte/store';
@@ -17,14 +16,7 @@ export function cn(...inputs) {
  * @returns {Promise<Response>}
  */
 export function cfetch(path, options = { credentials: 'same-origin' }) {
-  const endpoint = dev ? 'http://0.0.0.0:3000/api' : '/api';
-  const url = `${endpoint}${path}`;
-  let headers = { ...options?.headers };
-  if (dev && get(token)) {
-    headers = { ...headers, Authorization: `Bearer ${get(token)}` };
-  }
-  options = { ...options, headers };
-  return fetch(url, options);
+  return fetch(`/api${path}`, options);
 }
 
 /**

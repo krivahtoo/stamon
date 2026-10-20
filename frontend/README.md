@@ -9,7 +9,7 @@ pnpm install
 pnpm dev
 ```
 
-The dev server runs on <http://localhost:5173> and talks to the API at `http://0.0.0.0:3000/api`, so start the backend too (`cargo run` from the repository root).
+The dev server runs on <http://localhost:5173> and proxies `/api` and `/ws` to the backend on port 3000, so start the backend too (`cargo run` from the repository root).
 
 ## Building
 

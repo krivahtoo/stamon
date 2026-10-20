@@ -17,7 +17,6 @@
   import * as Sheet from '$lib/components/ui/sheet/index.js';
   import user from '$lib/store/user.js';
   import services from '$lib/store/services.js';
-  import { token } from '$lib/store/auth.js';
   import { cfetch } from '$lib/utils.js';
   import { goto } from '$app/navigation';
 
@@ -59,7 +58,6 @@
 
   function logout() {
     cfetch('/logout').finally(() => {
-      token.set(null);
       user.set(null);
       goto('/login');
     });
@@ -67,9 +65,8 @@
 
   /**
    * @param {HTMLElement} element
-   * @param {Event} _
    */
-  function focus(element, _) {
+  function focus(element) {
     if (element !== document.activeElement) element.focus();
   }
 </script>

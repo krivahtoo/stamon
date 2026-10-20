@@ -29,8 +29,8 @@ pnpm install
 pnpm dev
 ```
 
-Then visit <http://localhost:5173>. In development the frontend calls the API
-on port 3000 with a bearer token, and the server allows this origin.
+Then visit <http://localhost:5173>. The dev server proxies `/api` and `/ws` to
+the backend on port 3000, so the sign-in cookie works as in production.
 {% </devlab.tab> %}
 {% </devlab.tabs> %}
 

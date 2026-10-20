@@ -125,7 +125,12 @@ Check results report status as a number:
 ## Live updates {#live-updates}
 
 `/ws` (outside `/api`) is a WebSocket that sends every new check result and
-dashboard notification as JSON:
+dashboard notification as JSON. It needs at least the viewer role: send the
+token as the `token` cookie, which browsers do on their own, or as
+`Authorization: Bearer <token>`. Without a valid token the upgrade fails with
+`401`. A browser connection whose `Origin` doesn't match the `Host` (or
+`X-Forwarded-Host`) header fails with `403`. The server closes the socket when the token expires; connect again with
+a new one.
 
 ```json
 {"type":"log","value":{"service_id":1,"status":1,"message":null,"time":"…","duration":42}}
