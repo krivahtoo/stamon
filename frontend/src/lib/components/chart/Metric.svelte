@@ -12,11 +12,9 @@
     crosshairPointColors,
     crosshairStrokeWidths,
     lineColors,
-    scatterPointColors,
     scatterPointStrokeColors,
     tooltipTemplate
   } from './helpers.js';
-  import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
   import { toDate, formatRelative } from 'date-fns';
 
@@ -47,10 +45,9 @@
   /**
    * Returns the ID of the data point.
    * @param {number} tick - The data point.
-   * @param {number} i - The data index.
    * @returns {string} - Formated time.
    */
-  const tickFormat = (tick, i) => {
+  const tickFormat = (tick) => {
     const time = toDate(tick * interval);
     return `${formatRelative(time, new Date())}`;
   };
@@ -62,25 +59,6 @@
    */
   // @ts-ignore
   const y = [(d) => d.duration];
-
-  /** @type {Element} */
-  let boxEl;
-
-  /**
-   * Adds a new random data point to the data array every 5 seconds.
-   */
-  onMount(() => {
-    const resizeObserver = new ResizeObserver((entries) => {
-      // We're only watching one element
-      const entry = entries.at(0);
-    });
-
-    resizeObserver.observe(boxEl);
-
-    return () => {
-      resizeObserver.unobserve(boxEl);
-    };
-  });
 </script>
 
 <svelte:head>
@@ -112,7 +90,7 @@
   </defs>
 </svg>
 
-<div bind:this={boxEl}>
+<div>
   <VisXYContainer
     class="vis-xy-container"
     data={$data}

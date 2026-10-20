@@ -65,9 +65,8 @@
 
   /**
    * @param {HTMLElement} element
-   * @param {Event} _
    */
-  function focus(element, _) {
+  function focus(element) {
     if (element !== document.activeElement) element.focus();
   }
 </script>
