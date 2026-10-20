@@ -18,6 +18,8 @@ machine won't keep you signed in.
   at the root of the domain; sub-paths aren't supported.
 - Forward WebSocket upgrades on `/ws`, which carries the dashboard's live
   updates.
+- Pass the original `Host` header, or set `X-Forwarded-Host`. Stamon only
+  accepts live updates connections from a page on the same host.
 
 ## Examples
 
@@ -46,6 +48,7 @@ server {
     location /ws {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
+        proxy_set_header Host $host;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_read_timeout 1h;
@@ -54,6 +57,12 @@ server {
 ```
 {% </devlab.tab> %}
 {% </devlab.tabs> %}
+
+{% <devlab.callout type="warning" title="Live updates stop after upgrading"> %}
+If the dashboard keeps showing "Websocket disconnected", your proxy is
+rewriting `Host` on `/ws`. With nginx, add `proxy_set_header Host $host;` to the
+`location /ws` block, as in the example above.
+{% </devlab.callout> %}
 
 ## Known limitations
 

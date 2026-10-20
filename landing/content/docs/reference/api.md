@@ -128,7 +128,8 @@ Check results report status as a number:
 dashboard notification as JSON. It needs at least the viewer role: send the
 token as the `token` cookie, which browsers do on their own, or as
 `Authorization: Bearer <token>`. Without a valid token the upgrade fails with
-`401`. The server closes the socket when the token expires; connect again with
+`401`. A browser connection whose `Origin` doesn't match the `Host` (or
+`X-Forwarded-Host`) header fails with `403`. The server closes the socket when the token expires; connect again with
 a new one.
 
 ```json
