@@ -69,7 +69,7 @@
   }
 
   function handleHide() {
-    hiddenColumnIds.update((ids) => {
+    hiddenColumnIds.update((/** @type {string[]} */ ids) => {
       if (ids.includes(cellId)) {
         return ids;
       }

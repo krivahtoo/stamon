@@ -45,10 +45,20 @@ export function pushUrl(pushToken) {
   return `${origin}/api/push/${pushToken}`;
 }
 
+/**
+ * @param {Element} node
+ * @param {{ y?: number, x?: number, start?: number, duration?: number }} [params]
+ * @returns {import('svelte/transition').TransitionConfig}
+ */
 export const flyAndScale = (node, params = { y: -8, x: 0, start: 0.95, duration: 150 }) => {
   const style = getComputedStyle(node);
   const transform = style.transform === 'none' ? '' : style.transform;
 
+  /**
+   * @param {number} valueA
+   * @param {[number, number]} scaleA
+   * @param {[number, number]} scaleB
+   */
   const scaleConversion = (valueA, scaleA, scaleB) => {
     const [minA, maxA] = scaleA;
     const [minB, maxB] = scaleB;
@@ -59,6 +69,7 @@ export const flyAndScale = (node, params = { y: -8, x: 0, start: 0.95, duration:
     return valueB;
   };
 
+  /** @param {Record<string, number | string | undefined>} style */
   const styleToString = (style) => {
     return Object.keys(style).reduce((str, key) => {
       if (style[key] === undefined) return str;
@@ -69,6 +80,7 @@ export const flyAndScale = (node, params = { y: -8, x: 0, start: 0.95, duration:
   return {
     duration: params.duration ?? 200,
     delay: 0,
+    /** @param {number} t */
     css: (t) => {
       const y = scaleConversion(t, [0, 1], [params.y ?? 5, 0]);
       const x = scaleConversion(t, [0, 1], [params.x ?? 0, 0]);

@@ -4,6 +4,7 @@
   let className = undefined;
   export let transition = flyAndScale;
   export let transitionConfig = undefined;
+  /** @type {'start' | 'center' | 'end'} */
   export let align = 'center';
   export let sideOffset = 4;
   export { className as class };

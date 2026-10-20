@@ -1,6 +1,7 @@
 <script>
   import { cn } from '$lib/utils.js';
   let className = undefined;
+  /** @type {string | null | undefined} */
   export let value = undefined;
   export { className as class };
   export let readonly = undefined;

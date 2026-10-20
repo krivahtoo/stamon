@@ -198,7 +198,7 @@
                   <Subscribe attrs={cell.attrs()} let:attrs>
                     <Table.Cell
                       on:click={() => {
-                        if (cell.id !== 'select' && cell.id !== 'actions') {
+                        if (row.isData() && cell.id !== 'select' && cell.id !== 'actions') {
                           goto(`/services/${row.original.id}`);
                         }
                       }}
