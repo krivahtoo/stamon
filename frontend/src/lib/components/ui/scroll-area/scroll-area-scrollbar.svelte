@@ -2,6 +2,7 @@
   import { ScrollArea as ScrollAreaPrimitive } from 'bits-ui';
   import { cn } from '$lib/utils.js';
   let className = undefined;
+  /** @type {'vertical' | 'horizontal'} */
   export let orientation = 'vertical';
   export { className as class };
 </script>

@@ -10,7 +10,7 @@ export const StatusValue = {
  * @typedef {Object} Status
  * @property {number} value - The integer representation of the status.
  * @property {string} label - status label
- * @property {string} variant - variant to use for the badge
+ * @property {'default' | 'destructive' | 'secondary' | 'outline'} variant - variant to use for the badge
  */
 
 /** @type {Status[]} */

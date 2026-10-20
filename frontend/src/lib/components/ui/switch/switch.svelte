@@ -2,6 +2,7 @@
   import { Switch as SwitchPrimitive } from 'bits-ui';
   import { cn } from '$lib/utils.js';
   let className = undefined;
+  /** @type {boolean | undefined} */
   export let checked = undefined;
   export { className as class };
 </script>

@@ -3,6 +3,7 @@
   import Check from 'lucide-svelte/icons/check';
   import { cn } from '$lib/utils.js';
   let className = undefined;
+  /** @type {boolean | 'indeterminate' | undefined} */
   export let checked = undefined;
   export { className as class };
 </script>

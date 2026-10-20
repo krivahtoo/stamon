@@ -2,6 +2,7 @@
   import { Separator as SeparatorPrimitive } from 'bits-ui';
   import { cn } from '$lib/utils.js';
   let className = undefined;
+  /** @type {'horizontal' | 'vertical'} */
   export let orientation = 'horizontal';
   export let decorative = undefined;
   export { className as class };

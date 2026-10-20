@@ -2,6 +2,7 @@
   import { RadioGroup as RadioGroupPrimitive } from 'bits-ui';
   import { cn } from '$lib/utils.js';
   let className = undefined;
+  /** @type {string | undefined} */
   export let value = undefined;
   export { className as class };
 </script>

@@ -176,6 +176,13 @@
     if (window.apply_to_all) return 'All services';
     return window.service_ids.map((id) => serviceNames.get(id) ?? `#${id}`).join(', ');
   }
+
+  /** @type {{ label: string, items: typeof active, variant: 'default' | 'secondary' | 'outline' }[]} */
+  $: groups = [
+    { label: 'In progress', items: active, variant: 'default' },
+    { label: 'Upcoming', items: upcoming, variant: 'secondary' },
+    { label: 'Past', items: past, variant: 'outline' }
+  ];
 </script>
 
 <div class="flex items-center justify-between">
@@ -203,7 +210,7 @@
   </section>
 {/if}
 
-{#each [{ label: 'In progress', items: active, variant: 'default' }, { label: 'Upcoming', items: upcoming, variant: 'secondary' }, { label: 'Past', items: past, variant: 'outline' }] as group}
+{#each groups as group}
   {#if group.items.length > 0}
     <section class="space-y-2">
       <h3 class="text-sm font-medium text-muted-foreground">{group.label}</h3>

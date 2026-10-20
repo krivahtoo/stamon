@@ -2,8 +2,11 @@
   import { cn } from '$lib/utils.js';
   import { startTyping } from '@sveu/actions';
   let className = undefined;
+  /** @type {string | number | null | undefined} */
   export let value = undefined;
-  export let typing = undefined;
+  /** Called when the user starts typing while nothing editable has focus. */
+  /** @type {(element: HTMLInputElement, event: KeyboardEvent) => void} */
+  export let typing = () => {};
   export { className as class };
   export let readonly = undefined;
 </script>

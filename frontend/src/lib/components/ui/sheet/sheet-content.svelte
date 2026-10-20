@@ -5,6 +5,7 @@
   import { SheetOverlay, SheetPortal, sheetTransitions, sheetVariants } from './index.js';
   import { cn } from '$lib/utils.js';
   let className = undefined;
+  /** @type {'top' | 'bottom' | 'left' | 'right'} */
   export let side = 'right';
   export { className as class };
   export let inTransition = fly;
