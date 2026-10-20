@@ -1,4 +1,3 @@
-import { dev } from '$app/environment';
 import { websocket } from '@sveu/browser';
 import { toast } from 'svelte-sonner';
 import notifications from './notifications.js';
@@ -83,7 +82,4 @@ const options = {
 const scheme = location.protocol === 'https:' ? 'wss' : 'ws';
 
 // Create a new websocket
-export const ws = websocket(
-  dev ? 'ws://localhost:3000/ws' : `${scheme}://${location.host}/ws`,
-  options
-);
+export const ws = websocket(`${scheme}://${location.host}/ws`, options);
