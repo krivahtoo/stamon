@@ -5,6 +5,15 @@ weight = 5
 aliases = ["/docs/changelog/"]
 +++
 
+## [0.4.1](https://github.com/krivahtoo/stamon/compare/v0.4.0...v0.4.1) (2026-10-20)
+
+
+### Bug Fixes
+
+* require authentication on the /ws live updates socket ([#204](https://github.com/krivahtoo/stamon/issues/204)) ([76d6ed0](https://github.com/krivahtoo/stamon/commit/76d6ed0a3243ce5919e71586aba8727a90d05965))
+* resolve the svelte-check errors ([#205](https://github.com/krivahtoo/stamon/issues/205)) ([4f36fe8](https://github.com/krivahtoo/stamon/commit/4f36fe84091027440e54d9b6380ee8434fe9dfc4))
+* use wss:// for live updates when served over HTTPS ([#202](https://github.com/krivahtoo/stamon/issues/202)) ([3a09371](https://github.com/krivahtoo/stamon/commit/3a09371bed64c4d0d12731c7ecab32cbbdfc80fe))
+
 ## [0.4.0](https://github.com/krivahtoo/stamon/compare/v0.3.0...v0.4.0) (2026-10-18)
 
 
