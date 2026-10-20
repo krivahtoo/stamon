@@ -17,9 +17,8 @@ weight = 3
 ## Network exposure
 
 - Serve Stamon over HTTPS; see [Reverse proxy](@/docs/self-hosting/reverse-proxy.md).
-- The live updates feed at `/ws` doesn't require signing in. Anyone who can
-  reach the server can see check results as they happen. If that matters, limit
-  who can reach Stamon, for example with a VPN or your proxy's access rules.
+- The live updates feed at `/ws` requires signing in, like the API. It closes
+  when the sign-in expires.
 - [Status pages](@/docs/features/status-pages.md) are public once published,
   but never show URLs, hosts or settings.
 

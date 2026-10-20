@@ -1,9 +1,13 @@
-use std::{net::SocketAddr, ops::ControlFlow};
+use std::{
+    net::SocketAddr,
+    ops::ControlFlow,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 
 use axum::{
     extract::{
         ConnectInfo, State, WebSocketUpgrade,
-        ws::{Message, WebSocket},
+        ws::{CloseFrame, Message, WebSocket, close_code},
     },
     response::IntoResponse,
 };
@@ -12,7 +16,11 @@ use futures::{SinkExt, StreamExt};
 use serde::Serialize;
 use tracing::{debug, info, warn};
 
-use crate::{AppState, models::log::LogForCreate};
+use crate::{
+    AppState,
+    auth::{Claims, ViewerClaims},
+    models::log::LogForCreate,
+};
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -46,7 +54,9 @@ pub enum Event {
 /// websocket protocol will occur.
 /// This is the last point where we can extract TCP/IP metadata such as IP address of the client
 /// as well as things from HTTP headers such as user-agent of the browser etc.
+/// Like the API, it needs a viewer's token, which browsers send as the `token` cookie.
 pub async fn ws_handler(
+    ViewerClaims(claims): ViewerClaims,
     ws: WebSocketUpgrade,
     user_agent: Option<TypedHeader<UserAgent>>,
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
@@ -60,12 +70,24 @@ pub async fn ws_handler(
     info!("`{user_agent}` at {addr} connected.");
     // finalize the upgrade process by returning upgrade callback.
     // we can customize the callback by sending additional info such as address.
-    ws.on_upgrade(move |socket| handle_socket(socket, addr, state))
+    let expires_in = time_left(&claims, SystemTime::now());
+    ws.on_upgrade(move |socket| handle_socket(socket, addr, state, expires_in))
+}
+
+/// How long until the token expires, so the socket doesn't outlive the sign-in.
+fn time_left(claims: &Claims, now: SystemTime) -> Duration {
+    let now = now.duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
+    Duration::from_secs((claims.expiry as u64).saturating_sub(now))
 }
 
 /// Actual websocket statemachine (one will be spawned per connection)
 #[tracing::instrument(name = "ws", skip(socket, state))]
-async fn handle_socket(mut socket: WebSocket, who: SocketAddr, state: AppState) {
+async fn handle_socket(
+    mut socket: WebSocket,
+    who: SocketAddr,
+    state: AppState,
+    expires_in: Duration,
+) {
     // send a ping (unsupported by some browsers) just to kick things off and get a response
     if socket
         .send(Message::Ping(vec![1, 2, 3].into()))
@@ -89,15 +111,33 @@ async fn handle_socket(mut socket: WebSocket, who: SocketAddr, state: AppState) 
 
     // Spawn the first task that will receive broadcast messages and send text
     // messages over the websocket to our client.
+    // Close the socket when the token expires; the client reconnects with a fresh one.
     let mut send_task = tokio::spawn(async move {
-        while let Ok(msg) = rx.recv().await {
-            // In any websocket error, break loop.
-            if sender
-                .send(Message::Text(serde_json::to_string(&msg).unwrap().into()))
-                .await
-                .is_err()
-            {
-                break;
+        let expired = tokio::time::sleep(expires_in);
+        tokio::pin!(expired);
+        loop {
+            tokio::select! {
+                msg = rx.recv() => {
+                    let Ok(msg) = msg else { break };
+                    // In any websocket error, break loop.
+                    if sender
+                        .send(Message::Text(serde_json::to_string(&msg).unwrap().into()))
+                        .await
+                        .is_err()
+                    {
+                        break;
+                    }
+                }
+                _ = &mut expired => {
+                    debug!("Token expired, closing {who}");
+                    let _ = sender
+                        .send(Message::Close(Some(CloseFrame {
+                            code: close_code::POLICY,
+                            reason: "Token expired".into(),
+                        })))
+                        .await;
+                    break;
+                }
             }
         }
     });
@@ -146,4 +186,27 @@ fn process_message(msg: Message, who: SocketAddr) -> ControlFlow<(), ()> {
         m => debug!("Received {m:?}"),
     }
     ControlFlow::Continue(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::user::UserRole;
+
+    fn claims(expiry: usize) -> Claims {
+        Claims {
+            user_id: 1,
+            role: UserRole::Viewer,
+            issued_at: 0,
+            expiry,
+        }
+    }
+
+    #[test]
+    fn time_left_until_expiry() {
+        let now = UNIX_EPOCH + Duration::from_secs(1_000);
+        assert_eq!(time_left(&claims(1_600), now), Duration::from_secs(600));
+        assert_eq!(time_left(&claims(1_000), now), Duration::ZERO);
+        assert_eq!(time_left(&claims(10), now), Duration::ZERO);
+    }
 }
