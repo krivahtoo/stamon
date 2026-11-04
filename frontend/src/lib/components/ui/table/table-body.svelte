@@ -1,9 +1,14 @@
 <script>
-  import { cn } from '$lib/utils.js';
-  let className = undefined;
-  export { className as class };
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	} = $props();
 </script>
 
-<tbody class={cn('[&_tr:last-child]:border-0', className)} {...$$restProps}>
-  <slot />
+<tbody bind:this={ref} class={cn("[&_tr:last-child]:border-0", className)} {...restProps}>
+	{@render children?.()}
 </tbody>

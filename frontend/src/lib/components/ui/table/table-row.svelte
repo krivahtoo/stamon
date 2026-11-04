@@ -1,17 +1,21 @@
 <script>
-  import { cn } from '$lib/utils.js';
-  let className = undefined;
-  export { className as class };
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	} = $props();
 </script>
 
 <tr
-  class={cn(
-    'border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted dark:border-primary/10',
-    className
-  )}
-  {...$$restProps}
-  on:click
-  on:keydown
+	bind:this={ref}
+	class={cn(
+		"hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
+		className
+	)}
+	{...restProps}
 >
-  <slot />
+	{@render children?.()}
 </tr>

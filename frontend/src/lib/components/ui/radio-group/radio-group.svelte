@@ -1,12 +1,13 @@
 <script>
-  import { RadioGroup as RadioGroupPrimitive } from 'bits-ui';
-  import { cn } from '$lib/utils.js';
-  let className = undefined;
-  /** @type {string | undefined} */
-  export let value = undefined;
-  export { className as class };
+	import { RadioGroup as RadioGroupPrimitive } from "bits-ui";
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		value = $bindable(""),
+		...restProps
+	} = $props();
 </script>
 
-<RadioGroupPrimitive.Root bind:value class={cn('grid gap-2', className)} {...$$restProps}>
-  <slot />
-</RadioGroupPrimitive.Root>
+<RadioGroupPrimitive.Root bind:ref bind:value class={cn("grid gap-2", className)} {...restProps} />
