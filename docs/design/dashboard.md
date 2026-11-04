@@ -86,6 +86,13 @@ Status colours are used only to show status, never as decoration.
   icon and one line of description.
 - **Notifications:** one card per channel with Test and Edit actions and an
   enable toggle.
+- **Sign in / Register:** the logo above one 400px card on the surface colour,
+  with the version underneath. Sign in has a username, a password with a show
+  toggle, and an error callout when sign-in fails; on the public demo an info
+  callout explains the shared account, which is filled in. Register is the
+  first-run setup for the admin account: a "First-time setup" label, a live
+  password checklist (6+ characters, uppercase, number, symbol) and a
+  confirm field.
 
 ## Rules
 
