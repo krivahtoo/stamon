@@ -1,15 +1,17 @@
 <script>
+  import { run } from 'svelte/legacy';
+
   import { fuse } from '@sveu/extend/fuse';
   import { resetMode, setMode } from 'mode-watcher';
-  import Activity from 'lucide-svelte/icons/activity';
-  import CircleUser from 'lucide-svelte/icons/circle-user';
-  import Menu from 'lucide-svelte/icons/menu';
-  import Search from 'lucide-svelte/icons/search';
-  import Sun from 'lucide-svelte/icons/sun';
-  import Moon from 'lucide-svelte/icons/moon';
-  import Settings from 'lucide-svelte/icons/settings';
-  import LogOut from 'lucide-svelte/icons/log-out';
-  import UserRoundCog from 'lucide-svelte/icons/user-round-cog';
+  import Activity from '@lucide/svelte/icons/activity';
+  import CircleUser from '@lucide/svelte/icons/circle-user';
+  import Menu from '@lucide/svelte/icons/menu';
+  import Search from '@lucide/svelte/icons/search';
+  import Sun from '@lucide/svelte/icons/sun';
+  import Moon from '@lucide/svelte/icons/moon';
+  import Settings from '@lucide/svelte/icons/settings';
+  import LogOut from '@lucide/svelte/icons/log-out';
+  import UserRoundCog from '@lucide/svelte/icons/user-round-cog';
 
   import { Button } from '$lib/components/ui/button/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
@@ -27,10 +29,16 @@
    * @property {import('svelte').ComponentType} icon - navication item icon
    */
 
-  /** @type {NavItem[]} */
-  export let navItems = [];
 
-  let search = '';
+  /**
+   * @typedef {Object} Props
+   * @property {NavItem[]} [navItems]
+   */
+
+  /** @type {Props} */
+  let { navItems = [] } = $props();
+
+  let search = $state('');
 
   let matchWhenEmpty = false;
 
@@ -42,19 +50,21 @@
    */
 
   /** @type {Result[]} */
-  let results = [];
+  let results = $state([]);
 
-  $: ({ results } = fuse(search, $services, {
-    fuseOptions: {
-      includeScore: true,
-      includeMatches: true,
-      // shouldSort: true,
-      minMatchCharLength: 2,
-      keys: ['name']
-    },
-    matchWhenEmpty,
-    limit
-  }));
+  run(() => {
+    ({ results } = fuse(search, $services, {
+      fuseOptions: {
+        includeScore: true,
+        includeMatches: true,
+        // shouldSort: true,
+        minMatchCharLength: 2,
+        keys: ['name']
+      },
+      matchWhenEmpty,
+      limit
+    }));
+  });
 
   function logout() {
     cfetch('/logout').finally(() => {
@@ -76,12 +86,14 @@
   style="view-transition-name: header;"
 >
   <Sheet.Root>
-    <Sheet.Trigger asChild let:builder>
-      <Button variant="outline" size="icon" class="mr-auto shrink-0 md:hidden" builders={[builder]}>
-        <Menu class="h-5 w-5" />
-        <span class="sr-only">Toggle navigation menu</span>
-      </Button>
-    </Sheet.Trigger>
+    <Sheet.Trigger asChild >
+      {#snippet children({ builder })}
+            <Button variant="outline" size="icon" class="mr-auto shrink-0 md:hidden" builders={[builder]}>
+          <Menu class="h-5 w-5" />
+          <span class="sr-only">Toggle navigation menu</span>
+        </Button>
+                {/snippet}
+        </Sheet.Trigger>
     <Sheet.Content side="left" class="flex flex-col">
       <nav class="grid gap-2 text-lg font-medium">
         <a href="/" class="flex items-center gap-2 text-lg font-semibold">
@@ -93,7 +105,7 @@
             href={item.path}
             class="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
           >
-            <svelte:component this={item.icon} class="h-5 w-5" />
+            <item.icon class="h-5 w-5" />
             {item.name}
           </a>
         {/each}
@@ -120,17 +132,19 @@
     </form>
   </div>
   <DropdownMenu.Root>
-    <DropdownMenu.Trigger asChild let:builder>
-      <Button builders={[builder]} variant="link" size="icon">
-        <Sun
-          class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
-        />
-        <Moon
-          class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
-        />
-        <span class="sr-only">Toggle theme</span>
-      </Button>
-    </DropdownMenu.Trigger>
+    <DropdownMenu.Trigger asChild >
+      {#snippet children({ builder })}
+            <Button builders={[builder]} variant="link" size="icon">
+          <Sun
+            class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+          />
+          <Moon
+            class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
+          />
+          <span class="sr-only">Toggle theme</span>
+        </Button>
+                {/snippet}
+        </DropdownMenu.Trigger>
     <DropdownMenu.Content align="end" class="dark:border-primary/50">
       <DropdownMenu.Item on:click={() => setMode('light')}>Light</DropdownMenu.Item>
       <DropdownMenu.Item on:click={() => setMode('dark')}>Dark</DropdownMenu.Item>
@@ -138,12 +152,14 @@
     </DropdownMenu.Content>
   </DropdownMenu.Root>
   <DropdownMenu.Root>
-    <DropdownMenu.Trigger asChild let:builder>
-      <Button builders={[builder]} variant="secondary" size="icon" class="rounded-full">
-        <CircleUser class="h-5 w-5" />
-        <span class="sr-only">Toggle user menu</span>
-      </Button>
-    </DropdownMenu.Trigger>
+    <DropdownMenu.Trigger asChild >
+      {#snippet children({ builder })}
+            <Button builders={[builder]} variant="secondary" size="icon" class="rounded-full">
+          <CircleUser class="h-5 w-5" />
+          <span class="sr-only">Toggle user menu</span>
+        </Button>
+                {/snippet}
+        </DropdownMenu.Trigger>
     <DropdownMenu.Content align="end">
       <DropdownMenu.Label>
         <div class="flex flex-col space-y-1">

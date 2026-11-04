@@ -1,12 +1,14 @@
 <script>
+  import { preventDefault } from 'svelte/legacy';
+
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Card from '$lib/components/ui/card/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import { Checkbox } from '$lib/components/ui/checkbox/index.js';
-  import CircleAlert from 'lucide-svelte/icons/circle-alert';
-  import FlaskConical from 'lucide-svelte/icons/flask-conical';
-  import LoaderCircle from 'lucide-svelte/icons/loader-circle';
+  import CircleAlert from '@lucide/svelte/icons/circle-alert';
+  import FlaskConical from '@lucide/svelte/icons/flask-conical';
+  import LoaderCircle from '@lucide/svelte/icons/loader-circle';
   import * as Alert from '$lib/components/ui/alert/index.js';
   import user from '$lib/store/user.js';
   import demo from '$lib/store/demo.js';
@@ -17,26 +19,26 @@
   import { toast } from 'svelte-sonner';
 
   /** @type {string[]} */
-  let errors = [];
+  let errors = $state([]);
 
   /** @type {{ username: string, password: string } | null} */
-  let demoLogin = null;
+  let demoLogin = $state(null);
 
-  let is_loading = false;
+  let is_loading = $state(false);
 
-  let show_pass = false;
-  $: type = show_pass ? 'text' : 'password';
+  let show_pass = $state(false);
+  let type = $derived(show_pass ? 'text' : 'password');
 
-  let newUser = {
+  let newUser = $state({
     username: '',
     password: ''
-  };
+  });
 
   /** @type {{ username: string[], password: string[] }} */
-  let fieldErrors = {
+  let fieldErrors = $state({
     username: [],
     password: []
-  };
+  });
 
   const baseSchema = z.object({
     username: z.string().min(4, { message: 'Username must contain at least 4 character(s)' }),
@@ -133,7 +135,7 @@
     <Card.Description>Enter your username below to login to your account</Card.Description>
   </Card.Header>
   <Card.Content>
-    <form on:submit|preventDefault={login}>
+    <form onsubmit={preventDefault(login)}>
       <div class="grid gap-4">
         {#if demoLogin}
           <Alert.Root>

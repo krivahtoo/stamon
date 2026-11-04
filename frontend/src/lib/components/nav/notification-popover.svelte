@@ -1,21 +1,23 @@
 <script>
   import * as Popover from '$lib/components/ui/popover/index';
   import * as Card from '$lib/components/ui/card/index.js';
-  import Bell from 'lucide-svelte/icons/bell';
-  import BellRing from 'lucide-svelte/icons/bell-ring';
-  import Check from 'lucide-svelte/icons/check';
+  import Bell from '@lucide/svelte/icons/bell';
+  import BellRing from '@lucide/svelte/icons/bell-ring';
+  import Check from '@lucide/svelte/icons/check';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Switch } from '$lib/components/ui/switch/index.js';
   import notifications from '$lib/store/notifications.js';
 </script>
 
 <Popover.Root>
-  <Popover.Trigger asChild let:builder>
-    <Button builders={[builder]} variant="outline" size="icon" class="ml-auto h-8 w-8">
-      <Bell class="h-4 w-4" />
-      <span class="sr-only">Toggle notifications</span>
-    </Button>
-  </Popover.Trigger>
+  <Popover.Trigger asChild >
+    {#snippet children({ builder })}
+        <Button builders={[builder]} variant="outline" size="icon" class="ml-auto h-8 w-8">
+        <Bell class="h-4 w-4" />
+        <span class="sr-only">Toggle notifications</span>
+      </Button>
+          {/snippet}
+    </Popover.Trigger>
   <Popover.Content>
     <Card.Root class="w-fit">
       <Card.Header>
@@ -34,7 +36,7 @@
         <div>
           {#each $notifications as notification, idx (idx)}
             <div class="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-              <span class="flex h-2 w-2 translate-y-1 rounded-full bg-sky-500" />
+              <span class="flex h-2 w-2 translate-y-1 rounded-full bg-sky-500"></span>
               <div class="space-y-1">
                 <p class="text-sm font-medium leading-none">
                   {notification.title}

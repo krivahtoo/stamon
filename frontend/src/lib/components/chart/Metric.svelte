@@ -26,11 +26,17 @@
    * @property {number} duration - Time taken.
    */
 
-  /** @type {import('svelte/store').Writable<Log[]>} */
-  export let data = writable([]);
+  
 
-  /** @type {number} */
-  export let interval = 60;
+  
+  /**
+   * @typedef {Object} Props
+   * @property {import('svelte/store').Writable<Log[]>} [data]
+   * @property {number} [interval]
+   */
+
+  /** @type {Props} */
+  let { data = writable([]), interval = 60 } = $props();
 
   /**
    * Returns the ID of the data point.

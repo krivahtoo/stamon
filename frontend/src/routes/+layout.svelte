@@ -3,11 +3,18 @@
   import { Toaster } from '$lib/components/ui/sonner/index.js';
   import { onMount } from 'svelte';
   import user from '$lib/store/user.js';
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { onNavigate } from '$app/navigation';
 
   import '../app.pcss';
+  /**
+   * @typedef {Object} Props
+   * @property {import('svelte').Snippet} [children]
+   */
+
+  /** @type {Props} */
+  let { children } = $props();
 
   onNavigate((navigation) => {
     if (!document.startViewTransition) return;
@@ -21,7 +28,7 @@
   });
 
   onMount(() => {
-    const path = $page?.url?.pathname ?? '';
+    const path = page?.url?.pathname ?? '';
     // Public status pages are for visitors without an account.
     const isPublic = path === '/login/' || path === '/register/' || path.startsWith('/status/');
     if (!$user && !isPublic) {
@@ -35,7 +42,7 @@
 <Toaster richColors closeButton />
 
 <div class="flex min-h-screen w-full flex-col dark:border-primary/50">
-  <slot></slot>
+  {@render children?.()}
 </div>
 
 <style>

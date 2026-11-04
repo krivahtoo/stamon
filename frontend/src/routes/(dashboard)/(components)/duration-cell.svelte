@@ -2,10 +2,16 @@
   import * as Tooltip from '$lib/components/ui/tooltip/index.js';
   import { formatDistance, format, formatRelative } from 'date-fns';
 
-  /** @type {string} start time */
-  export let start;
-  /** @type {string} end time */
-  export let end;
+  
+  
+  /**
+   * @typedef {Object} Props
+   * @property {string} start
+   * @property {string} end
+   */
+
+  /** @type {Props} */
+  let { start, end } = $props();
 </script>
 
 <Tooltip.Root>

@@ -8,9 +8,15 @@
   import { cn } from '$lib/utils.js';
   import { statuses } from '$lib/data/table.js';
 
-  /** @type {import('./$types').PageData} */
-  export let data;
-  $: page = data.page;
+  
+  /**
+   * @typedef {Object} Props
+   * @property {import('./$types').PageData} data
+   */
+
+  /** @type {Props} */
+  let { data } = $props();
+  let page = $derived(data.page);
 
   /** @type {Record<string, { label: string, class: string }>} */
   const overall = {

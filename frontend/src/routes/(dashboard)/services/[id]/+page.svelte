@@ -1,9 +1,11 @@
 <script>
-  import Activity from 'lucide-svelte/icons/activity';
-  import CalendarRange from 'lucide-svelte/icons/calendar-range';
-  import HeartPulse from 'lucide-svelte/icons/heart-pulse';
-  import Timer from 'lucide-svelte/icons/timer';
-  import ChevronLeft from 'lucide-svelte/icons/chevron-left';
+  import { preventDefault } from 'svelte/legacy';
+
+  import Activity from '@lucide/svelte/icons/activity';
+  import CalendarRange from '@lucide/svelte/icons/calendar-range';
+  import HeartPulse from '@lucide/svelte/icons/heart-pulse';
+  import Timer from '@lucide/svelte/icons/timer';
+  import ChevronLeft from '@lucide/svelte/icons/chevron-left';
   import * as Card from '$lib/components/ui/card/index.js';
   import * as Select from '$lib/components/ui/select/index.js';
   import { Metric } from '$lib/components/chart/index.js';
@@ -30,17 +32,23 @@
   /** @type {import('svelte/store').Writable<Log[]>} */
   let logs = writable([]);
 
-  /** @type {import('./$types').PageData} */
-  export let data;
+
+  /**
+   * @typedef {Object} Props
+   * @property {import('./$types').PageData} data
+   */
+
+  /** @type {Props} */
+  let { data } = $props();
 
   /**
    * Channels picked for this service, once loaded.
    * @type {number[]}
    */
-  let channelIds = [];
-  let channelsLoaded = false;
+  let channelIds = $state([]);
+  let channelsLoaded = $state(false);
   /** @type {string | null} */
-  let channelsError = null;
+  let channelsError = $state(null);
 
   /**
    * @typedef {Object} Uptime
@@ -50,7 +58,7 @@
    */
 
   /** @type {{ uptime_24h: Uptime, uptime_7d: Uptime, uptime_30d: Uptime, status_since: string | null } | null} */
-  let stats = null;
+  let stats = $state(null);
 
   /** @param {number | null | undefined} percent */
   function formatPercent(percent) {
@@ -74,8 +82,8 @@
     return 'just now';
   }
 
-  $: status = statuses.find((s) => s.value === data.service.last_status);
-  $: canEdit = $user?.role === 'admin' || $user?.role === 'editor';
+  let status = $derived(statuses.find((s) => s.value === data.service.last_status));
+  let canEdit = $derived($user?.role === 'admin' || $user?.role === 'editor');
 
   onMount(async () => {
     logs.set(data.logs);
@@ -101,8 +109,8 @@
   });
 
   /** @type {string[]} */
-  let tags = data.service.tags ?? [];
-  let tagsText = tags.join(', ');
+  let tags = $state(data.service.tags ?? []);
+  let tagsText = $state(tags.join(', '));
 
   async function saveTags() {
     const res = await cfetch(`/services/${data.service.id}`, {
@@ -303,7 +311,7 @@
       <Card.Description>Labels for grouping and finding this service.</Card.Description>
     </Card.Header>
     <Card.Content>
-      <form class="flex gap-2" on:submit|preventDefault={saveTags}>
+      <form class="flex gap-2" onsubmit={preventDefault(saveTags)}>
         <Input bind:value={tagsText} placeholder="Comma-separated, e.g. prod, api" />
         <Button type="submit" size="sm">Save tags</Button>
       </form>

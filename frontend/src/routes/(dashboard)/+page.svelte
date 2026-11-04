@@ -17,10 +17,10 @@
   import { cfetch } from '$lib/utils.js';
 
   import * as Table from '$lib/components/ui/table/index.js';
-  import Activity from 'lucide-svelte/icons/activity';
-  import Timer from 'lucide-svelte/icons/timer';
-  import CircleArrowUp from 'lucide-svelte/icons/circle-arrow-up';
-  import CircleArrowDown from 'lucide-svelte/icons/circle-arrow-down';
+  import Activity from '@lucide/svelte/icons/activity';
+  import Timer from '@lucide/svelte/icons/timer';
+  import CircleArrowUp from '@lucide/svelte/icons/circle-arrow-up';
+  import CircleArrowDown from '@lucide/svelte/icons/circle-arrow-down';
   import * as Card from '$lib/components/ui/card/index.js';
 
   import MessageCell from './(components)/message-cell.svelte';
@@ -216,37 +216,45 @@
     <Table.Root {...$tableAttrs}>
       <Table.Header>
         {#each $headerRows as headerRow (headerRow.id)}
-          <Subscribe rowAttrs={headerRow.attrs()} let:rowAttrs>
-            <Table.Row {...rowAttrs}>
-              {#each headerRow.cells as cell (cell.id)}
-                <Subscribe attrs={cell.attrs()} let:attrs props={cell.props()}>
-                  <Table.Head class="py-1" {...attrs}>
-                    {#if cell.id !== 'select' && cell.id !== 'actions'}
-                      <Render of={cell.render()} />
-                    {:else}
-                      <Render of={cell.render()} />
-                    {/if}
-                  </Table.Head>
-                </Subscribe>
-              {/each}
-            </Table.Row>
-          </Subscribe>
+          <Subscribe rowAttrs={headerRow.attrs()} >
+            {#snippet children({ rowAttrs })}
+                        <Table.Row {...rowAttrs}>
+                {#each headerRow.cells as cell (cell.id)}
+                  <Subscribe attrs={cell.attrs()}  props={cell.props()}>
+                    {#snippet children({ attrs })}
+                                    <Table.Head class="py-1" {...attrs}>
+                        {#if cell.id !== 'select' && cell.id !== 'actions'}
+                          <Render of={cell.render()} />
+                        {:else}
+                          <Render of={cell.render()} />
+                        {/if}
+                      </Table.Head>
+                                                      {/snippet}
+                                </Subscribe>
+                {/each}
+              </Table.Row>
+                                  {/snippet}
+                    </Subscribe>
         {/each}
       </Table.Header>
       <Table.Body {...$tableBodyAttrs}>
         {#if $pageRows.length}
           {#each $pageRows as row (row.id)}
-            <Subscribe rowAttrs={row.attrs()} let:rowAttrs>
-              <Table.Row {...rowAttrs}>
-                {#each row.cells as cell (cell.id)}
-                  <Subscribe attrs={cell.attrs()} let:attrs>
-                    <Table.Cell class="cursor-pointer py-1" {...attrs}>
-                      <Render of={cell.render()} />
-                    </Table.Cell>
-                  </Subscribe>
-                {/each}
-              </Table.Row>
-            </Subscribe>
+            <Subscribe rowAttrs={row.attrs()} >
+              {#snippet children({ rowAttrs })}
+                            <Table.Row {...rowAttrs}>
+                  {#each row.cells as cell (cell.id)}
+                    <Subscribe attrs={cell.attrs()} >
+                      {#snippet children({ attrs })}
+                                        <Table.Cell class="cursor-pointer py-1" {...attrs}>
+                          <Render of={cell.render()} />
+                        </Table.Cell>
+                                                            {/snippet}
+                                    </Subscribe>
+                  {/each}
+                </Table.Row>
+                                        {/snippet}
+                        </Subscribe>
           {/each}
         {:else}
           <Table.Row>

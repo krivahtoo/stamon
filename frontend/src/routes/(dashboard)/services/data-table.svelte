@@ -170,47 +170,55 @@
     <Table.Root {...$tableAttrs}>
       <Table.Header>
         {#each $headerRows as headerRow (headerRow.id)}
-          <Subscribe rowAttrs={headerRow.attrs()} let:rowAttrs>
-            <Table.Row {...rowAttrs}>
-              {#each headerRow.cells as cell (cell.id)}
-                <Subscribe attrs={cell.attrs()} let:attrs props={cell.props()} let:props>
-                  <Table.Head class="py-1" {...attrs}>
-                    {#if cell.id !== 'select' && cell.id !== 'actions'}
-                      <DataTableColumnHeader {props} {tableModel} cellId={cell.id}>
-                        <Render of={cell.render()} /></DataTableColumnHeader
-                      >
-                    {:else}
-                      <Render of={cell.render()} />
-                    {/if}
-                  </Table.Head>
-                </Subscribe>
-              {/each}
-            </Table.Row>
-          </Subscribe>
+          <Subscribe rowAttrs={headerRow.attrs()} >
+            {#snippet children({ rowAttrs })}
+                        <Table.Row {...rowAttrs}>
+                {#each headerRow.cells as cell (cell.id)}
+                  <Subscribe attrs={cell.attrs()}  props={cell.props()} >
+                    {#snippet children({ attrs, props })}
+                                    <Table.Head class="py-1" {...attrs}>
+                        {#if cell.id !== 'select' && cell.id !== 'actions'}
+                          <DataTableColumnHeader {props} {tableModel} cellId={cell.id}>
+                            <Render of={cell.render()} /></DataTableColumnHeader
+                          >
+                        {:else}
+                          <Render of={cell.render()} />
+                        {/if}
+                      </Table.Head>
+                                                      {/snippet}
+                                </Subscribe>
+                {/each}
+              </Table.Row>
+                                  {/snippet}
+                    </Subscribe>
         {/each}
       </Table.Header>
       <Table.Body {...$tableBodyAttrs}>
         {#if $pageRows.length}
           {#each $pageRows as row (row.id)}
-            <Subscribe rowAttrs={row.attrs()} let:rowAttrs>
-              <Table.Row {...rowAttrs}>
-                {#each row.cells as cell (cell.id)}
-                  <Subscribe attrs={cell.attrs()} let:attrs>
-                    <Table.Cell
-                      on:click={() => {
-                        if (row.isData() && cell.id !== 'select' && cell.id !== 'actions') {
-                          goto(`/services/${row.original.id}`);
-                        }
-                      }}
-                      class="cursor-pointer py-1"
-                      {...attrs}
-                    >
-                      <Render of={cell.render()} />
-                    </Table.Cell>
-                  </Subscribe>
-                {/each}
-              </Table.Row>
-            </Subscribe>
+            <Subscribe rowAttrs={row.attrs()} >
+              {#snippet children({ rowAttrs })}
+                            <Table.Row {...rowAttrs}>
+                  {#each row.cells as cell (cell.id)}
+                    <Subscribe attrs={cell.attrs()} >
+                      {#snippet children({ attrs })}
+                                        <Table.Cell
+                          on:click={() => {
+                            if (row.isData() && cell.id !== 'select' && cell.id !== 'actions') {
+                              goto(`/services/${row.original.id}`);
+                            }
+                          }}
+                          class="cursor-pointer py-1"
+                          {...attrs}
+                        >
+                          <Render of={cell.render()} />
+                        </Table.Cell>
+                                                            {/snippet}
+                                    </Subscribe>
+                  {/each}
+                </Table.Row>
+                                        {/snippet}
+                        </Subscribe>
           {/each}
         {:else}
           <Table.Row>

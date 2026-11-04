@@ -5,8 +5,14 @@
 
   import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 
-  /** @type {number} */
-  export let serviceId;
+  
+  /**
+   * @typedef {Object} Props
+   * @property {number} serviceId
+   */
+
+  /** @type {Props} */
+  let { serviceId } = $props();
 
   /**
    * @typedef {Object} Log
@@ -17,7 +23,7 @@
    */
 
   /** @type {Log[]} */
-  let statuses = [];
+  let statuses = $state([]);
   // Define the tailwind classes for each status
   /** @type {string[]} */
   const statusClasses = [

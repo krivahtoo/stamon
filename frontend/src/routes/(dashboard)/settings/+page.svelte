@@ -1,4 +1,6 @@
 <script>
+  import { preventDefault } from 'svelte/legacy';
+
   import { toast } from 'svelte-sonner';
 
   import { Button } from '$lib/components/ui/button/index.js';
@@ -15,20 +17,20 @@
   const timezones = Intl.supportedValuesOf?.('timeZone') ?? [];
 
   // '' follows the browser.
-  let timezone = $user?.timezone ?? '';
-  let savingProfile = false;
+  let timezone = $state($user?.timezone ?? '');
+  let savingProfile = $state(false);
 
-  let current = '';
-  let next = '';
-  let confirm = '';
-  let savingPassword = false;
+  let current = $state('');
+  let next = $state('');
+  let confirm = $state('');
+  let savingPassword = $state(false);
 
-  $: passwordError =
-    next && next.length < MIN_PASSWORD_LEN
+  let passwordError =
+    $derived(next && next.length < MIN_PASSWORD_LEN
       ? `Use at least ${MIN_PASSWORD_LEN} characters.`
       : confirm && confirm !== next
         ? "The passwords don't match."
-        : '';
+        : '');
 
   async function saveProfile() {
     savingProfile = true;
@@ -75,7 +77,7 @@
     <dt class="text-muted-foreground">Role</dt>
     <dd class="font-medium capitalize">{$user?.role}</dd>
   </dl>
-  <form class="space-y-4" on:submit|preventDefault={saveProfile}>
+  <form class="space-y-4" onsubmit={preventDefault(saveProfile)}>
     <div class="grid gap-2">
       <Label for="timezone">Timezone</Label>
       <select
@@ -101,7 +103,7 @@
     <h3 class="text-lg font-semibold">2. Password</h3>
     <p class="text-sm text-muted-foreground">You'll stay signed in on this device.</p>
   </div>
-  <form class="space-y-4" on:submit|preventDefault={changePassword}>
+  <form class="space-y-4" onsubmit={preventDefault(changePassword)}>
     <div class="grid gap-2">
       <Label for="current-password">Current password</Label>
       <Input

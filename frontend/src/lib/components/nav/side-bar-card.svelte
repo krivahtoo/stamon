@@ -4,20 +4,31 @@
 
   import { toast } from 'svelte-sonner';
 
-  /** @type {string} */
-  export let title = 'Upgrade to pro';
+  
 
-  /** @type {string} */
-  export let description = 'Unlock all features and get unlimited access to our support team.';
+  
 
-  /** @type {string} */
-  export let buttonText = 'Upgrade';
+  
 
-  /** @type {string|undefined} */
-  export let buttonHref = undefined;
+  
 
-  /** @type {() => void} */
-  export let callback = () => {
+  
+  /**
+   * @typedef {Object} Props
+   * @property {string} [title]
+   * @property {string} [description]
+   * @property {string} [buttonText]
+   * @property {string|undefined} [buttonHref]
+   * @property {() => void} [callback]
+   */
+
+  /** @type {Props} */
+  let {
+    title = 'Upgrade to pro',
+    description = 'Unlock all features and get unlimited access to our support team.',
+    buttonText = 'Upgrade',
+    buttonHref = undefined,
+    callback = () => {
     toast.error('Event has been created', {
       description: 'Sunday, December 03, 2023 at 9:00 AM',
       action: {
@@ -25,7 +36,8 @@
         onClick: () => console.info('Undo')
       }
     });
-  };
+  }
+  } = $props();
 </script>
 
 <Card.Root

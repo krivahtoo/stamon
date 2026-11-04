@@ -1,8 +1,10 @@
 <script>
+  import { preventDefault } from 'svelte/legacy';
+
   import { onMount } from 'svelte';
   import { fly } from 'svelte/transition';
   import { toast } from 'svelte-sonner';
-  import ChevronLeft from 'lucide-svelte/icons/chevron-left';
+  import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 
   import { Button } from '$lib/components/ui/button/index.js';
   import { Footer } from '$lib/components/ui/dialog/index.js';
@@ -127,7 +129,7 @@
   }
 
   /** @type {NewService} */
-  let newService = emptyService();
+  let newService = $state(emptyService());
 
   onMount(async () => {
     const res = await cfetch('/settings').catch(() => null);
@@ -312,7 +314,7 @@
 
 <Separator class="my-1" />
 
-<form on:submit|preventDefault={addService}>
+<form onsubmit={preventDefault(addService)}>
   <div class="grid gap-4 py-4">
     <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
       <Label for="name" class="sm:text-right">Name</Label>
