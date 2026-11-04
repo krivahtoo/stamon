@@ -4,6 +4,7 @@
 	import PanelLeft from "@lucide/svelte/icons/panel-left";
 	import { useSidebar } from "./context.svelte.js";
 
+	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -12,14 +13,17 @@
 	} = $props();
 
 	const sidebar = useSidebar();
+
+	/** @param {MouseEvent} e */
+	function handleClick(e) {
+		onclick?.(e);
+		sidebar.toggle();
+	}
 </script>
 
 <Button
 	type="button"
-	onclick={(e) => {
-		onclick?.(e);
-		sidebar.toggle();
-	}}
+	onclick={handleClick}
 	data-sidebar="trigger"
 	variant="ghost"
 	size="icon"

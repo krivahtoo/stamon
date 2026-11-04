@@ -3,6 +3,7 @@
 	import { cn } from "$lib/utils.js";
 	import { buttonVariants } from "$lib/components/ui/button/index.js";
 
+	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,

@@ -2,6 +2,7 @@
 	import { cn } from "$lib/utils.js";
 	import { Popover as PopoverPrimitive } from "bits-ui";
 
+	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,

@@ -15,6 +15,6 @@
     </p>
   {/if}
   <div class="mt-10 flex items-center justify-center gap-x-6">
-    <Button on:click={() => history.back()}>Go back</Button>
+    <Button onclick={() => history.back()}>Go back</Button>
   </div>
 </div>

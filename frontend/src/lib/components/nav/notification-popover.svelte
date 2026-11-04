@@ -10,9 +10,9 @@
 </script>
 
 <Popover.Root>
-  <Popover.Trigger asChild >
-    {#snippet children({ builder })}
-        <Button builders={[builder]} variant="outline" size="icon" class="ml-auto h-8 w-8">
+  <Popover.Trigger>
+    {#snippet child({ props })}
+        <Button {...props} variant="outline" size="icon" class="ml-auto h-8 w-8">
         <Bell class="h-4 w-4" />
         <span class="sr-only">Toggle notifications</span>
       </Button>

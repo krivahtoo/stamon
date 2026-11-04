@@ -51,6 +51,6 @@
     </Card.Description>
   </Card.Header>
   <Card.Content class="p-2 pt-0 md:p-4 md:pt-0">
-    <Button size="sm" class="w-full" on:click={callback} href={buttonHref}>{buttonText}</Button>
+    <Button size="sm" class="w-full" onclick={callback} href={buttonHref}>{buttonText}</Button>
   </Card.Content>
 </Card.Root>

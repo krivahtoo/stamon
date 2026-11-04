@@ -23,6 +23,7 @@
 <script>
 	import { cn } from "$lib/utils.js";
 
+	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		href,

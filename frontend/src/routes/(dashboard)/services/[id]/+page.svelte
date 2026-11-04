@@ -46,6 +46,10 @@
    * @type {number[]}
    */
   let channelIds = $state([]);
+  /** Selected ping range (UI only for now - not yet wired to the chart). */
+  let range = $state('');
+  /** @type {Record<string, string>} */
+  const rangeLabels = { draft: '6 hours', published: '12 hours', archived: '24 hours' };
   let channelsLoaded = $state(false);
   /** @type {string | null} */
   let channelsError = $state(null);
@@ -158,7 +162,7 @@
     variant="ghost"
     size="icon"
     class="h-7 w-7 md:mx-6 lg:mx-10 lg:h-auto lg:w-auto lg:p-2"
-    on:click={() => history.back()}
+    onclick={() => history.back()}
   >
     <ChevronLeft class="h-4 w-4" />
     <span class="sr-only lg:not-sr-only">Back</span>
@@ -264,9 +268,9 @@
     <Card.Title>Ping</Card.Title>
     <Card.Description class="flex flex-row">
       <div class="">Avarage latency for the last few requests.</div>
-      <Select.Root>
+      <Select.Root type="single" bind:value={range}>
         <Select.Trigger id="status" aria-label="Select range" class="ml-auto w-auto pr-2">
-          <Select.Value placeholder="Select range" />
+          {rangeLabels[range] ?? 'Select range'}
         </Select.Trigger>
         <Select.Content class="w-auto">
           <Select.Item value="draft" label="Draft">6 hours</Select.Item>
@@ -299,7 +303,7 @@
   </Card.Content>
   {#if canEdit}
     <Card.Footer>
-      <Button size="sm" on:click={saveChannels} disabled={!channelsLoaded}>Save channels</Button>
+      <Button size="sm" onclick={saveChannels} disabled={!channelsLoaded}>Save channels</Button>
     </Card.Footer>
   {/if}
 </Card.Root>

@@ -26,7 +26,7 @@
     <h3 class="text-lg font-semibold">Theme</h3>
     <p class="text-sm text-muted-foreground">Saved in this browser only.</p>
   </div>
-  <RadioGroup.Root value={$userPrefersMode} onValueChange={choose} class="grid gap-3">
+  <RadioGroup.Root value={userPrefersMode.current} onValueChange={choose} class="grid gap-3">
     {#each options as option (option.value)}
       <div class="flex items-center gap-3">
         <RadioGroup.Item value={option.value} id={`theme-${option.value}`} />

@@ -1,4 +1,5 @@
 <script>
+	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		children,

@@ -4,6 +4,7 @@
 	import Minus from "@lucide/svelte/icons/minus";
 	import { cn } from "$lib/utils.js";
 
+	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		checked = $bindable(false),

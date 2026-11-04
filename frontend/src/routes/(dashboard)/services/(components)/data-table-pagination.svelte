@@ -34,11 +34,12 @@
     <div class="hidden items-center space-x-2 md:flex">
       <p class="text-sm font-medium">Rows per page</p>
       <Select.Root
-        onSelectedChange={(selected) => pageSize.set(Number(selected?.value))}
-        selected={{ value: 10, label: '10' }}
+        type="single"
+        value={String($pageSize)}
+        onValueChange={(value) => pageSize.set(Number(value))}
       >
         <Select.Trigger class="h-8 w-[70px]">
-          <Select.Value placeholder="Select page size" />
+          {$pageSize}
         </Select.Trigger>
         <Select.Content>
           <Select.Item value="5">5</Select.Item>
@@ -56,7 +57,7 @@
       <Button
         variant="outline"
         class="hidden h-8 w-8 p-0 lg:flex"
-        on:click={() => ($pageIndex = 0)}
+        onclick={() => ($pageIndex = 0)}
         disabled={!$hasPreviousPage}
       >
         <span class="sr-only">Go to first page</span>
@@ -65,7 +66,7 @@
       <Button
         variant="outline"
         class="h-8 w-8 p-0"
-        on:click={() => ($pageIndex = $pageIndex - 1)}
+        onclick={() => ($pageIndex = $pageIndex - 1)}
         disabled={!$hasPreviousPage}
       >
         <span class="sr-only">Go to previous page</span>
@@ -75,7 +76,7 @@
         variant="outline"
         class="h-8 w-8 p-0"
         disabled={!$hasNextPage}
-        on:click={() => ($pageIndex = $pageIndex + 1)}
+        onclick={() => ($pageIndex = $pageIndex + 1)}
       >
         <span class="sr-only">Go to next page</span>
         <ChevronRight size={15} />
@@ -84,7 +85,7 @@
         variant="outline"
         class="hidden h-8 w-8 p-0 lg:flex"
         disabled={!$hasNextPage}
-        on:click={() => ($pageIndex = Math.ceil($rows.length / $pageRows.length) - 1)}
+        onclick={() => ($pageIndex = Math.ceil($rows.length / $pageRows.length) - 1)}
       >
         <span class="sr-only">Go to last page</span>
         <ChevronsRight size={15} />

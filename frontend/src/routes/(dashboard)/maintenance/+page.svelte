@@ -195,7 +195,7 @@
     </p>
   </div>
   {#if canEdit}
-    <Button on:click={add}>Schedule maintenance</Button>
+    <Button onclick={add}>Schedule maintenance</Button>
   {/if}
 </div>
 
@@ -236,12 +236,12 @@
             </Card.Content>
             {#if canEdit}
               <Card.Footer class="gap-2">
-                <Button size="sm" variant="outline" on:click={() => edit(window)}>Edit</Button>
+                <Button size="sm" variant="outline" onclick={() => edit(window)}>Edit</Button>
                 <Button
                   size="sm"
                   variant="ghost"
                   class="ml-auto text-destructive"
-                  on:click={() => (deleting = window)}>Delete</Button
+                  onclick={() => (deleting = window)}>Delete</Button
                 >
               </Card.Footer>
             {/if}
@@ -302,7 +302,7 @@
       {/if}
     </form>
     <Dialog.Footer>
-      <Button variant="outline" on:click={() => (formOpen = false)}>Cancel</Button>
+      <Button variant="outline" onclick={() => (formOpen = false)}>Cancel</Button>
       <Button type="submit" form="maintenance-form">{editing ? 'Save' : 'Schedule'}</Button>
     </Dialog.Footer>
   </Dialog.Content>
@@ -317,8 +317,8 @@
       </Dialog.Description>
     </Dialog.Header>
     <Dialog.Footer>
-      <Button variant="outline" on:click={() => (deleting = null)}>Cancel</Button>
-      <Button variant="destructive" on:click={confirmDelete}>Yes, delete</Button>
+      <Button variant="outline" onclick={() => (deleting = null)}>Cancel</Button>
+      <Button variant="destructive" onclick={confirmDelete}>Yes, delete</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>

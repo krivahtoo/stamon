@@ -3,13 +3,16 @@ import { getContext, setContext } from "svelte";
 import { SIDEBAR_KEYBOARD_SHORTCUT } from "./constants.js";
 
 class SidebarState {
-	 props;
+	/** @type {{ open: () => boolean, setOpen: (value: boolean) => void }} */
+	props;
 	open = $derived.by(() => this.props.open());
 	openMobile = $state(false);
+	/** @type {(value: boolean) => void} */
 	setOpen;
 	#isMobile;
 	state = $derived.by(() => (this.open ? "expanded" : "collapsed"));
 
+	/** @param {{ open: () => boolean, setOpen: (value: boolean) => void }} props */
 	constructor(props) {
 		this.setOpen = props.setOpen;
 		this.#isMobile = new IsMobile();
@@ -23,6 +26,7 @@ class SidebarState {
 	}
 
 	// Event handler to apply to the `<svelte:window>`
+	/** @param {KeyboardEvent} e */
 	handleShortcutKeydown = (e) => {
 		if (e.key === SIDEBAR_KEYBOARD_SHORTCUT && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
@@ -30,6 +34,7 @@ class SidebarState {
 		}
 	};
 
+	/** @param {boolean} value */
 	setOpenMobile = (value) => {
 		this.openMobile = value;
 	};
@@ -46,7 +51,7 @@ const SYMBOL_KEY = "scn-sidebar";
 /**
  * Instantiates a new `SidebarState` instance and sets it in the context.
  *
- * @param props The constructor props for the `SidebarState` class.
+ * @param {{ open: () => boolean, setOpen: (value: boolean) => void }} props The constructor props for the `SidebarState` class.
  * @returns  The `SidebarState` instance.
  */
 export function setSidebar(props) {
@@ -56,8 +61,8 @@ export function setSidebar(props) {
 /**
  * Retrieves the `SidebarState` instance from the context. This is a class instance,
  * so you cannot destructure it.
- * @returns The `SidebarState` instance.
+ * @returns {SidebarState} The `SidebarState` instance.
  */
 export function useSidebar() {
-	return getContext(Symbol.for(SYMBOL_KEY));
+	return /** @type {SidebarState} */ (getContext(Symbol.for(SYMBOL_KEY)));
 }

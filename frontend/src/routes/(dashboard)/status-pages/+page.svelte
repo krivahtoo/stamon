@@ -166,7 +166,7 @@
     <p class="text-muted-foreground">Public pages showing the status of chosen services.</p>
   </div>
   {#if canEdit}
-    <Button on:click={add}>New status page</Button>
+    <Button onclick={add}>New status page</Button>
   {/if}
 </div>
 
@@ -180,7 +180,7 @@
         Share a page so users can see what's up without an account.
       </p>
       {#if canEdit}
-        <Button class="mt-4" on:click={add}>New status page</Button>
+        <Button class="mt-4" onclick={add}>New status page</Button>
       {/if}
     </div>
   </section>
@@ -210,12 +210,12 @@
         </Card.Content>
         {#if canEdit}
           <Card.Footer class="gap-2">
-            <Button size="sm" variant="outline" on:click={() => edit(page)}>Edit</Button>
+            <Button size="sm" variant="outline" onclick={() => edit(page)}>Edit</Button>
             <Button
               size="sm"
               variant="ghost"
               class="ml-auto text-destructive"
-              on:click={() => (deleting = page)}>Delete</Button
+              onclick={() => (deleting = page)}>Delete</Button
             >
           </Card.Footer>
         {/if}
@@ -242,7 +242,7 @@
         <Input
           id="slug"
           bind:value={form.slug}
-          on:input={() => (slugTouched = true)}
+          oninput={() => (slugTouched = true)}
           placeholder="acme"
           pattern="[a-z0-9]+(-[a-z0-9]+)*"
           required
@@ -286,7 +286,7 @@
       </div>
     </form>
     <Dialog.Footer>
-      <Button variant="outline" on:click={() => (formOpen = false)}>Cancel</Button>
+      <Button variant="outline" onclick={() => (formOpen = false)}>Cancel</Button>
       <Button type="submit" form="status-page-form">{editing ? 'Save' : 'Create'}</Button>
     </Dialog.Footer>
   </Dialog.Content>
@@ -301,8 +301,8 @@
       </Dialog.Description>
     </Dialog.Header>
     <Dialog.Footer>
-      <Button variant="outline" on:click={() => (deleting = null)}>Cancel</Button>
-      <Button variant="destructive" on:click={confirmDelete}>Yes, delete</Button>
+      <Button variant="outline" onclick={() => (deleting = null)}>Cancel</Button>
+      <Button variant="destructive" onclick={confirmDelete}>Yes, delete</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>

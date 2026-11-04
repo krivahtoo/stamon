@@ -2,6 +2,7 @@
 	import { Toaster as Sonner } from "svelte-sonner";
 	import { mode } from "mode-watcher";
 
+	/** @type {any} */
 	let { ...restProps } = $props();
 </script>
 

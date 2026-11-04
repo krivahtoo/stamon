@@ -73,7 +73,7 @@
       id: 'message',
       cell: ({ value, row }) => {
         if (row.isData()) {
-          return createRender(MessageCell, {
+          return createRender(/** @type {any} */ (MessageCell), {
             message: value,
             statusId: row.original.status
           });
@@ -87,7 +87,7 @@
       id: 'duration',
       cell: ({ row }) => {
         if (row.isData()) {
-          return createRender(DurationCell, {
+          return createRender(/** @type {any} */ (DurationCell), {
             start: row.original.start,
             end: row.original.end
           });
@@ -111,7 +111,7 @@
       id: 'date',
       cell: ({ value, row }) => {
         if (row.isData()) {
-          return createRender(DateCell, {
+          return createRender(/** @type {any} */ (DateCell), {
             date: value
           });
         }
@@ -216,12 +216,10 @@
     <Table.Root {...$tableAttrs}>
       <Table.Header>
         {#each $headerRows as headerRow (headerRow.id)}
-          <Subscribe rowAttrs={headerRow.attrs()} >
-            {#snippet children({ rowAttrs })}
+          <Subscribe rowAttrs={headerRow.attrs()}  let:rowAttrs>
                         <Table.Row {...rowAttrs}>
                 {#each headerRow.cells as cell (cell.id)}
-                  <Subscribe attrs={cell.attrs()}  props={cell.props()}>
-                    {#snippet children({ attrs })}
+                  <Subscribe attrs={cell.attrs()}  props={cell.props()} let:attrs>
                                     <Table.Head class="py-1" {...attrs}>
                         {#if cell.id !== 'select' && cell.id !== 'actions'}
                           <Render of={cell.render()} />
@@ -229,31 +227,29 @@
                           <Render of={cell.render()} />
                         {/if}
                       </Table.Head>
-                                                      {/snippet}
+                                                      
                                 </Subscribe>
                 {/each}
               </Table.Row>
-                                  {/snippet}
+                                  
                     </Subscribe>
         {/each}
       </Table.Header>
       <Table.Body {...$tableBodyAttrs}>
         {#if $pageRows.length}
           {#each $pageRows as row (row.id)}
-            <Subscribe rowAttrs={row.attrs()} >
-              {#snippet children({ rowAttrs })}
+            <Subscribe rowAttrs={row.attrs()}  let:rowAttrs>
                             <Table.Row {...rowAttrs}>
                   {#each row.cells as cell (cell.id)}
-                    <Subscribe attrs={cell.attrs()} >
-                      {#snippet children({ attrs })}
+                    <Subscribe attrs={cell.attrs()}  let:attrs>
                                         <Table.Cell class="cursor-pointer py-1" {...attrs}>
                           <Render of={cell.render()} />
                         </Table.Cell>
-                                                            {/snippet}
+                                                            
                                     </Subscribe>
                   {/each}
                 </Table.Row>
-                                        {/snippet}
+                                        
                         </Subscribe>
           {/each}
         {:else}
