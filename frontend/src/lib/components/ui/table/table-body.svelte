@@ -1,7 +1,5 @@
 <script>
 	import { cn } from "$lib/utils.js";
-
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -10,6 +8,6 @@
 	} = $props();
 </script>
 
-<tbody bind:this={ref} class={cn("[&_tr:last-child]:border-0", className)} {...restProps}>
+<tbody bind:this={ref} data-slot="table-body" class={cn("[&_tr:last-child]:border-0", className)} {...restProps}>
 	{@render children?.()}
 </tbody>

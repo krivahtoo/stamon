@@ -2,7 +2,6 @@
 	import * as FormPrimitive from "formsnap";
 	import { cn } from "$lib/utils.js";
 
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -12,6 +11,7 @@
 
 <FormPrimitive.Description
 	bind:ref
-	class={cn("text-muted-foreground text-sm", className)}
+	data-slot="form-description"
+	class={cn("text-sm text-muted-foreground", className)}
 	{...restProps}
 />

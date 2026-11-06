@@ -96,7 +96,7 @@ jobs:
           version: 9.7.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - run: pnpm install
         working-directory: ./frontend
       - run: pnpm run build

@@ -1,14 +1,9 @@
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
 import { cubicOut } from 'svelte/easing';
 import user from './store/user.js';
 import { dev } from '$app/environment';
 import { get } from 'svelte/store';
 
-/** @param {...import('clsx').ClassValue} inputs tailwind classes to merge. */
-export function cn(...inputs) {
-  return twMerge(clsx(inputs));
-}
+export { cn } from "cn";
 
 /**
  * @param {string} path

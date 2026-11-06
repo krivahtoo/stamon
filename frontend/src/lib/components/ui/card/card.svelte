@@ -1,18 +1,19 @@
 <script>
 	import { cn } from "$lib/utils.js";
-
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
 		children,
+		size = "default",
 		...restProps
 	} = $props();
 </script>
 
 <div
 	bind:this={ref}
-	class={cn("bg-card text-card-foreground rounded-lg border shadow-sm", className)}
+	data-slot="card"
+	data-size={size}
+	class={cn("ring-foreground/10 bg-card text-card-foreground gap-(--card-spacing) overflow-hidden rounded-lg py-(--card-spacing) text-xs/relaxed ring-1 [--card-spacing:--spacing(4)] has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] *:[img:first-child]:rounded-t-lg *:[img:last-child]:rounded-b-lg group/card flex flex-col", className)}
 	{...restProps}
 >
 	{@render children?.()}

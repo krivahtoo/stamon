@@ -1,7 +1,5 @@
 <script>
 	import { cn } from "$lib/utils.js";
-
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -10,6 +8,11 @@
 	} = $props();
 </script>
 
-<div bind:this={ref} class={cn("p-6", className)} {...restProps}>
+<div
+	bind:this={ref}
+	data-slot="card-content"
+	class={cn("px-(--card-spacing)", className)}
+	{...restProps}
+>
 	{@render children?.()}
 </div>

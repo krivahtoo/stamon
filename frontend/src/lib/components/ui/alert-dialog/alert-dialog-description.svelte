@@ -2,7 +2,6 @@
 	import { AlertDialog as AlertDialogPrimitive } from "bits-ui";
 	import { cn } from "$lib/utils.js";
 
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -12,6 +11,7 @@
 
 <AlertDialogPrimitive.Description
 	bind:ref
-	class={cn("text-muted-foreground text-sm", className)}
+	data-slot="alert-dialog-description"
+	class={cn("text-muted-foreground *:[a]:hover:text-foreground text-xs/relaxed text-balance md:text-pretty *:[a]:underline *:[a]:underline-offset-3", className)}
 	{...restProps}
 />

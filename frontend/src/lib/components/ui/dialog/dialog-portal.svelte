@@ -1,14 +1,7 @@
 <script>
-  import { Dialog as DialogPrimitive } from 'bits-ui';
-  /**
-   * @typedef {Object} Props
-   * @property {import('svelte').Snippet} [children]
-   */
+	import { Dialog as DialogPrimitive } from "bits-ui";
 
-  /** @type {Props & { [key: string]: any }} */
-  let { children, ...rest } = $props();
+	let { ...restProps } = $props();
 </script>
 
-<DialogPrimitive.Portal {...rest}>
-  {@render children?.()}
-</DialogPrimitive.Portal>
+<DialogPrimitive.Portal {...restProps} />

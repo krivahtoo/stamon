@@ -1,7 +1,5 @@
 <script>
 	import { cn } from "$lib/utils.js";
-
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -12,10 +10,8 @@
 
 <tr
 	bind:this={ref}
-	class={cn(
-		"hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
-		className
-	)}
+	data-slot="table-row"
+	class={cn("hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors has-aria-expanded:bg-muted/50", className)}
 	{...restProps}
 >
 	{@render children?.()}

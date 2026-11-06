@@ -1,6 +1,5 @@
 <script>
 	import { cn } from "$lib/utils.js";
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -12,7 +11,9 @@
 
 <div
 	bind:this={ref}
-	class={cn("px-2 py-1.5 text-sm font-semibold", inset && "pl-8", className)}
+	data-slot="dropdown-menu-label"
+	data-inset={inset}
+	class={cn("text-muted-foreground px-2 py-1.5 text-xs data-inset:pl-7.5", className)}
 	{...restProps}
 >
 	{@render children?.()}

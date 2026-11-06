@@ -1,10 +1,8 @@
 <script>
+	import PanelLeftIcon from '@lucide/svelte/icons/panel-left';
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { cn } from "$lib/utils.js";
-	import PanelLeft from "@lucide/svelte/icons/panel-left";
 	import { useSidebar } from "./context.svelte.js";
-
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -13,23 +11,22 @@
 	} = $props();
 
 	const sidebar = useSidebar();
-
-	/** @param {MouseEvent} e */
-	function handleClick(e) {
-		onclick?.(e);
-		sidebar.toggle();
-	}
 </script>
 
 <Button
-	type="button"
-	onclick={handleClick}
+	bind:ref
 	data-sidebar="trigger"
+	data-slot="sidebar-trigger"
 	variant="ghost"
-	size="icon"
-	class={cn("h-7 w-7", className)}
+	size="icon-sm"
+	class={cn(className)}
+	type="button"
+	onclick={(e) => {
+		onclick?.(e);
+		sidebar.toggle();
+	}}
 	{...restProps}
 >
-	<PanelLeft />
+	<PanelLeftIcon class="cn-rtl-flip" />
 	<span class="sr-only">Toggle Sidebar</span>
 </Button>

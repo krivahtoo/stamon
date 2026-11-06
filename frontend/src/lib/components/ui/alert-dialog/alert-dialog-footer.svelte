@@ -1,7 +1,5 @@
 <script>
 	import { cn } from "$lib/utils.js";
-
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -12,7 +10,11 @@
 
 <div
 	bind:this={ref}
-	class={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)}
+	data-slot="alert-dialog-footer"
+	class={cn(
+		"flex flex-col-reverse gap-2 group-data-[size=sm]/alert-dialog-content:grid group-data-[size=sm]/alert-dialog-content:grid-cols-2 sm:flex-row sm:justify-end",
+		className
+	)}
 	{...restProps}
 >
 	{@render children?.()}
