@@ -2,12 +2,11 @@
 	import { tv } from "tailwind-variants";
 
 	export const alertVariants = tv({
-		base: "[&>svg]:text-foreground relative w-full rounded-lg border p-4 [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg~*]:pl-7",
+		base: "grid gap-0.5 rounded-lg border px-2 py-1.5 text-left text-xs/relaxed has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-1.5 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-3.5 group/alert relative w-full",
 		variants: {
 			variant: {
-				default: "bg-background text-foreground",
-				destructive:
-					"border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+				default: "bg-card text-card-foreground",
+				destructive: "text-destructive bg-card *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
 			},
 		},
 		defaultVariants: {
@@ -18,8 +17,6 @@
 
 <script>
 	import { cn } from "$lib/utils.js";
-
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -29,6 +26,12 @@
 	} = $props();
 </script>
 
-<div bind:this={ref} class={cn(alertVariants({ variant }), className)} {...restProps} role="alert">
+<div
+	bind:this={ref}
+	data-slot="alert"
+	role="alert"
+	class={cn(alertVariants({ variant }), className)}
+	{...restProps}
+>
 	{@render children?.()}
 </div>

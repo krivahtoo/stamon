@@ -1,7 +1,5 @@
 <script>
 	import { cn } from "$lib/utils.js";
-
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -11,6 +9,7 @@
 
 <div
 	bind:this={ref}
-	class={cn("bg-muted animate-pulse rounded-md", className)}
+	data-slot="skeleton"
+	class={cn("bg-muted rounded-md animate-pulse", className)}
 	{...restProps}
 ></div>

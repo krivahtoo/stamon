@@ -2,7 +2,6 @@
 	import * as FormPrimitive from "formsnap";
 	import { cn } from "$lib/utils.js";
 
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -14,7 +13,7 @@
 
 <FormPrimitive.FieldErrors
 	bind:ref
-	class={cn("text-destructive text-sm font-medium", className)}
+	class={cn("text-sm font-medium text-destructive", className)}
 	{...restProps}
 >
 	{#snippet children({ errors, errorProps })}

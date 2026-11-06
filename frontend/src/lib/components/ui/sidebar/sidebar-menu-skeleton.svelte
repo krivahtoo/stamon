@@ -1,7 +1,6 @@
 <script>
 	import { Skeleton } from "$lib/components/ui/skeleton/index.js";
 	import { cn } from "$lib/utils.js";
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -16,15 +15,16 @@
 
 <div
 	bind:this={ref}
+	data-slot="sidebar-menu-skeleton"
 	data-sidebar="menu-skeleton"
-	class={cn("flex h-8 items-center gap-2 rounded-md px-2", className)}
+	class={cn("h-8 gap-2 rounded-md px-2 flex items-center", className)}
 	{...restProps}
 >
 	{#if showIcon}
 		<Skeleton class="size-4 rounded-md" data-sidebar="menu-skeleton-icon" />
 	{/if}
 	<Skeleton
-		class="h-4 max-w-[var(--skeleton-width)] flex-1"
+		class="h-4 max-w-(--skeleton-width) flex-1"
 		data-sidebar="menu-skeleton-text"
 		style="--skeleton-width: {width};"
 	/>

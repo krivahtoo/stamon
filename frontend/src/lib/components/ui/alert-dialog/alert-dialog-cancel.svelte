@@ -3,16 +3,18 @@
 	import { buttonVariants } from "$lib/components/ui/button/index.js";
 	import { cn } from "$lib/utils.js";
 
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
+		variant = "outline",
+		size = "default",
 		...restProps
 	} = $props();
 </script>
 
 <AlertDialogPrimitive.Cancel
 	bind:ref
-	class={cn(buttonVariants({ variant: "outline" }), "mt-2 sm:mt-0", className)}
+	data-slot="alert-dialog-cancel"
+	class={cn(buttonVariants({ variant, size }), "", className)}
 	{...restProps}
 />

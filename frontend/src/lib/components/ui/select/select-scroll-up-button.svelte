@@ -1,9 +1,8 @@
 <script>
-	import ChevronUp from "@lucide/svelte/icons/chevron-up";
 	import { Select as SelectPrimitive } from "bits-ui";
+	import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
 	import { cn } from "$lib/utils.js";
 
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -13,8 +12,9 @@
 
 <SelectPrimitive.ScrollUpButton
 	bind:ref
-	class={cn("flex cursor-default items-center justify-center py-1", className)}
+	data-slot="select-scroll-up-button"
+	class={cn("bg-popover z-10 flex cursor-default items-center justify-center py-1 [&_svg:not([class*='size-'])]:size-3.5", className)}
 	{...restProps}
 >
-	<ChevronUp class="size-4" />
+	<ChevronUpIcon  />
 </SelectPrimitive.ScrollUpButton>

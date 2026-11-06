@@ -1,7 +1,6 @@
 <script>
 	import { Separator } from "$lib/components/ui/separator/index.js";
 	import { cn } from "$lib/utils.js";
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -11,6 +10,7 @@
 
 <Separator
 	bind:ref
+	data-slot="sidebar-separator"
 	data-sidebar="separator"
 	class={cn("bg-sidebar-border mx-2 w-auto", className)}
 	{...restProps}

@@ -1,7 +1,5 @@
 <script>
 	import { cn } from "$lib/utils.js";
-
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -10,8 +8,8 @@
 	} = $props();
 </script>
 
-<div class="relative w-full overflow-auto">
-	<table bind:this={ref} class={cn("w-full caption-bottom text-sm", className)} {...restProps}>
+<div data-slot="table-container" class="relative w-full overflow-x-auto">
+	<table bind:this={ref} data-slot="table" class={cn("w-full caption-bottom text-xs", className)} {...restProps}>
 		{@render children?.()}
 	</table>
 </div>

@@ -1,7 +1,5 @@
 <script>
 	import { cn } from "$lib/utils.js";
-
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -10,10 +8,6 @@
 	} = $props();
 </script>
 
-<td
-	bind:this={ref}
-	class={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
-	{...restProps}
->
+<td bind:this={ref} data-slot="table-cell" class={cn("p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0", className)} {...restProps}>
 	{@render children?.()}
 </td>

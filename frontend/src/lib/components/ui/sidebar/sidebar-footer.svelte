@@ -1,7 +1,5 @@
 <script>
 	import { cn } from "$lib/utils.js";
-
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -12,8 +10,9 @@
 
 <div
 	bind:this={ref}
+	data-slot="sidebar-footer"
 	data-sidebar="footer"
-	class={cn("flex flex-col gap-2 p-2", className)}
+	class={cn("gap-2 p-2 flex flex-col", className)}
 	{...restProps}
 >
 	{@render children?.()}

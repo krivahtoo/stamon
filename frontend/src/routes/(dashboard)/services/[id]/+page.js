@@ -33,3 +33,7 @@ export async function load({ params }) {
 
 // this page has dynamic data so don't prerender
 export const prerender = false;
+
+// These loads call the backend through the relative /api URL, which only the
+// browser can reach (the dev proxy / reverse proxy), so they must not run on the server.
+export const ssr = false;

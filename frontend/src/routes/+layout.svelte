@@ -1,13 +1,14 @@
 <script>
   import { ModeWatcher } from 'mode-watcher';
   import { Toaster } from '$lib/components/ui/sonner/index.js';
+  import * as Tooltip from '$lib/components/ui/tooltip/index.js';
   import { onMount } from 'svelte';
   import user from '$lib/store/user.js';
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { onNavigate } from '$app/navigation';
 
-  import '../app.pcss';
+  import '../app.css';
   /**
    * @typedef {Object} Props
    * @property {import('svelte').Snippet} [children]
@@ -41,9 +42,11 @@
 
 <Toaster richColors closeButton />
 
-<div class="flex min-h-screen w-full flex-col dark:border-primary/50">
-  {@render children?.()}
-</div>
+<Tooltip.Provider>
+  <div class="flex min-h-screen w-full flex-col dark:border-primary/50">
+    {@render children?.()}
+  </div>
+</Tooltip.Provider>
 
 <style>
   @keyframes fade-in {

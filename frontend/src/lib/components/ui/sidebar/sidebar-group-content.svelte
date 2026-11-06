@@ -1,6 +1,5 @@
 <script>
 	import { cn } from "$lib/utils.js";
-	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -11,8 +10,9 @@
 
 <div
 	bind:this={ref}
+	data-slot="sidebar-group-content"
 	data-sidebar="group-content"
-	class={cn("w-full text-sm", className)}
+	class={cn("text-xs w-full", className)}
 	{...restProps}
 >
 	{@render children?.()}

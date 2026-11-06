@@ -1,8 +1,8 @@
 {
 	"$schema": "https://shadcn-svelte.com/schema.json",
 	"tailwind": {
-		"css": "src/app.pcss",
-		"baseColor": "slate"
+		"css": "src/app.css",
+		"baseColor": "olive"
 	},
 	"aliases": {
 		"components": "$lib/components",
@@ -12,9 +12,9 @@
 		"lib": "$lib"
 	},
 	"typescript": false,
-	"registry": "https://tw3.shadcn-svelte.com/registry/default",
-	"style": "default",
+	"registry": "https://shadcn-svelte.com/registry",
+	"style": "mira",
 	"iconLibrary": "lucide",
-	"menuColor": "default",
+	"menuColor": "default-translucent",
 	"menuAccent": "subtle"
 }
