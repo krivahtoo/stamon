@@ -3,7 +3,8 @@
   import { cfetch } from '$lib/utils.js';
   import { toDate, formatRFC7231 } from 'date-fns';
 
-  import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+  import { UptimeBar } from '$lib/components/dashboard/index.js';
+  import { statuses as statusList, StatusValue } from '$lib/data/table.js';
 
   
   /**
@@ -24,15 +25,18 @@
 
   /** @type {Log[]} */
   let statuses = $state([]);
-  // Define the tailwind classes for each status
-  /** @type {string[]} */
-  const statusClasses = [
-    'bg-raised',
-    'bg-status-up',
-    'bg-status-down',
-    'bg-status-pending',
-    'bg-status-maintenance'
-  ];
+
+  let ticks = $derived(
+    statuses.map((log) => ({
+      tone: statusList.find((status) => status.value === log.status)?.tone ?? 'empty',
+      label: formatRFC7231(toDate(log.time))
+    }))
+  );
+  let uptime = $derived(
+    statuses.length
+      ? (statuses.filter((log) => log.status === StatusValue.Up).length / statuses.length) * 100
+      : undefined
+  );
 
   onMount(async () => {
     const res_log = await cfetch(`/services/${serviceId}/logs?limit=32`);
@@ -43,17 +47,4 @@
   });
 </script>
 
-<div class="flex space-x-1">
-  {#each statuses as status, i}
-    <Tooltip.Root>
-      <Tooltip.Trigger>
-        <div
-          class={`hidden ${i > 20 ? 'sm:flex' : i > 10 ? 'md:flex' : 'lg:flex'} h-5 w-2 rounded-md ${statusClasses[status.status]}`}
-        ></div>
-      </Tooltip.Trigger>
-      <Tooltip.Content>
-        <p>{formatRFC7231(toDate(status.time))}</p>
-      </Tooltip.Content>
-    </Tooltip.Root>
-  {/each}
-</div>
+<UptimeBar {ticks} {uptime} />

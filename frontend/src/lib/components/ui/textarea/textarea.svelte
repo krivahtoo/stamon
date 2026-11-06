@@ -13,7 +13,7 @@
 <textarea
 	bind:this={ref}
 	class={cn(
-		"border-input bg-background placeholder:text-muted-foreground flex min-h-[80px] w-full rounded-md border px-3 py-2 text-base disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+		"border-input bg-background placeholder:text-muted-foreground flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm transition-colors duration-160 ease-in-out disabled:cursor-not-allowed disabled:opacity-50",
 		className
 	)}
 	bind:value
