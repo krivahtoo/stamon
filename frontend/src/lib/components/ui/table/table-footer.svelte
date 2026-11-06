@@ -1,9 +1,14 @@
 <script>
-  import { cn } from '$lib/utils.js';
-  let className = undefined;
-  export { className as class };
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	} = $props();
 </script>
 
-<tfoot class={cn('bg-primary font-medium text-primary-foreground', className)} {...$$restProps}>
-  <slot />
+<tfoot bind:this={ref} class={cn("bg-muted/50 font-medium", className)} {...restProps}>
+	{@render children?.()}
 </tfoot>

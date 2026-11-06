@@ -1,9 +1,18 @@
 <script>
-  import { cn } from '$lib/utils.js';
-  let className = undefined;
-  export { className as class };
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	} = $props();
 </script>
 
-<span class={cn('ml-auto text-xs tracking-widest opacity-60', className)} {...$$restProps}>
-  <slot />
+<span
+	bind:this={ref}
+	class={cn("ml-auto text-xs tracking-widest opacity-60", className)}
+	{...restProps}
+>
+	{@render children?.()}
 </span>

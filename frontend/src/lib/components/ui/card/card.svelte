@@ -1,15 +1,18 @@
 <script>
-  import { cn } from '$lib/utils.js';
-  let className = undefined;
-  export { className as class };
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	} = $props();
 </script>
 
 <div
-  class={cn(
-    'rounded-lg border bg-card text-card-foreground shadow-sm dark:border-primary/50',
-    className
-  )}
-  {...$$restProps}
+	bind:this={ref}
+	class={cn("bg-card text-card-foreground rounded-lg border shadow-sm", className)}
+	{...restProps}
 >
-  <slot />
+	{@render children?.()}
 </div>

@@ -1,7 +1,15 @@
 <script>
-  import { cn } from '$lib/utils.js';
-  let className = undefined;
-  export { className as class };
+	import { cn } from "$lib/utils.js";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		...restProps
+	} = $props();
 </script>
 
-<div class={cn('animate-pulse rounded-md bg-muted', className)} {...$$restProps}></div>
+<div
+	bind:this={ref}
+	class={cn("bg-muted animate-pulse rounded-md", className)}
+	{...restProps}
+></div>
