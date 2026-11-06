@@ -5,6 +5,21 @@ weight = 5
 aliases = ["/docs/changelog/"]
 +++
 
+## [0.5.0](https://github.com/krivahtoo/stamon/compare/v0.4.1...v0.5.0) (2026-11-06)
+
+
+### Features
+
+* **dashboard:** migrate application components to Svelte 5 ([#208](https://github.com/krivahtoo/stamon/issues/208)) ([c85eb33](https://github.com/krivahtoo/stamon/commit/c85eb3320afaaca662e907d1239fb59aa522c54f))
+* **frontend:** migrate application to Svelte 5 ([#206](https://github.com/krivahtoo/stamon/issues/206)) ([570a37b](https://github.com/krivahtoo/stamon/commit/570a37b660a6e40d3d707e3b3dc26c7f4c7f6955))
+* **ui:** migrate shared components to Svelte 5 ([#207](https://github.com/krivahtoo/stamon/issues/207)) ([46bb3ed](https://github.com/krivahtoo/stamon/commit/46bb3edb6450876f348e673583a35e890c9855ab))
+
+
+### Bug Fixes
+
+* **frontend:** migrate Tailwind CSS v3 to v4 ([#210](https://github.com/krivahtoo/stamon/issues/210)) ([da24bc8](https://github.com/krivahtoo/stamon/commit/da24bc85e131d41d5f612e8ee4ab1ad63c462be7)), closes [#183](https://github.com/krivahtoo/stamon/issues/183)
+* **frontend:** resolve Svelte 5 type-check errors ([#209](https://github.com/krivahtoo/stamon/issues/209)) ([117f11d](https://github.com/krivahtoo/stamon/commit/117f11d1dc95522af6ea02377d92e3b673ec2fd3))
+
 ## [0.4.1](https://github.com/krivahtoo/stamon/compare/v0.4.0...v0.4.1) (2026-10-20)
 
 
