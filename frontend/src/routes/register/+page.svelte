@@ -124,7 +124,7 @@
           <Label for="username">Username</Label>
           <Input
             id="username"
-            class={fieldErrors.username.length > 0 ? 'border-red-300' : ''}
+            class={fieldErrors.username.length > 0 ? 'border-destructive' : ''}
             bind:value={newUser.username}
             placeholder="Enter username..."
             onchange={() => (fieldErrors.username = [])}
@@ -150,7 +150,7 @@
           </div>
           <Input
             id="password"
-            class={fieldErrors.password.length > 0 ? 'border-red-300' : ''}
+            class={fieldErrors.password.length > 0 ? 'border-destructive' : ''}
             {type}
             bind:value={newUser.password}
             onchange={() => (fieldErrors.password = [])}
@@ -164,7 +164,7 @@
           <Label for="confirm-password">Confirm Password</Label>
           <Input
             id="confirm-password"
-            class={fieldErrors.confirm.length > 0 ? 'border-red-300' : ''}
+            class={fieldErrors.confirm.length > 0 ? 'border-destructive' : ''}
             {type}
             bind:value={newUser.confirm}
             onchange={() => (fieldErrors.confirm = [])}

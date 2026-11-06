@@ -165,7 +165,7 @@
 </svelte:head>
 
 <div in:fly={{ x: 20, duration: 200 }} class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-  <Card.Root class="border-green-500/50 bg-green-500/10 dark:bg-green-500/20">
+  <Card.Root class="border-status-up/50 bg-status-up-tint">
     <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
       <Card.Title class="text-sm font-medium">Up Services</Card.Title>
       <CircleArrowUp class="h-4 w-4 text-muted-foreground" />
@@ -175,7 +175,7 @@
       <p class="text-xs text-muted-foreground">+20.1% from last month</p>
     </Card.Content>
   </Card.Root>
-  <Card.Root class="border-red-500/50 bg-red-500/10 dark:bg-red-500/20">
+  <Card.Root class="border-status-down/50 bg-status-down-tint">
     <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
       <Card.Title class="text-sm font-medium">Down</Card.Title>
       <CircleArrowDown class="h-4 w-4 text-muted-foreground" />
@@ -185,7 +185,7 @@
       <p class="text-xs text-muted-foreground">+180.1% from last month</p>
     </Card.Content>
   </Card.Root>
-  <Card.Root class="border-yellow-500/50 bg-yellow-500/10 dark:bg-yellow-500/20">
+  <Card.Root class="border-status-pending/50 bg-status-pending-tint">
     <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
       <Card.Title class="text-sm font-medium">Pending</Card.Title>
       <Timer class="h-4 w-4 text-muted-foreground" />

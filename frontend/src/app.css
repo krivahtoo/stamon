@@ -1,18 +1,20 @@
 @import 'tailwindcss';
 @import "tw-animate-css";
 @import "shadcn-svelte/tailwind.css";
-@import "@fontsource-variable/inter";
 
 /* mode-watcher toggles .dark on <html>, including for the System setting. */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-	--font-sans: 'Inter Variable', sans-serif;
+	--font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	--font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 	--radius-sm: calc(var(--radius) - 4px);
 	--radius-md: calc(var(--radius) - 2px);
 	--radius-lg: var(--radius);
 	--radius-xl: calc(var(--radius) + 4px);
 	--color-background: var(--background);
+	--color-surface: var(--surface);
+	--color-raised: var(--raised);
 	--color-foreground: var(--foreground);
 	--color-card: var(--card);
 	--color-card-foreground: var(--card-foreground);
@@ -44,108 +46,94 @@
 	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
 	--color-sidebar-border: var(--sidebar-border);
 	--color-sidebar-ring: var(--sidebar-ring);
+	--color-status-up: var(--status-up);
+	--color-status-up-tint: var(--status-up-tint);
+	--color-status-down: var(--status-down);
+	--color-status-down-tint: var(--status-down-tint);
+	--color-status-pending: var(--status-pending);
+	--color-status-pending-tint: var(--status-pending-tint);
+	--color-status-maintenance: var(--status-maintenance);
+	--color-status-maintenance-tint: var(--status-maintenance-tint);
 }
 
 @layer base {
+  /* DevLab tokens, see docs/design/dashboard.md. */
   :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.153 0.006 107.1);
+    --background: #ffffff;
+    --foreground: #111827;
+    --surface: #f9fafb;
+    --raised: #f3f4f6;
 
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.153 0.006 107.1);
+    --card: var(--background);
+    --card-foreground: var(--foreground);
+    --popover: var(--background);
+    --popover-foreground: var(--foreground);
 
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.153 0.006 107.1);
+    --primary: #2563eb;
+    --primary-foreground: #ffffff;
+    --secondary: var(--raised);
+    --secondary-foreground: var(--foreground);
+    --muted: var(--raised);
+    --muted-foreground: #6b7280;
+    --accent: var(--surface);
+    --accent-foreground: var(--foreground);
+    --destructive: var(--status-down);
+    --destructive-foreground: #ffffff;
 
-    --primary: oklch(0.488 0.243 264.376);
-    --primary-foreground: oklch(0.97 0.014 254.604);
-    --secondary: oklch(0.967 0.001 286.375);
-    --secondary-foreground: oklch(0.21 0.006 285.885);
-    --muted: oklch(0.966 0.005 106.5);
-    --muted-foreground: oklch(0.58 0.031 107.3);
-    --accent: oklch(0.966 0.005 106.5);
-    --accent-foreground: oklch(0.228 0.013 107.4);
-    --destructive: oklch(0.577 0.245 27.325);
-    --destructive-foreground: oklch(0.985 0 0);
+    --border: #e5e7eb;
+    --input: var(--border);
+    --ring: var(--primary);
 
-    --border: oklch(0.93 0.007 106.5);
-
-    --input: oklch(0.93 0.007 106.5);
-
-    --ring: oklch(0.737 0.021 106.9);
-
-    --radius: 0.625rem;
+    --radius: 0.5rem;
 
     --chart-1: oklch(0.809 0.105 251.813);
-
     --chart-2: oklch(0.623 0.214 259.815);
-
     --chart-3: oklch(0.546 0.245 262.881);
-
     --chart-4: oklch(0.488 0.243 264.376);
-
     --chart-5: oklch(0.424 0.199 265.638);
 
-    --sidebar: oklch(0.988 0.003 106.5);
+    --sidebar: var(--surface);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: var(--raised);
+    --sidebar-accent-foreground: var(--foreground);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--ring);
 
-    --sidebar-foreground: oklch(0.153 0.006 107.1);
-
-    --sidebar-primary: oklch(0.546 0.245 262.881);
-
-    --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-
-    --sidebar-accent: oklch(0.966 0.005 106.5);
-
-    --sidebar-accent-foreground: oklch(0.228 0.013 107.4);
-
-    --sidebar-border: oklch(0.93 0.007 106.5);
-
-    --sidebar-ring: oklch(0.737 0.021 106.9);
+    /* Status colours only show status, never decoration. */
+    --status-up: #009400;
+    --status-up-tint: #e6f6e6;
+    --status-down: #e13238;
+    --status-down-tint: #feebec;
+    --status-pending: #e6a700;
+    --status-pending-tint: #fff8e6;
+    --status-maintenance: #4cb3d4;
+    --status-maintenance-tint: #e8f6fb;
   }
   .dark {
-    --background: oklch(0.153 0.006 107.1);
-    --foreground: oklch(0.988 0.003 106.5);
+    --background: #0b1120;
+    --foreground: #f9fafb;
+    --surface: #111827;
+    --raised: #1f2937;
 
-    --card: oklch(0.228 0.013 107.4);
-    --card-foreground: oklch(0.988 0.003 106.5);
+    --primary: #60a5fa;
+    --primary-foreground: #0b1120;
+    --muted-foreground: #9ca3af;
 
-    --popover: oklch(0.228 0.013 107.4);
-    --popover-foreground: oklch(0.988 0.003 106.5);
+    --border: #1f2937;
 
-    --primary: oklch(0.424 0.199 265.638);
-    --primary-foreground: oklch(0.97 0.014 254.604);
-
-    --secondary: oklch(0.274 0.006 286.033);
-    --secondary-foreground: oklch(0.985 0 0);
-
-    --muted: oklch(0.286 0.016 107.4);
-    --muted-foreground: oklch(0.737 0.021 106.9);
-
-    --accent: oklch(0.286 0.016 107.4);
-    --accent-foreground: oklch(0.988 0.003 106.5);
-
-    --destructive: oklch(0.704 0.191 22.216);
-    --destructive-foreground: oklch(0.985 0 0);
-
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.58 0.031 107.3);
-    --chart-1: oklch(0.809 0.105 251.813);
-    --chart-2: oklch(0.623 0.214 259.815);
-    --chart-3: oklch(0.546 0.245 262.881);
-    --chart-4: oklch(0.488 0.243 264.376);
-    --chart-5: oklch(0.424 0.199 265.638);
-    --sidebar: oklch(0.228 0.013 107.4);
-    --sidebar-foreground: oklch(0.988 0.003 106.5);
-    --sidebar-primary: oklch(0.623 0.214 259.815);
-    --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-    --sidebar-accent: oklch(0.286 0.016 107.4);
-    --sidebar-accent-foreground: oklch(0.988 0.003 106.5);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.58 0.031 107.3);
+    --status-up-tint: #003100;
+    --status-down-tint: #4b1113;
+    --status-pending-tint: #4d3800;
+    --status-maintenance-tint: #193b47;
   }
   * {
-	@apply border-border outline-ring/50;
+	@apply border-border;
+  }
+  :focus-visible {
+	outline: 2px solid var(--ring);
+	outline-offset: 3px;
   }
   body {
 	@apply bg-background text-foreground;
