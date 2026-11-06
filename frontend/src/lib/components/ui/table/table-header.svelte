@@ -11,7 +11,7 @@
 <thead
 	bind:this={ref}
 	data-slot="table-header"
-	class={cn("[&_tr]:border-b", className)}
+	class={cn("bg-surface [&_tr]:border-b [&_tr]:hover:bg-transparent", className)}
 	{...restProps}
 >
 	{@render children?.()}
