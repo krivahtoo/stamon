@@ -3,6 +3,7 @@
 	import Circle from "@lucide/svelte/icons/circle";
 	import { cn } from "$lib/utils.js";
 
+	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,

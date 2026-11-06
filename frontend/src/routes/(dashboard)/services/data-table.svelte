@@ -44,7 +44,7 @@
       id: 'select',
       header: (_, { pluginStates }) => {
         const { allPageRowsSelected } = pluginStates.select;
-        return createRender(DataTableCheckbox, {
+        return createRender(/** @type {any} */ (DataTableCheckbox), {
           checked: allPageRowsSelected,
           'aria-label': 'Select all'
         });
@@ -52,7 +52,7 @@
       cell: ({ row }, { pluginStates }) => {
         const { getRowState } = pluginStates.select;
         const { isSelected } = getRowState(row);
-        return createRender(DataTableCheckbox, {
+        return createRender(/** @type {any} */ (DataTableCheckbox), {
           checked: isSelected,
           'aria-label': 'Select row',
           class: 'translate-y-[2px]'
@@ -73,7 +73,7 @@
       header: 'Tags',
       accessor: 'tags',
       id: 'tags',
-      cell: ({ value }) => createRender(DataTableTags, { tags: value ?? [] }),
+      cell: ({ value }) => createRender(/** @type {any} */ (DataTableTags), { tags: value ?? [] }),
       plugins: {
         sort: {
           disable: true
@@ -89,7 +89,7 @@
       accessor: 'id',
       cell: ({ value, row }) => {
         if (row.isData()) {
-          return createRender(DataTableStatusBar, {
+          return createRender(/** @type {any} */ (DataTableStatusBar), {
             serviceId: value
           });
         }
@@ -106,7 +106,7 @@
       accessor: 'last_status',
       cell: ({ value, row }) => {
         if (row.isData()) {
-          return createRender(DataTableStatusCell, {
+          return createRender(/** @type {any} */ (DataTableStatusCell), {
             statusId: value || 0
           });
         }
@@ -145,7 +145,7 @@
       },
       cell: ({ row }) => {
         if (row.isData() && row.original) {
-          return createRender(DataTableRowActions, {
+          return createRender(/** @type {any} */ (DataTableRowActions), {
             service: row.original
           });
         }
@@ -170,12 +170,10 @@
     <Table.Root {...$tableAttrs}>
       <Table.Header>
         {#each $headerRows as headerRow (headerRow.id)}
-          <Subscribe rowAttrs={headerRow.attrs()} >
-            {#snippet children({ rowAttrs })}
+          <Subscribe rowAttrs={headerRow.attrs()}  let:rowAttrs>
                         <Table.Row {...rowAttrs}>
                 {#each headerRow.cells as cell (cell.id)}
-                  <Subscribe attrs={cell.attrs()}  props={cell.props()} >
-                    {#snippet children({ attrs, props })}
+                  <Subscribe attrs={cell.attrs()}  props={cell.props()}  let:attrs let:props>
                                     <Table.Head class="py-1" {...attrs}>
                         {#if cell.id !== 'select' && cell.id !== 'actions'}
                           <DataTableColumnHeader {props} {tableModel} cellId={cell.id}>
@@ -185,25 +183,23 @@
                           <Render of={cell.render()} />
                         {/if}
                       </Table.Head>
-                                                      {/snippet}
+                                                      
                                 </Subscribe>
                 {/each}
               </Table.Row>
-                                  {/snippet}
+                                  
                     </Subscribe>
         {/each}
       </Table.Header>
       <Table.Body {...$tableBodyAttrs}>
         {#if $pageRows.length}
           {#each $pageRows as row (row.id)}
-            <Subscribe rowAttrs={row.attrs()} >
-              {#snippet children({ rowAttrs })}
+            <Subscribe rowAttrs={row.attrs()}  let:rowAttrs>
                             <Table.Row {...rowAttrs}>
                   {#each row.cells as cell (cell.id)}
-                    <Subscribe attrs={cell.attrs()} >
-                      {#snippet children({ attrs })}
+                    <Subscribe attrs={cell.attrs()}  let:attrs>
                                         <Table.Cell
-                          on:click={() => {
+                          onclick={() => {
                             if (row.isData() && cell.id !== 'select' && cell.id !== 'actions') {
                               goto(`/services/${row.original.id}`);
                             }
@@ -213,11 +209,11 @@
                         >
                           <Render of={cell.render()} />
                         </Table.Cell>
-                                                            {/snippet}
+                                                            
                                     </Subscribe>
                   {/each}
                 </Table.Row>
-                                        {/snippet}
+                                        
                         </Subscribe>
           {/each}
         {:else}

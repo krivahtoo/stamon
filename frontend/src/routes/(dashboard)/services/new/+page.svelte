@@ -301,7 +301,7 @@
     variant="ghost"
     size="icon"
     class="h-7 w-7 md:mx-6 lg:mx-10 lg:h-auto lg:w-auto lg:p-2"
-    on:click={() => history.back()}
+    onclick={() => history.back()}
   >
     <ChevronLeft class="h-4 w-4" />
     <span class="sr-only lg:not-sr-only">Back</span>
@@ -328,20 +328,19 @@
     </div>
     <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
       <Label for="type" class="sm:text-right">Type</Label>
-      <Select.Root onSelectedChange={(v) => (newService.service_type = v?.value)} portal={null}>
-        <Select.Trigger class="w-[180px]">
-          <Select.Value placeholder="Select a service type" />
-        </Select.Trigger>
+      <Select.Root type="single" bind:value={newService.service_type} name="service_type" required>
+          <Select.Trigger class="w-[180px]" id="type">
+            {serviceTypes.find((o) => o.value === newService.service_type)?.label ?? 'Select a service type'}
+          </Select.Trigger>
         <Select.Content>
           <Select.Group>
-            <Select.Label>Basic Types</Select.Label>
+            <Select.GroupHeading>Basic Types</Select.GroupHeading>
             {#each serviceTypes as type}
               <Select.Item value={type.value} label={type.label}>{type.label}</Select.Item>
             {/each}
           </Select.Group>
         </Select.Content>
-        <Select.Input name="service_type" id="type" required />
-      </Select.Root>
+        </Select.Root>
     </div>
 
     {#if newService.service_type === 'http'}
@@ -358,20 +357,15 @@
       </div>
       <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
         <Label for="method" class="sm:text-right">Method</Label>
-        <Select.Root
-          selected={{ value: newService.method, label: newService.method }}
-          onSelectedChange={(v) => (newService.method = v?.value ?? 'GET')}
-          portal={null}
-        >
-          <Select.Trigger class="w-[180px]">
-            <Select.Value placeholder="GET" />
+        <Select.Root type="single" bind:value={newService.method} name="method">
+          <Select.Trigger class="w-[180px]" id="method">
+            {httpMethods.find((o) => o.value === newService.method)?.label ?? 'GET'}
           </Select.Trigger>
           <Select.Content>
             {#each httpMethods as method}
               <Select.Item value={method.value} label={method.label}>{method.label}</Select.Item>
             {/each}
           </Select.Content>
-          <Select.Input name="method" id="method" />
         </Select.Root>
       </div>
       <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
@@ -483,14 +477,10 @@
       {#if newService.service_type === 'dns'}
         <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
           <Label for="record_type" class="sm:text-right">Record Type</Label>
-          <Select.Root
-            selected={{ value: newService.record_type, label: newService.record_type }}
-            onSelectedChange={(v) => (newService.record_type = v?.value ?? 'A')}
-            portal={null}
-          >
-            <Select.Trigger class="w-[180px]">
-              <Select.Value placeholder="A" />
-            </Select.Trigger>
+          <Select.Root type="single" bind:value={newService.record_type} name="record_type">
+          <Select.Trigger class="w-[180px]" id="record_type">
+            {recordTypes.find((o) => o.value === newService.record_type)?.label ?? 'A'}
+          </Select.Trigger>
             <Select.Content>
               {#each recordTypes as recordType}
                 <Select.Item value={recordType.value} label={recordType.label}
@@ -498,8 +488,7 @@
                 >
               {/each}
             </Select.Content>
-            <Select.Input name="record_type" id="record_type" />
-          </Select.Root>
+        </Select.Root>
         </div>
         <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
           <Label for="resolver" class="sm:text-right">Resolver</Label>
@@ -548,21 +537,15 @@
     {:else if newService.service_type === 'database'}
       <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
         <Label for="db_engine" class="sm:text-right">Engine</Label>
-        <Select.Root
-          selected={databaseEngines.find((e) => e.value === newService.db_engine)}
-          onSelectedChange={(/** @type {{ value: string } | undefined} */ v) =>
-            (newService.db_engine = v?.value ?? 'postgres')}
-          portal={null}
-        >
-          <Select.Trigger class="w-[200px]">
-            <Select.Value placeholder="PostgreSQL" />
+        <Select.Root type="single" bind:value={newService.db_engine} name="db_engine">
+          <Select.Trigger class="w-[200px]" id="db_engine">
+            {databaseEngines.find((o) => o.value === newService.db_engine)?.label ?? 'PostgreSQL'}
           </Select.Trigger>
           <Select.Content>
             {#each databaseEngines as engine}
               <Select.Item value={engine.value} label={engine.label}>{engine.label}</Select.Item>
             {/each}
           </Select.Content>
-          <Select.Input name="db_engine" id="db_engine" />
         </Select.Root>
       </div>
       <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
@@ -693,7 +676,7 @@
     </div>
   </div>
   <Footer class="gap-2">
-    <Button variant="outline" type="reset" on:click={() => (newService = emptyService())}
+    <Button variant="outline" type="reset" onclick={() => (newService = emptyService())}
       >Reset</Button
     >
     <Button type="submit">Add Service</Button>

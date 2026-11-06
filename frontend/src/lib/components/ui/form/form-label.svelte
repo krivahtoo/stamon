@@ -3,6 +3,7 @@
 	import { Label } from "$lib/components/ui/label/index.js";
 	import { cn } from "$lib/utils.js";
 
+	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		children,

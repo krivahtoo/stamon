@@ -29,6 +29,7 @@
 	import { mergeProps } from "bits-ui";
 	import { useSidebar } from "./context.svelte.js";
 
+	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -53,7 +54,7 @@
 	});
 </script>
 
-{#snippet Button({ props })}
+{#snippet Button({ props } = { props: {} })}
 	{@const mergedProps = mergeProps(buttonProps, props)}
 	{#if child}
 		{@render child({ props: mergedProps })}
@@ -65,7 +66,7 @@
 {/snippet}
 
 {#if !tooltipContent}
-	{@render Button({})}
+	{@render Button()}
 {:else}
 	<Tooltip.Root>
 		<Tooltip.Trigger>

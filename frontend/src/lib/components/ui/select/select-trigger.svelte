@@ -3,6 +3,7 @@
 	import ChevronDown from "@lucide/svelte/icons/chevron-down";
 	import { cn } from "$lib/utils.js";
 
+	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,

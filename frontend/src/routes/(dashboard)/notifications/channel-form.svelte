@@ -11,8 +11,7 @@
 <script>
   import { run, preventDefault } from 'svelte/legacy';
 
-  import { createEventDispatcher } from 'svelte';
-  import { toast } from 'svelte-sonner';
+    import { toast } from 'svelte-sonner';
 
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
@@ -28,12 +27,11 @@
    * @typedef {Object} Props
    * @property {boolean} [open]
    * @property {EditableChannel | null} [channel] - The channel to edit, with its config; `null` to add a new one.
+   * @property {() => void} [onsaved] - Called after the channel was saved.
    */
 
   /** @type {Props} */
-  let { open = $bindable(false), channel = null } = $props();
-
-  const dispatch = createEventDispatcher();
+  let { open = $bindable(false), channel = null, onsaved = () => {} } = $props();
 
   const channelTypes = [
     { value: 'webhook', label: 'Webhook' },
@@ -155,7 +153,7 @@
     }
     toast.success(channel ? `Channel "${form.name}" updated` : `Channel "${form.name}" added`);
     open = false;
-    dispatch('saved');
+    onsaved();
   }
 </script>
 
@@ -174,21 +172,15 @@
       </div>
       <div class="grid gap-2">
         <Label for="channel-type">Type</Label>
-        <Select.Root
-          selected={channelTypes.find((t) => t.value === form.type)}
-          onSelectedChange={(/** @type {{ value: string } | undefined} */ v) =>
-            (form.type = v?.value ?? '')}
-          portal={null}
-        >
-          <Select.Trigger class="w-[200px]">
-            <Select.Value placeholder="Select a type" />
+        <Select.Root type="single" bind:value={form.type} required>
+          <Select.Trigger class="w-[200px]" id="channel-type">
+            {channelTypes.find((o) => o.value === form.type)?.label ?? 'Select a type'}
           </Select.Trigger>
           <Select.Content>
             {#each channelTypes as type}
               <Select.Item value={type.value} label={type.label}>{type.label}</Select.Item>
             {/each}
           </Select.Content>
-          <Select.Input id="channel-type" required />
         </Select.Root>
       </div>
 
@@ -272,22 +264,16 @@
         </div>
         <div class="grid gap-2">
           <Label for="security">Security</Label>
-          <Select.Root
-            selected={securityOptions.find((o) => o.value === form.security)}
-            onSelectedChange={(/** @type {{ value: string } | undefined} */ v) =>
-              (form.security = v?.value ?? 'starttls')}
-            portal={null}
-          >
-            <Select.Trigger class="w-[200px]">
-              <Select.Value placeholder="STARTTLS" />
-            </Select.Trigger>
+          <Select.Root type="single" bind:value={form.security}>
+          <Select.Trigger class="w-[200px]" id="security">
+            {securityOptions.find((o) => o.value === form.security)?.label ?? 'STARTTLS'}
+          </Select.Trigger>
             <Select.Content>
               {#each securityOptions as option}
                 <Select.Item value={option.value} label={option.label}>{option.label}</Select.Item>
               {/each}
             </Select.Content>
-            <Select.Input id="security" />
-          </Select.Root>
+        </Select.Root>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div class="grid gap-2">
@@ -336,7 +322,7 @@
       </div>
     </form>
     <Dialog.Footer>
-      <Button variant="outline" on:click={() => (open = false)}>Cancel</Button>
+      <Button variant="outline" onclick={() => (open = false)}>Cancel</Button>
       <Button type="submit" form="channel-form">{channel ? 'Save' : 'Add channel'}</Button>
     </Dialog.Footer>
   </Dialog.Content>

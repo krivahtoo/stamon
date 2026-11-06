@@ -31,6 +31,7 @@
 <script>
 	import { cn } from "$lib/utils.js";
 
+	/** @type {any} */
 	let {
 		class: className,
 		variant = "default",

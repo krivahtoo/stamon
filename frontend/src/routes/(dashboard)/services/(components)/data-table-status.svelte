@@ -8,13 +8,7 @@
    */
 
   /**
-   * @typedef {HTMLButtonAttributes & { checked: Writable }} Props
-   */
-
-  
-  /**
-   * @typedef {Object} Props
-   * @property {Writable} [checked]
+   * @typedef {HTMLButtonAttributes & { checked?: Writable }} Props
    */
 
   /** @type {Props & { [key: string]: any }} */

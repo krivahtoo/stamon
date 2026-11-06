@@ -2,6 +2,7 @@
 	import { Input } from "$lib/components/ui/input/index.js";
 	import { cn } from "$lib/utils.js";
 
+	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		value = $bindable(""),

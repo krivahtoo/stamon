@@ -163,7 +163,7 @@
             bind:value={newUser.username}
             type="text"
             placeholder="Enter username..."
-            on:change={() => (fieldErrors.username = [])}
+            onchange={() => (fieldErrors.username = [])}
             required
           />
           {#each fieldErrors.username as er}
@@ -177,7 +177,7 @@
             bind:value={newUser.password}
             {type}
             placeholder="Enter password..."
-            on:change={() => (fieldErrors.password = [])}
+            onchange={() => (fieldErrors.password = [])}
             required
           />
           {#each fieldErrors.password as er}

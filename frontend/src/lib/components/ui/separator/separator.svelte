@@ -2,6 +2,7 @@
 	import { Separator as SeparatorPrimitive } from "bits-ui";
 	import { cn } from "$lib/utils.js";
 
+	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		class: className,

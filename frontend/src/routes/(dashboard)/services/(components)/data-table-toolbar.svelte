@@ -9,9 +9,9 @@
 
 <div class="flex items-center">
   <DropdownMenu.Root>
-    <DropdownMenu.Trigger asChild >
-      {#snippet children({ builder })}
-            <Button builders={[builder]} variant="outline" size="sm" class="h-8 gap-1">
+    <DropdownMenu.Trigger>
+      {#snippet child({ props })}
+            <Button {...props} variant="outline" size="sm" class="h-8 gap-1">
           <ListFilter class="h-3.5 w-3.5" />
           <span class="sr-only sm:not-sr-only sm:whitespace-nowrap"> Filter </span>
         </Button>

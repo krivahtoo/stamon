@@ -75,11 +75,11 @@
 
 <Dialog.Root bind:open={deleteDialogOpen}>
   <DropdownMenu.Root>
-    <DropdownMenu.Trigger asChild >
-      {#snippet children({ builder })}
+    <DropdownMenu.Trigger>
+      {#snippet child({ props })}
             <Button
           variant="ghost"
-          builders={[builder]}
+          {...props}
           class="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
         >
           <EllipsisVertical class="h-4 w-4" />
@@ -89,7 +89,7 @@
         </DropdownMenu.Trigger>
     <DropdownMenu.Content class="w-auto" align="end">
       <DropdownMenu.Item href={`/services/${service.id}`}>Open</DropdownMenu.Item>
-      <DropdownMenu.Item on:click={handlePause}>
+      <DropdownMenu.Item onSelect={handlePause}>
         {#if service.active}
           Pause
         {:else}
@@ -110,7 +110,7 @@
       </Dialog.Description>
     </Dialog.Header>
     <Dialog.Footer>
-      <Button variant="destructive" on:click={handleDelete}>Yes, Delete</Button>
+      <Button variant="destructive" onclick={handleDelete}>Yes, Delete</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>

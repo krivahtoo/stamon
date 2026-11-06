@@ -86,9 +86,9 @@
   style="view-transition-name: header;"
 >
   <Sheet.Root>
-    <Sheet.Trigger asChild >
-      {#snippet children({ builder })}
-            <Button variant="outline" size="icon" class="mr-auto shrink-0 md:hidden" builders={[builder]}>
+    <Sheet.Trigger>
+      {#snippet child({ props })}
+            <Button variant="outline" size="icon" class="mr-auto shrink-0 md:hidden" {...props}>
           <Menu class="h-5 w-5" />
           <span class="sr-only">Toggle navigation menu</span>
         </Button>
@@ -132,9 +132,9 @@
     </form>
   </div>
   <DropdownMenu.Root>
-    <DropdownMenu.Trigger asChild >
-      {#snippet children({ builder })}
-            <Button builders={[builder]} variant="link" size="icon">
+    <DropdownMenu.Trigger>
+      {#snippet child({ props })}
+            <Button {...props} variant="link" size="icon">
           <Sun
             class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
           />
@@ -146,15 +146,15 @@
                 {/snippet}
         </DropdownMenu.Trigger>
     <DropdownMenu.Content align="end" class="dark:border-primary/50">
-      <DropdownMenu.Item on:click={() => setMode('light')}>Light</DropdownMenu.Item>
-      <DropdownMenu.Item on:click={() => setMode('dark')}>Dark</DropdownMenu.Item>
-      <DropdownMenu.Item on:click={() => resetMode()}>System</DropdownMenu.Item>
+      <DropdownMenu.Item onSelect={() => setMode('light')}>Light</DropdownMenu.Item>
+      <DropdownMenu.Item onSelect={() => setMode('dark')}>Dark</DropdownMenu.Item>
+      <DropdownMenu.Item onSelect={() => resetMode()}>System</DropdownMenu.Item>
     </DropdownMenu.Content>
   </DropdownMenu.Root>
   <DropdownMenu.Root>
-    <DropdownMenu.Trigger asChild >
-      {#snippet children({ builder })}
-            <Button builders={[builder]} variant="secondary" size="icon" class="rounded-full">
+    <DropdownMenu.Trigger>
+      {#snippet child({ props })}
+            <Button {...props} variant="secondary" size="icon" class="rounded-full">
           <CircleUser class="h-5 w-5" />
           <span class="sr-only">Toggle user menu</span>
         </Button>
@@ -179,7 +179,7 @@
         Settings
       </DropdownMenu.Item>
       <DropdownMenu.Separator />
-      <DropdownMenu.Item on:click={logout}>
+      <DropdownMenu.Item onSelect={logout}>
         <LogOut class="text-foreground-alt mr-2 size-5" />
         Logout
       </DropdownMenu.Item>

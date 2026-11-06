@@ -2,6 +2,7 @@
 	import { cn } from "$lib/utils.js";
 	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
 
+	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		sideOffset = 4,

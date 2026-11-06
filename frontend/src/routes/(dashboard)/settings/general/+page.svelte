@@ -191,7 +191,7 @@
           type="button"
           variant="outline"
           disabled={!changed || saving}
-          on:click={() => saved && (form = { ...saved })}
+          onclick={() => saved && (form = { ...saved })}
         >
           Cancel
         </Button>

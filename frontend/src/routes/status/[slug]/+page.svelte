@@ -98,7 +98,7 @@
           </div>
           <div class="flex h-8 gap-[2px]" aria-label={`Daily uptime of ${service.name}`}>
             {#each service.days as day}
-              <Tooltip.Root openDelay={0}>
+              <Tooltip.Root delayDuration={0}>
                 <Tooltip.Trigger
                   class={cn('h-full flex-1 rounded-sm', barClass(day.uptime))}
                   aria-label={`${formatDate(day.date)}: ${formatUptime(day.uptime)}`}

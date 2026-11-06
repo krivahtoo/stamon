@@ -153,7 +153,7 @@
     </p>
   </div>
   {#if isAdmin}
-    <Button on:click={add}>Add channel</Button>
+    <Button onclick={add}>Add channel</Button>
   {/if}
 </div>
 
@@ -171,7 +171,7 @@
         {/if}
       </p>
       {#if isAdmin}
-        <Button class="mt-4" on:click={add}>Add channel</Button>
+        <Button class="mt-4" onclick={add}>Add channel</Button>
       {/if}
     </div>
   </section>
@@ -204,13 +204,13 @@
         </Card.Header>
         {#if isAdmin}
           <Card.Footer class="gap-2">
-            <Button size="sm" variant="outline" on:click={() => test(channel)}>Test</Button>
-            <Button size="sm" variant="outline" on:click={() => edit(channel)}>Edit</Button>
+            <Button size="sm" variant="outline" onclick={() => test(channel)}>Test</Button>
+            <Button size="sm" variant="outline" onclick={() => edit(channel)}>Edit</Button>
             <Button
               size="sm"
               variant="ghost"
               class="ml-auto text-destructive"
-              on:click={() => (deleting = channel)}>Delete</Button
+              onclick={() => (deleting = channel)}>Delete</Button
             >
           </Card.Footer>
         {/if}
@@ -268,7 +268,7 @@
   </Card.Content>
 </Card.Root>
 
-<ChannelForm bind:open={formOpen} channel={editing} on:saved={load} />
+<ChannelForm bind:open={formOpen} channel={editing} onsaved={load} />
 
 <Dialog.Root open={deleting !== null} onOpenChange={(open) => !open && (deleting = null)}>
   <Dialog.Content class="sm:max-w-[425px]">
@@ -279,8 +279,8 @@
       </Dialog.Description>
     </Dialog.Header>
     <Dialog.Footer>
-      <Button variant="outline" on:click={() => (deleting = null)}>Cancel</Button>
-      <Button variant="destructive" on:click={confirmDelete}>Yes, delete</Button>
+      <Button variant="outline" onclick={() => (deleting = null)}>Cancel</Button>
+      <Button variant="destructive" onclick={confirmDelete}>Yes, delete</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>

@@ -9,6 +9,7 @@
 	} from "./constants.js";
 	import { setSidebar } from "./context.svelte.js";
 
+	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		open = $bindable(true),

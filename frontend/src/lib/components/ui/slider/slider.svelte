@@ -2,6 +2,7 @@
 	import { Slider as SliderPrimitive } from "bits-ui";
 	import { cn } from "$lib/utils.js";
 
+	/** @type {any} */
 	let {
 		ref = $bindable(null),
 		value = $bindable(),
