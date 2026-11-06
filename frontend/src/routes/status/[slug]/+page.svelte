@@ -20,18 +20,18 @@
 
   /** @type {Record<string, { label: string, class: string }>} */
   const overall = {
-    operational: { label: 'All systems operational', class: 'bg-green-600 text-white' },
-    degraded: { label: 'Some systems are down', class: 'bg-yellow-500 text-black' },
-    outage: { label: 'Major outage', class: 'bg-red-600 text-white' },
-    maintenance: { label: 'Maintenance in progress', class: 'bg-blue-600 text-white' }
+    operational: { label: 'All systems operational', class: 'bg-status-up text-white' },
+    degraded: { label: 'Some systems are down', class: 'bg-status-pending text-black' },
+    outage: { label: 'Major outage', class: 'bg-status-down text-white' },
+    maintenance: { label: 'Maintenance in progress', class: 'bg-status-maintenance text-black' }
   };
 
   /** @param {number | null} uptime */
   function barClass(uptime) {
     if (uptime === null) return 'bg-muted';
-    if (uptime >= 99.5) return 'bg-green-500 dark:bg-green-500/80';
-    if (uptime >= 95) return 'bg-yellow-500';
-    return 'bg-red-500 dark:bg-red-500/80';
+    if (uptime >= 99.5) return 'bg-status-up';
+    if (uptime >= 95) return 'bg-status-pending';
+    return 'bg-status-down';
   }
 
   /** @param {number | null} uptime */
@@ -71,7 +71,7 @@
   </div>
 
   {#each page.maintenance as window}
-    <Card.Root class="border-blue-500/50">
+    <Card.Root class="border-status-maintenance/50">
       <Card.Header class="pb-2">
         <Card.Title class="text-base">{window.title}</Card.Title>
         <Card.Description>
