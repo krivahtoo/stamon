@@ -44,21 +44,21 @@
   };
 
   /** @type {ChannelSummary[]} */
-  let channels = [];
+  let channels = $state([]);
   /** @type {Delivery[]} */
-  let history = [];
-  let loading = true;
+  let history = $state([]);
+  let loading = $state(true);
 
-  let formOpen = false;
+  let formOpen = $state(false);
   /**
    * The full channel being edited, with its config, or null when adding.
    * @type {(ChannelSummary & { config: Record<string, any> }) | null}
    */
-  let editing = null;
+  let editing = $state(null);
   /** @type {ChannelSummary | null} */
-  let deleting = null;
+  let deleting = $state(null);
 
-  $: isAdmin = $user?.role === 'admin';
+  let isAdmin = $derived($user?.role === 'admin');
 
   /**
    * Fetch JSON from the API, showing an error toast on failure.

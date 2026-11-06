@@ -2,8 +2,14 @@
   import * as Tooltip from '$lib/components/ui/tooltip/index.js';
   import { format } from 'date-fns';
 
-  /** @type {string} incident date */
-  export let date;
+  
+  /**
+   * @typedef {Object} Props
+   * @property {string} date
+   */
+
+  /** @type {Props} */
+  let { date } = $props();
 </script>
 
 <Tooltip.Root>

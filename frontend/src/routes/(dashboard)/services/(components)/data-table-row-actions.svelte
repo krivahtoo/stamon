@@ -1,5 +1,5 @@
 <script>
-  import EllipsisVertical from 'lucide-svelte/icons/ellipsis-vertical';
+  import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';
   import { toast } from 'svelte-sonner';
 
   import { Button } from '$lib/components/ui/button/index.js';
@@ -7,11 +7,17 @@
   import * as Dialog from '$lib/components/ui/dialog/index.js';
   import { cfetch } from '$lib/utils.js';
 
-  /** @type {import('$lib/store/services').Service} */
-  export let service;
+
+  /**
+   * @typedef {Object} Props
+   * @property {import('$lib/store/services').Service} service
+   */
+
+  /** @type {Props} */
+  let { service } = $props();
 
   /** @type {boolean} */
-  let deleteDialogOpen = false;
+  let deleteDialogOpen = $state(false);
 
   function handleDelete() {
     deleteDialogOpen = false;
@@ -69,16 +75,18 @@
 
 <Dialog.Root bind:open={deleteDialogOpen}>
   <DropdownMenu.Root>
-    <DropdownMenu.Trigger asChild let:builder>
-      <Button
-        variant="ghost"
-        builders={[builder]}
-        class="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
-      >
-        <EllipsisVertical class="h-4 w-4" />
-        <span class="sr-only">Open Monitor Options</span>
-      </Button>
-    </DropdownMenu.Trigger>
+    <DropdownMenu.Trigger asChild >
+      {#snippet children({ builder })}
+            <Button
+          variant="ghost"
+          builders={[builder]}
+          class="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
+        >
+          <EllipsisVertical class="h-4 w-4" />
+          <span class="sr-only">Open Monitor Options</span>
+        </Button>
+                {/snippet}
+        </DropdownMenu.Trigger>
     <DropdownMenu.Content class="w-auto" align="end">
       <DropdownMenu.Item href={`/services/${service.id}`}>Open</DropdownMenu.Item>
       <DropdownMenu.Item on:click={handlePause}>

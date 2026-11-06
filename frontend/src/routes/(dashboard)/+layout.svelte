@@ -9,10 +9,17 @@
   import services from '$lib/store/services.js';
   import stats from '$lib/store/stats.js';
   import demo from '$lib/store/demo.js';
-  import FlaskConical from 'lucide-svelte/icons/flask-conical';
-  import X from 'lucide-svelte/icons/x';
+  import FlaskConical from '@lucide/svelte/icons/flask-conical';
+  import X from '@lucide/svelte/icons/x';
+  /**
+   * @typedef {Object} Props
+   * @property {import('svelte').Snippet} [children]
+   */
 
-  let showDemoBanner = true;
+  /** @type {Props} */
+  let { children } = $props();
+
+  let showDemoBanner = $state(true);
 
   onMount(async () => {
     if ($user) {
@@ -76,7 +83,7 @@
             type="button"
             class="rounded p-1 hover:bg-muted"
             aria-label="Dismiss"
-            on:click={() => (showDemoBanner = false)}
+            onclick={() => (showDemoBanner = false)}
           >
             <X class="h-4 w-4" />
           </button>
@@ -87,7 +94,7 @@
         class="flex max-h-[calc(100vh-60px)] flex-1 flex-col gap-4 overflow-y-auto overscroll-y-contain p-4 lg:gap-6 lg:p-6"
         style="will-change: transform; view-transition-name: page;"
       >
-        <slot></slot>
+        {@render children?.()}
       </main>
     </div>
   </div>

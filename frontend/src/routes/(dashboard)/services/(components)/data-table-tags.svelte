@@ -1,8 +1,14 @@
 <script>
   import { Badge } from '$lib/components/ui/badge/index.js';
 
-  /** @type {string[]} */
-  export let tags = [];
+  
+  /**
+   * @typedef {Object} Props
+   * @property {string[]} [tags]
+   */
+
+  /** @type {Props} */
+  let { tags = [] } = $props();
 </script>
 
 <div class="flex flex-wrap gap-1">

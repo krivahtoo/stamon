@@ -1,9 +1,11 @@
+<!-- @migration-task Error while migrating Svelte code: migrating this component would require adding a `$props` rune but there's already a variable named props.
+     Rename the variable and try again or migrate by hand. -->
 <script>
-  import EyeOff from 'lucide-svelte/icons/eye-off';
-  import ArrowDownAZ from 'lucide-svelte/icons/arrow-down-a-z';
-  import ArrowUpAZ from 'lucide-svelte/icons/arrow-up-a-z';
-  import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
-  import Eraser from 'lucide-svelte/icons/eraser';
+  import EyeOff from '@lucide/svelte/icons/eye-off';
+  import ArrowDownAZ from '@lucide/svelte/icons/arrow-down-a-z';
+  import ArrowUpAZ from '@lucide/svelte/icons/arrow-up-a-z';
+  import ChevronsUpDown from '@lucide/svelte/icons/chevrons-up-down';
+  import Eraser from '@lucide/svelte/icons/eraser';
   import { cn } from '$lib/utils.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';

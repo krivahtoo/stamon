@@ -1,4 +1,6 @@
 <script>
+  import { preventDefault } from 'svelte/legacy';
+
   import { z } from 'zod';
 
   import { Button } from '$lib/components/ui/button/index.js';
@@ -8,32 +10,32 @@
   import { Checkbox } from '$lib/components/ui/checkbox/index.js';
   import * as Alert from '$lib/components/ui/alert/index.js';
   import * as HoverCard from '$lib/components/ui/hover-card';
-  import CircleAlert from 'lucide-svelte/icons/circle-alert';
-  import CircleHelp from 'lucide-svelte/icons/circle-help';
-  import LoaderCircle from 'lucide-svelte/icons/loader-circle';
+  import CircleAlert from '@lucide/svelte/icons/circle-alert';
+  import CircleHelp from '@lucide/svelte/icons/circle-help';
+  import LoaderCircle from '@lucide/svelte/icons/loader-circle';
   import { cfetch } from '@/utils';
   import { goto } from '$app/navigation';
   import { toast } from 'svelte-sonner';
 
   /** @type {string[]} */
-  let errors = [];
+  let errors = $state([]);
 
-  let is_loading = false;
-  let show_pass = false;
-  $: type = show_pass ? 'text' : 'password';
+  let is_loading = $state(false);
+  let show_pass = $state(false);
+  let type = $derived(show_pass ? 'text' : 'password');
 
-  let newUser = {
+  let newUser = $state({
     username: '',
     password: '',
     confirm: ''
-  };
+  });
 
   /** @type {{ username: string[], password: string[], confirm: string[] }} */
-  let fieldErrors = {
+  let fieldErrors = $state({
     username: [],
     password: [],
     confirm: []
-  };
+  });
 
   const baseSchema = z
     .object({
@@ -107,7 +109,7 @@
     <Card.Description>Enter your information to create an account</Card.Description>
   </Card.Header>
   <Card.Content>
-    <form on:submit|preventDefault={register}>
+    <form onsubmit={preventDefault(register)}>
       <div class="grid gap-4">
         {#if errors.length > 0}
           <Alert.Root variant="destructive">

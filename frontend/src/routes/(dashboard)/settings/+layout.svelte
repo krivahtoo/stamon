@@ -2,13 +2,20 @@
   import { page } from '$app/stores';
   import { cn } from '$lib/utils.js';
   import user from '$lib/store/user.js';
+  /**
+   * @typedef {Object} Props
+   * @property {import('svelte').Snippet} [children]
+   */
 
-  $: isAdmin = $user?.role === 'admin';
-  $: tabs = [
+  /** @type {Props} */
+  let { children } = $props();
+
+  let isAdmin = $derived($user?.role === 'admin');
+  let tabs = $derived([
     { name: 'Account', href: '/settings/' },
     { name: 'Appearance', href: '/settings/appearance/' },
     ...(isAdmin ? [{ name: 'General', href: '/settings/general/' }] : [])
-  ];
+  ]);
 </script>
 
 <div class="space-y-0.5">
@@ -36,5 +43,5 @@
 </nav>
 
 <div class="mx-auto w-full max-w-2xl pb-4">
-  <slot />
+  {@render children?.()}
 </div>

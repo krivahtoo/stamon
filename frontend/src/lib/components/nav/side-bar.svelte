@@ -4,7 +4,7 @@
   import { crossfade } from 'svelte/transition';
 
   import { Badge } from '$lib/components/ui/badge/index.js';
-  import Activity from 'lucide-svelte/icons/activity';
+  import Activity from '@lucide/svelte/icons/activity';
   import stats from '$lib/store/stats.js';
   import { cn } from '$lib/utils.js';
 
@@ -18,8 +18,7 @@
    * @property {import('svelte').ComponentType} icon - navication item icon
    */
 
-  /** @type {NavItem[]} */
-  export let navItems = [];
+
 
   /**
    * @typedef {Object} CardItem
@@ -30,11 +29,18 @@
    * @property {() => void} callback - The callback to call when the card is clicked
    */
 
-  /** @type {CardItem[]} */
-  export let cardItems = [];
+
+  /**
+   * @typedef {Object} Props
+   * @property {NavItem[]} [navItems]
+   * @property {CardItem[]} [cardItems]
+   */
+
+  /** @type {Props} */
+  let { navItems = [], cardItems = [] } = $props();
 
   // Subscribe to the page path
-  $: activeUrl = $page?.url?.pathname;
+  let activeUrl = $derived($page?.url?.pathname);
 
   const [send, receive] = crossfade({
     duration: 250,
@@ -75,7 +81,7 @@
                 class="absolute inset-0 rounded-md bg-background/40"
                 in:send={{ key: 'active-sidebar-item' }}
                 out:receive={{ key: 'active-sidebar-item' }}
-              />
+></div>
             {/if}
             <div
               class={cn(
@@ -86,7 +92,7 @@
                 'relative flex items-center gap-3 rounded-lg px-3 py-2 transition-all'
               )}
             >
-              <svelte:component this={item.icon} class="h-4 w-4" />
+              <item.icon class="h-4 w-4" />
               {item.name}
               {#if item.name == 'Services'}
                 {#if $stats.active}

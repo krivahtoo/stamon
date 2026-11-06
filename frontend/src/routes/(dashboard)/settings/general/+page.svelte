@@ -1,4 +1,6 @@
 <script>
+  import { preventDefault } from 'svelte/legacy';
+
   import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
 
@@ -28,15 +30,15 @@
    */
 
   /** @type {Settings | null} */
-  let saved = null;
+  let saved = $state(null);
   /** @type {Settings | null} */
-  let form = null;
+  let form = $state(null);
   /** @type {Instance | null} */
-  let instance = null;
-  let saving = false;
+  let instance = $state(null);
+  let saving = $state(false);
 
-  $: readOnly = $demo || $user?.role !== 'admin';
-  $: changed = !!form && !!saved && JSON.stringify(form) !== JSON.stringify(saved);
+  let readOnly = $derived($demo || $user?.role !== 'admin');
+  let changed = $derived(!!form && !!saved && JSON.stringify(form) !== JSON.stringify(saved));
 
   async function load() {
     try {
@@ -81,7 +83,7 @@
 <DemoCallout />
 
 {#if form}
-  <form on:submit|preventDefault={save}>
+  <form onsubmit={preventDefault(save)}>
     <section class="space-y-4 border-b pb-8">
       <div>
         <h3 class="text-lg font-semibold">1. Data retention</h3>

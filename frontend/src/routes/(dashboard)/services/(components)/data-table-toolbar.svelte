@@ -1,7 +1,7 @@
 <script>
-  import ListFilter from 'lucide-svelte/icons/list-filter';
-  import File from 'lucide-svelte/icons/file';
-  import CirclePlus from 'lucide-svelte/icons/circle-plus';
+  import ListFilter from '@lucide/svelte/icons/list-filter';
+  import File from '@lucide/svelte/icons/file';
+  import CirclePlus from '@lucide/svelte/icons/circle-plus';
 
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
@@ -9,12 +9,14 @@
 
 <div class="flex items-center">
   <DropdownMenu.Root>
-    <DropdownMenu.Trigger asChild let:builder>
-      <Button builders={[builder]} variant="outline" size="sm" class="h-8 gap-1">
-        <ListFilter class="h-3.5 w-3.5" />
-        <span class="sr-only sm:not-sr-only sm:whitespace-nowrap"> Filter </span>
-      </Button>
-    </DropdownMenu.Trigger>
+    <DropdownMenu.Trigger asChild >
+      {#snippet children({ builder })}
+            <Button builders={[builder]} variant="outline" size="sm" class="h-8 gap-1">
+          <ListFilter class="h-3.5 w-3.5" />
+          <span class="sr-only sm:not-sr-only sm:whitespace-nowrap"> Filter </span>
+        </Button>
+                {/snippet}
+        </DropdownMenu.Trigger>
     <DropdownMenu.Content align="end">
       <DropdownMenu.Label>Filter by</DropdownMenu.Label>
       <DropdownMenu.Separator />

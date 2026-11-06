@@ -1,8 +1,8 @@
 <script>
-  import ChevronRight from 'lucide-svelte/icons/chevron-right';
-  import ChevronLeft from 'lucide-svelte/icons/chevron-left';
-  import ChevronsRight from 'lucide-svelte/icons/chevrons-right';
-  import ChevronsLeft from 'lucide-svelte/icons/chevrons-left';
+  import ChevronRight from '@lucide/svelte/icons/chevron-right';
+  import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+  import ChevronsRight from '@lucide/svelte/icons/chevrons-right';
+  import ChevronsLeft from '@lucide/svelte/icons/chevrons-left';
   import * as Select from '$lib/components/ui/select/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
 
@@ -10,8 +10,14 @@
    * @typedef {import("svelte-headless-table").TableViewModel<import('$lib/store/services').Service>} TableViewModel
    */
 
-  /** @type {TableViewModel} */
-  export let tableModel;
+
+  /**
+   * @typedef {Object} Props
+   * @property {TableViewModel} tableModel
+   */
+
+  /** @type {Props} */
+  let { tableModel } = $props();
 
   const { pageRows, pluginStates, rows } = tableModel;
 

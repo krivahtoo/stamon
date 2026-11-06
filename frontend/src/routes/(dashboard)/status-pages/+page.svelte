@@ -1,4 +1,6 @@
 <script>
+  import { run, preventDefault } from 'svelte/legacy';
+
   import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
 
@@ -25,22 +27,20 @@
    */
 
   /** @type {StatusPage[]} */
-  let pages = [];
+  let pages = $state([]);
   /** @type {{ id: number, name: string }[]} */
-  let services = [];
-  let loading = true;
+  let services = $state([]);
+  let loading = $state(true);
 
-  let formOpen = false;
+  let formOpen = $state(false);
   /** @type {StatusPage | null} */
-  let editing = null;
-  let form = emptyForm();
+  let editing = $state(null);
+  let form = $state(emptyForm());
   /** Fill the slug from the title until it's edited by hand. */
-  let slugTouched = false;
+  let slugTouched = $state(false);
   /** @type {StatusPage | null} */
-  let deleting = null;
+  let deleting = $state(null);
 
-  $: canEdit = $user?.role === 'admin' || $user?.role === 'editor';
-  $: if (!slugTouched) form.slug = slugify(form.title);
 
   function emptyForm() {
     return {
@@ -154,6 +154,10 @@
     }
     await load();
   }
+  let canEdit = $derived($user?.role === 'admin' || $user?.role === 'editor');
+  run(() => {
+    if (!slugTouched) form.slug = slugify(form.title);
+  });
 </script>
 
 <div class="flex items-center justify-between">
@@ -228,7 +232,7 @@
         Visitors see service names, statuses and uptime, never URLs or hosts.
       </Dialog.Description>
     </Dialog.Header>
-    <form id="status-page-form" class="grid gap-4 py-2" on:submit|preventDefault={save}>
+    <form id="status-page-form" class="grid gap-4 py-2" onsubmit={preventDefault(save)}>
       <div class="grid gap-2">
         <Label for="title">Title</Label>
         <Input id="title" bind:value={form.title} placeholder="e.g. Acme Status" required />

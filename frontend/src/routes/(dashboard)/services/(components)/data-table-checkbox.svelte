@@ -11,8 +11,14 @@
    * @typedef {HTMLButtonAttributes & { checked: Writable }} Props
    */
 
-  /** @type {Writable} */
-  export let checked = writable(false);
+  
+  /**
+   * @typedef {Object} Props
+   * @property {Writable} [checked]
+   */
+
+  /** @type {Props & { [key: string]: any }} */
+  let { checked = writable(false), ...rest } = $props();
 </script>
 
-<Checkbox bind:checked={$checked} {...$$restProps} />
+<Checkbox bind:checked={$checked} {...rest} />

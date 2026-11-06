@@ -2,11 +2,17 @@
   import * as Tooltip from '$lib/components/ui/tooltip/index.js';
   import StatusCell from '$lib/components/table/status-cell.svelte';
 
-  /** @type {string} message string */
-  export let message;
+  
 
-  /** @type {number} status integer represention */
-  export let statusId;
+  
+  /**
+   * @typedef {Object} Props
+   * @property {string} message
+   * @property {number} statusId
+   */
+
+  /** @type {Props} */
+  let { message, statusId } = $props();
 </script>
 
 <Tooltip.Root>

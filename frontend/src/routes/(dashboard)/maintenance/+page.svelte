@@ -1,4 +1,6 @@
 <script>
+  import { preventDefault } from 'svelte/legacy';
+
   import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
 
@@ -26,21 +28,21 @@
    */
 
   /** @type {Window[]} */
-  let windows = [];
+  let windows = $state([]);
   /** @type {{ id: number, name: string }[]} */
-  let services = [];
-  let loading = true;
+  let services = $state([]);
+  let loading = $state(true);
   let now = Date.now();
 
-  let formOpen = false;
+  let formOpen = $state(false);
   /** @type {Window | null} */
-  let editing = null;
-  let form = emptyForm();
+  let editing = $state(null);
+  let form = $state(emptyForm());
   /** @type {Window | null} */
-  let deleting = null;
+  let deleting = $state(null);
 
-  $: canEdit = $user?.role === 'admin' || $user?.role === 'editor';
-  $: serviceNames = new Map(services.map((s) => [s.id, s.name]));
+  let canEdit = $derived($user?.role === 'admin' || $user?.role === 'editor');
+  let serviceNames = $derived(new Map(services.map((s) => [s.id, s.name])));
 
   /**
    * A date as the value of a `datetime-local` input, in local time.
@@ -104,9 +106,9 @@
     return 'upcoming';
   }
 
-  $: active = windows.filter((w) => phase(w) === 'active');
-  $: upcoming = windows.filter((w) => phase(w) === 'upcoming').reverse();
-  $: past = windows.filter((w) => phase(w) === 'past');
+  let active = $derived(windows.filter((w) => phase(w) === 'active'));
+  let upcoming = $derived(windows.filter((w) => phase(w) === 'upcoming').reverse());
+  let past = $derived(windows.filter((w) => phase(w) === 'past'));
 
   function add() {
     editing = null;
@@ -178,11 +180,11 @@
   }
 
   /** @type {{ label: string, items: typeof active, variant: 'default' | 'secondary' | 'outline' }[]} */
-  $: groups = [
+  let groups = $derived([
     { label: 'In progress', items: active, variant: 'default' },
     { label: 'Upcoming', items: upcoming, variant: 'secondary' },
     { label: 'Past', items: past, variant: 'outline' }
-  ];
+  ]);
 </script>
 
 <div class="flex items-center justify-between">
@@ -256,7 +258,7 @@
       <Dialog.Title>{editing ? 'Edit maintenance' : 'Schedule maintenance'}</Dialog.Title>
       <Dialog.Description>Times are in your local time zone.</Dialog.Description>
     </Dialog.Header>
-    <form id="maintenance-form" class="grid gap-4 py-2" on:submit|preventDefault={save}>
+    <form id="maintenance-form" class="grid gap-4 py-2" onsubmit={preventDefault(save)}>
       <div class="grid gap-2">
         <Label for="title">Title</Label>
         <Input id="title" bind:value={form.title} placeholder="e.g. Database upgrade" required />

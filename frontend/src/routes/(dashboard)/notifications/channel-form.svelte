@@ -1,4 +1,4 @@
-<script context="module">
+<script module>
   /**
    * @typedef {Object} EditableChannel
    * @property {number} id
@@ -9,6 +9,8 @@
 </script>
 
 <script>
+  import { run, preventDefault } from 'svelte/legacy';
+
   import { createEventDispatcher } from 'svelte';
   import { toast } from 'svelte-sonner';
 
@@ -21,12 +23,15 @@
   import { Textarea } from '$lib/components/ui/textarea/index.js';
   import { cfetch } from '$lib/utils.js';
 
-  export let open = false;
+  
   /**
-   * The channel to edit, with its config; `null` to add a new one.
-   * @type {EditableChannel | null}
+   * @typedef {Object} Props
+   * @property {boolean} [open]
+   * @property {EditableChannel | null} [channel] - The channel to edit, with its config; `null` to add a new one.
    */
-  export let channel = null;
+
+  /** @type {Props} */
+  let { open = $bindable(false), channel = null } = $props();
 
   const dispatch = createEventDispatcher();
 
@@ -72,8 +77,10 @@
     };
   }
 
-  let form = formFrom(channel);
-  $: if (open) form = formFrom(channel);
+  let form = $state(formFrom(channel));
+  run(() => {
+    if (open) form = formFrom(channel);
+  });
 
   /**
    * @param {string} text
@@ -160,7 +167,7 @@
         >Where Stamon sends alerts when a service goes down or recovers.</Dialog.Description
       >
     </Dialog.Header>
-    <form id="channel-form" class="grid gap-4 py-2" on:submit|preventDefault={save}>
+    <form id="channel-form" class="grid gap-4 py-2" onsubmit={preventDefault(save)}>
       <div class="grid gap-2">
         <Label for="channel-name">Name</Label>
         <Input id="channel-name" bind:value={form.name} placeholder="e.g. Ops Slack" required />

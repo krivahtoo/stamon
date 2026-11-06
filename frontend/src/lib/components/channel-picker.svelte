@@ -5,16 +5,19 @@
   import { Label } from '$lib/components/ui/label/index.js';
   import { cfetch } from '$lib/utils.js';
 
+  
   /**
-   * Ids of the channels picked for the service.
-   * @type {number[]}
+   * @typedef {Object} Props
+   * @property {number[]} [selected] - Ids of the channels picked for the service.
+   * @property {boolean} [disabled]
    */
-  export let selected = [];
-  export let disabled = false;
+
+  /** @type {Props} */
+  let { selected = $bindable([]), disabled = false } = $props();
 
   /** @type {{ id: number, name: string, active: boolean, apply_to_all: boolean, channel_type: string }[]} */
-  let channels = [];
-  let loaded = false;
+  let channels = $state([]);
+  let loaded = $state(false);
 
   onMount(async () => {
     const res = await cfetch('/channels', { credentials: 'same-origin' });
@@ -22,8 +25,8 @@
     loaded = true;
   });
 
-  $: pickable = channels.filter((c) => !c.apply_to_all);
-  $: everywhere = channels.filter((c) => c.apply_to_all && c.active);
+  let pickable = $derived(channels.filter((c) => !c.apply_to_all));
+  let everywhere = $derived(channels.filter((c) => c.apply_to_all && c.active));
 
   /**
    * @param {number} id
