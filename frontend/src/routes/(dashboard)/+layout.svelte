@@ -5,7 +5,9 @@
   import user from '$lib/store/user.js';
   import { get } from 'svelte/store';
   import { cfetch } from '$lib/utils.js';
-  import { navItems } from '$lib/data/nav.js';
+  import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+  import { SIDEBAR_COOKIE_NAME } from '$lib/components/ui/sidebar/constants.js';
+  import instance from '$lib/store/instance.js';
   import services from '$lib/store/services.js';
   import stats from '$lib/store/stats.js';
   import demo from '$lib/store/demo.js';
@@ -20,8 +22,12 @@
   let { children } = $props();
 
   let showDemoBanner = $state(true);
+  let sidebarOpen = $state(true);
 
   onMount(async () => {
+    // Pages are prerendered, so the saved sidebar state is only known here.
+    sidebarOpen = !document.cookie.includes(`${SIDEBAR_COOKIE_NAME}=false`);
+
     if ($user) {
       const { ws } = await import('$lib/store/ws');
       // Initialize websocket connection and initial states
@@ -49,6 +55,13 @@
         }
       });
 
+      cfetch('/settings').then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+          instance.set(data.instance);
+        }
+      });
+
       cfetch('/stats').then(async (res) => {
         if (res.ok) {
           const data = await res.json();
@@ -61,15 +74,15 @@
 </script>
 
 {#if $user}
-  <div class="grid h-screen w-full overflow-auto md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-    <SideBar {navItems} />
+  <Sidebar.Provider bind:open={sidebarOpen} style="--sidebar-width: 15rem;" class="h-svh">
+    <SideBar />
 
-    <div class="flex flex-col">
-      <Header {navItems} />
+    <Sidebar.Inset class="min-w-0 overflow-y-auto overscroll-y-contain">
+      <Header />
 
       {#if $demo && showDemoBanner}
         <div
-          class="flex items-center gap-2 border-b bg-muted/50 px-4 py-2 text-sm text-muted-foreground lg:px-6"
+          class="flex items-center gap-2 border-b bg-muted/50 px-4 py-2 text-sm text-muted-foreground md:px-8"
         >
           <FlaskConical class="h-4 w-4 shrink-0" />
           <p class="flex-1">
@@ -90,12 +103,12 @@
         </div>
       {/if}
 
-      <main
-        class="flex max-h-[calc(100vh-60px)] flex-1 flex-col gap-4 overflow-y-auto overscroll-y-contain p-4 lg:gap-6 lg:p-6"
-        style="will-change: transform; view-transition-name: page;"
+      <div
+        class="flex flex-1 flex-col gap-5 px-4 pt-6 pb-8 md:gap-6 md:p-8"
+        style="view-transition-name: page;"
       >
         {@render children?.()}
-      </main>
-    </div>
-  </div>
+      </div>
+    </Sidebar.Inset>
+  </Sidebar.Provider>
 {/if}
