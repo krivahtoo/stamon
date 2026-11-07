@@ -1,123 +1,96 @@
 <script>
+  import { afterNavigate } from '$app/navigation';
   import { page } from '$app/stores';
   import { cubicInOut } from 'svelte/easing';
   import { crossfade } from 'svelte/transition';
+  import { prefersReducedMotion } from 'svelte/motion';
 
-  import { Badge } from '$lib/components/ui/badge/index.js';
   import Activity from '@lucide/svelte/icons/activity';
+  import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+  import { navGroups, visibleGroups, isActive } from '$lib/data/nav.js';
+  import instance from '$lib/store/instance.js';
   import stats from '$lib/store/stats.js';
+  import user from '$lib/store/user.js';
   import { cn } from '$lib/utils.js';
 
-  import SideBarCard from './side-bar-card.svelte';
-  import NotificationPopover from './notification-popover.svelte';
+  const sidebar = Sidebar.useSidebar();
 
-  /**
-   * @typedef {Object} NavItem
-   * @property {string} name - Name to show in the navbar
-   * @property {string} path - navication item path
-   * @property {import('svelte').ComponentType} icon - navication item icon
-   */
-
-
-
-  /**
-   * @typedef {Object} CardItem
-   * @property {string} title - The title of the card
-   * @property {string} description - The description of the card
-   * @property {string} buttonHref - The href of the card
-   * @property {string} buttonText - The text of the button
-   * @property {() => void} callback - The callback to call when the card is clicked
-   */
-
-
-  /**
-   * @typedef {Object} Props
-   * @property {NavItem[]} [navItems]
-   * @property {CardItem[]} [cardItems]
-   */
-
-  /** @type {Props} */
-  let { navItems = [], cardItems = [] } = $props();
-
-  // Subscribe to the page path
   let activeUrl = $derived($page?.url?.pathname);
+  let groups = $derived(visibleGroups(navGroups, $user?.role));
 
+  // The active pill slides between items, across groups too, since every
+  // item shares this one pair.
   const [send, receive] = crossfade({
-    duration: 250,
+    duration: () => (prefersReducedMotion.current ? 0 : 250),
     easing: cubicInOut
   });
+
+  // Close the mobile drawer once a link has been followed.
+  afterNavigate(() => sidebar.setOpenMobile(false));
 </script>
 
-<div
-  class="hidden max-h-screen border-r bg-muted/40 dark:border-primary/50 md:block"
-  style="view-transition-name: side-bar;"
->
-  <div class="flex h-full max-h-screen flex-col gap-2">
-    <div class="flex h-14 items-center border-b px-4 dark:border-primary/50 lg:h-[60px] lg:px-6">
-      <a href="/" class="flex items-center gap-2 font-semibold">
-        <Activity class="h-6 w-6" />
-        <span class="">Stamon</span>
-      </a>
-      <NotificationPopover />
-    </div>
-    <div class="flex-1">
-      <nav class="grid items-start px-2 text-sm font-medium lg:px-4">
-        {#each navItems as item, idx (idx)}
-          {@const isActive =
-            activeUrl === item.path || (item.path !== '/' && !!activeUrl?.startsWith(item.path))}
-          <a
-            href={item.path}
-            class={cn(
-              {
-                'hover:text-primary': !isActive
-              },
-              'relative justify-start hover:bg-transparent'
-            )}
-            data-sveltekit-noscroll
-            data-sveltekit-replacestate
-          >
-            {#if isActive}
-              <div
-                class="absolute inset-0 rounded-md bg-background/40"
-                in:send={{ key: 'active-sidebar-item' }}
-                out:receive={{ key: 'active-sidebar-item' }}
-></div>
-            {/if}
-            <div
-              class={cn(
-                {
-                  'text-primary': isActive,
-                  'text-muted-foreground hover:text-primary': !isActive
-                },
-                'relative flex items-center gap-3 rounded-lg px-3 py-2 transition-all'
-              )}
-            >
-              <item.icon class="h-4 w-4" />
-              {item.name}
-              {#if item.name == 'Services'}
-                {#if $stats.active}
-                  <Badge
-                    class="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+<Sidebar.Root collapsible="icon" style="view-transition-name: side-bar;">
+  <Sidebar.Header class="px-3 pt-5 pb-1 group-data-[collapsible=icon]:px-2">
+    <a
+      href="/"
+      class="flex h-8 items-center gap-2.5 rounded-lg px-2.5 font-bold tracking-tight group-data-[collapsible=icon]:px-2"
+    >
+      <Activity class="size-5 shrink-0 text-primary" />
+      <span class="group-data-[collapsible=icon]:hidden">Stamon</span>
+    </a>
+  </Sidebar.Header>
+
+  <Sidebar.Content class="gap-0 px-1">
+    {#each groups as group (group.label)}
+      <Sidebar.Group class="py-0">
+        <Sidebar.GroupLabel
+          class="mt-2 px-2.5 text-xs font-bold tracking-[0.08em] text-muted-foreground uppercase"
+        >
+          {group.label}
+        </Sidebar.GroupLabel>
+        <Sidebar.Menu class="gap-0.5">
+          {#each group.items as item (item.path)}
+            {@const active = isActive(item.path, activeUrl)}
+            <Sidebar.MenuItem>
+              <Sidebar.MenuButton
+                isActive={active}
+                tooltipContent={item.name}
+                class="h-[34px] gap-2.5 rounded-lg px-2.5 text-sm text-muted-foreground data-active:bg-transparent data-active:font-semibold data-active:text-foreground"
+              >
+                {#snippet child({ props })}
+                  <a
+                    href={item.path}
+                    aria-current={active ? 'page' : undefined}
+                    data-sveltekit-noscroll
+                    {...props}
                   >
-                    {$stats.active}
-                  </Badge>
-                {/if}
+                    {#if active}
+                      <div
+                        class="absolute inset-0 rounded-lg bg-sidebar-accent"
+                        in:send={{ key: 'active-sidebar-item' }}
+                        out:receive={{ key: 'active-sidebar-item' }}
+                      ></div>
+                    {/if}
+                    <item.icon class={cn('relative', active && 'text-primary')} />
+                    <span class="relative">{item.name}</span>
+                  </a>
+                {/snippet}
+              </Sidebar.MenuButton>
+              {#if item.path === '/services/' && $stats.active}
+                <Sidebar.MenuBadge class="top-[7px] rounded-full bg-sidebar-accent">
+                  {$stats.active}
+                </Sidebar.MenuBadge>
               {/if}
-            </div>
-          </a>
-        {/each}
-      </nav>
-    </div>
-    <div class="mt-auto space-y-1 p-4">
-      {#each cardItems as card, idx (idx)}
-        <SideBarCard
-          title={card.title}
-          description={card.description}
-          buttonHref={card.buttonHref}
-          buttonText={card.buttonText}
-          callback={card.callback}
-        />
-      {/each}
-    </div>
-  </div>
-</div>
+            </Sidebar.MenuItem>
+          {/each}
+        </Sidebar.Menu>
+      </Sidebar.Group>
+    {/each}
+  </Sidebar.Content>
+
+  {#if $instance?.version}
+    <Sidebar.Footer class="px-5 pb-5 group-data-[collapsible=icon]:hidden">
+      <span class="font-mono text-xs text-muted-foreground">v{$instance.version.replace(/^v/, '')}</span>
+    </Sidebar.Footer>
+  {/if}
+</Sidebar.Root>
