@@ -12,8 +12,8 @@
 <Popover.Root>
   <Popover.Trigger>
     {#snippet child({ props })}
-        <Button {...props} variant="outline" size="icon" class="ml-auto h-8 w-8">
-        <Bell class="h-4 w-4" />
+        <Button {...props} variant="outline" size="icon">
+        <Bell class="size-[18px] text-muted-foreground" />
         <span class="sr-only">Toggle notifications</span>
       </Button>
           {/snippet}
