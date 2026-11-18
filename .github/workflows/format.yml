@@ -1,0 +1,45 @@
+name: Format Rust Code
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }} # Ensures we check out the correct branch
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Install rustfmt
+        run: rustup component add rustfmt
+
+      - name: Format Code
+        run: cargo fmt --all
+
+      - name: Check for changes
+        id: check_diff
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::set-output name=needs_commit::true"
+          else
+            echo "::set-output name=needs_commit::false"
+          fi
+
+      - name: Commit and Push Changes
+        if: steps.check_diff.outputs.needs_commit == 'true'
+        run: |
+          git config --local user.name "github-actions"
+          git config --local user.email "actions@github.com"
+          git add -A
+          git commit -m "Format code using rustfmt"
+          git push origin ${{ github.head_ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
