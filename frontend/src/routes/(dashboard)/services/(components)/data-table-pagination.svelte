@@ -10,7 +10,6 @@
    * @typedef {import("svelte-headless-table").TableViewModel<import('$lib/store/services').Service>} TableViewModel
    */
 
-
   /**
    * @typedef {Object} Props
    * @property {TableViewModel} tableModel

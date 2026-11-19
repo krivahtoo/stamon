@@ -1,12 +1,9 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
-import tailwindcss from "@tailwindcss/vite";
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  plugins: [
-    tailwindcss(),
-    sveltekit(),
-  ],
+  plugins: [tailwindcss(), sveltekit()],
   clearScreen: false,
   server: {
     // Same origin as the backend, so the sign-in cookie reaches /ws like in production

@@ -1,7 +1,6 @@
 <script>
   import { Badge } from '$lib/components/ui/badge/index.js';
 
-  
   /**
    * @typedef {Object} Props
    * @property {string[]} [tags]

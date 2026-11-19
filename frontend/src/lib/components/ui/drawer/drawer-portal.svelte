@@ -1,7 +1,7 @@
 <script>
-	import { Drawer as DrawerPrimitive } from "vaul-svelte";
+  import { Drawer as DrawerPrimitive } from 'vaul-svelte';
 
-	let { ...restProps } = $props();
+  let { ...restProps } = $props();
 </script>
 
 <DrawerPrimitive.Portal {...restProps} />

@@ -188,7 +188,7 @@
             <Label
               id="show-pass-label"
               for="show-pass"
-              class="cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              class="cursor-pointer text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               Show password
             </Label>

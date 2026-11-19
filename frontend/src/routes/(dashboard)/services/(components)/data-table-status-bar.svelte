@@ -5,7 +5,6 @@
 
   import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 
-  
   /**
    * @typedef {Object} Props
    * @property {number} serviceId

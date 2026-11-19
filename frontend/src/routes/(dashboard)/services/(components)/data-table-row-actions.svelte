@@ -7,7 +7,6 @@
   import * as Dialog from '$lib/components/ui/dialog/index.js';
   import { cfetch } from '$lib/utils.js';
 
-
   /**
    * @typedef {Object} Props
    * @property {import('$lib/store/services').Service} service
@@ -77,16 +76,12 @@
   <DropdownMenu.Root>
     <DropdownMenu.Trigger>
       {#snippet child({ props })}
-            <Button
-          variant="ghost"
-          {...props}
-          class="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
-        >
+        <Button variant="ghost" {...props} class="flex h-8 w-8 p-0 data-[state=open]:bg-muted">
           <EllipsisVertical class="h-4 w-4" />
           <span class="sr-only">Open Monitor Options</span>
         </Button>
-                {/snippet}
-        </DropdownMenu.Trigger>
+      {/snippet}
+    </DropdownMenu.Trigger>
     <DropdownMenu.Content class="w-auto" align="end">
       <DropdownMenu.Item href={`/services/${service.id}`}>Open</DropdownMenu.Item>
       <DropdownMenu.Item onSelect={handlePause}>

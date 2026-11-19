@@ -11,7 +11,7 @@
 <script>
   import { run, preventDefault } from 'svelte/legacy';
 
-    import { toast } from 'svelte-sonner';
+  import { toast } from 'svelte-sonner';
 
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
@@ -22,7 +22,6 @@
   import { Textarea } from '$lib/components/ui/textarea/index.js';
   import { cfetch } from '$lib/utils.js';
 
-  
   /**
    * @typedef {Object} Props
    * @property {boolean} [open]
@@ -265,15 +264,15 @@
         <div class="grid gap-2">
           <Label for="security">Security</Label>
           <Select.Root type="single" bind:value={form.security}>
-          <Select.Trigger class="w-[200px]" id="security">
-            {securityOptions.find((o) => o.value === form.security)?.label ?? 'STARTTLS'}
-          </Select.Trigger>
+            <Select.Trigger class="w-[200px]" id="security">
+              {securityOptions.find((o) => o.value === form.security)?.label ?? 'STARTTLS'}
+            </Select.Trigger>
             <Select.Content>
               {#each securityOptions as option}
                 <Select.Item value={option.value} label={option.label}>{option.label}</Select.Item>
               {/each}
             </Select.Content>
-        </Select.Root>
+          </Select.Root>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div class="grid gap-2">

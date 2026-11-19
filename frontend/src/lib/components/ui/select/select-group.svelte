@@ -1,17 +1,13 @@
 <script>
-	import { Select as SelectPrimitive } from "bits-ui";
-	import { cn } from "$lib/utils.js";
+  import { Select as SelectPrimitive } from 'bits-ui';
+  import { cn } from '$lib/utils.js';
 
-	let {
-		ref = $bindable(null),
-		class: className,
-		...restProps
-	} = $props();
+  let { ref = $bindable(null), class: className, ...restProps } = $props();
 </script>
 
 <SelectPrimitive.Group
-	bind:ref
-	data-slot="select-group"
-	class={cn("scroll-my-1 p-1", className)}
-	{...restProps}
+  bind:ref
+  data-slot="select-group"
+  class={cn('scroll-my-1 p-1', className)}
+  {...restProps}
 />

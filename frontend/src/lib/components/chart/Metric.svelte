@@ -26,9 +26,6 @@
    * @property {number} duration - Time taken.
    */
 
-  
-
-  
   /**
    * @typedef {Object} Props
    * @property {import('svelte/store').Writable<Log[]>} [data]

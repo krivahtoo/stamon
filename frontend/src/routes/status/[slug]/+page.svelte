@@ -8,7 +8,6 @@
   import { cn } from '$lib/utils.js';
   import { statuses } from '$lib/data/table.js';
 
-  
   /**
    * @typedef {Object} Props
    * @property {import('./$types').PageData} data

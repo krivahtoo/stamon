@@ -329,9 +329,10 @@
     <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
       <Label for="type" class="sm:text-right">Type</Label>
       <Select.Root type="single" bind:value={newService.service_type} name="service_type" required>
-          <Select.Trigger class="w-[180px]" id="type">
-            {serviceTypes.find((o) => o.value === newService.service_type)?.label ?? 'Select a service type'}
-          </Select.Trigger>
+        <Select.Trigger class="w-[180px]" id="type">
+          {serviceTypes.find((o) => o.value === newService.service_type)?.label ??
+            'Select a service type'}
+        </Select.Trigger>
         <Select.Content>
           <Select.Group>
             <Select.GroupHeading>Basic Types</Select.GroupHeading>
@@ -340,7 +341,7 @@
             {/each}
           </Select.Group>
         </Select.Content>
-        </Select.Root>
+      </Select.Root>
     </div>
 
     {#if newService.service_type === 'http'}
@@ -478,9 +479,9 @@
         <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
           <Label for="record_type" class="sm:text-right">Record Type</Label>
           <Select.Root type="single" bind:value={newService.record_type} name="record_type">
-          <Select.Trigger class="w-[180px]" id="record_type">
-            {recordTypes.find((o) => o.value === newService.record_type)?.label ?? 'A'}
-          </Select.Trigger>
+            <Select.Trigger class="w-[180px]" id="record_type">
+              {recordTypes.find((o) => o.value === newService.record_type)?.label ?? 'A'}
+            </Select.Trigger>
             <Select.Content>
               {#each recordTypes as recordType}
                 <Select.Item value={recordType.value} label={recordType.label}
@@ -488,7 +489,7 @@
                 >
               {/each}
             </Select.Content>
-        </Select.Root>
+          </Select.Root>
         </div>
         <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
           <Label for="resolver" class="sm:text-right">Resolver</Label>
