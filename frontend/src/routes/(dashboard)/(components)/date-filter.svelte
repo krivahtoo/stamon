@@ -28,7 +28,7 @@
         Date
         {#if value.length}
           <span
-            class="bg-raised text-muted-foreground rounded-full px-1.5 text-xs font-semibold tabular-nums"
+            class="rounded-full bg-raised px-1.5 text-xs font-semibold text-muted-foreground tabular-nums"
           >
             {value.length}
           </span>
@@ -39,13 +39,13 @@
   <Popover.Content align="end" class="w-56 p-1">
     {#each days as day (day)}
       <label
-        class="hover:bg-surface flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm"
+        class="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm hover:bg-surface"
       >
         <Checkbox checked={value.includes(day)} onCheckedChange={() => toggle(day)} />
         {formatDay(day)}
       </label>
     {:else}
-      <p class="text-muted-foreground px-2.5 py-2 text-sm">No days to filter by.</p>
+      <p class="px-2.5 py-2 text-sm text-muted-foreground">No days to filter by.</p>
     {/each}
     {#if value.length}
       <div class="mt-1 border-t pt-1">

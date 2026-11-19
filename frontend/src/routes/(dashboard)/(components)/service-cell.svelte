@@ -11,7 +11,7 @@
 
 <a
   href="/services/{id}"
-  class="hover:text-primary font-semibold underline-offset-4 hover:underline"
+  class="font-semibold underline-offset-4 hover:text-primary hover:underline"
 >
   {name}
 </a>
