@@ -9,6 +9,9 @@
   let { id, name } = $props();
 </script>
 
-<a href="/services/{id}" class="font-semibold hover:text-primary hover:underline underline-offset-4">
+<a
+  href="/services/{id}"
+  class="hover:text-primary font-semibold underline-offset-4 hover:underline"
+>
   {name}
 </a>

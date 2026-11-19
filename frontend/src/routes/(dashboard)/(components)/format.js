@@ -30,9 +30,21 @@ export function formatDuration(start, end) {
       .map(([value, unit]) => `${value}${unit}`)
       .join(' ');
 
-  if (d) return join([[d, 'd'], [h, 'h']]);
-  if (h) return join([[h, 'h'], [m, 'm']]);
-  if (m) return join([[m, 'm'], [s, 's']]);
+  if (d)
+    return join([
+      [d, 'd'],
+      [h, 'h']
+    ]);
+  if (h)
+    return join([
+      [h, 'h'],
+      [m, 'm']
+    ]);
+  if (m)
+    return join([
+      [m, 'm'],
+      [s, 's']
+    ]);
   return `${s}s`;
 }
 

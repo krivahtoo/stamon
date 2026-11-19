@@ -221,7 +221,7 @@
       <h2 class="text-lg font-bold tracking-[-0.015em]">Recent incidents</h2>
       {#if $data.length}
         <span
-          class="rounded-full bg-raised px-2 py-px text-xs font-semibold text-muted-foreground tabular-nums"
+          class="bg-raised text-muted-foreground rounded-full px-2 py-px text-xs font-semibold tabular-nums"
         >
           {$data.length}
         </span>
@@ -240,7 +240,7 @@
       <div class="flex flex-col gap-2 border-b px-4 py-3 sm:flex-row sm:items-center sm:px-5">
         <div class="relative sm:max-w-xs sm:flex-1">
           <Search
-            class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
             aria-hidden="true"
           />
           <Input
@@ -251,7 +251,7 @@
             bind:value={$filterValue}
           />
         </div>
-        <div class="flex sm:ml-auto *:flex-1 sm:*:flex-none">
+        <div class="flex *:flex-1 sm:ml-auto sm:*:flex-none">
           <DateFilter {days} bind:value={selectedDays} />
         </div>
       </div>
@@ -289,7 +289,7 @@
               </Subscribe>
             {:else}
               <Table.Row class="hover:bg-transparent">
-                <Table.Cell colspan={columns.length} class="h-24 text-center text-muted-foreground">
+                <Table.Cell colspan={columns.length} class="text-muted-foreground h-24 text-center">
                   {loaded ? 'No incidents match your filters.' : 'Loading incidents…'}
                 </Table.Cell>
               </Table.Row>
@@ -308,8 +308,8 @@
                 <ServiceCell id={incident.service_id} name={incident.service_name} />
                 <StatusCell statusId={incident.status} />
               </div>
-              <p class="line-clamp-2 text-sm text-muted-foreground">{incident.messages}</p>
-              <p class="text-xs text-muted-foreground tabular-nums">
+              <p class="text-muted-foreground line-clamp-2 text-sm">{incident.messages}</p>
+              <p class="text-muted-foreground text-xs tabular-nums">
                 {formatStarted(incident.start)} · {formatDuration(incident.start, incident.end)} ·
                 {incident.count}
                 {incident.count === 1 ? 'check' : 'checks'}
@@ -317,7 +317,7 @@
             </li>
           {/if}
         {:else}
-          <li class="px-4 py-8 text-center text-sm text-muted-foreground">
+          <li class="text-muted-foreground px-4 py-8 text-center text-sm">
             {loaded ? 'No incidents match your filters.' : 'Loading incidents…'}
           </li>
         {/each}
@@ -325,7 +325,7 @@
 
       {#if $pageCount > 1}
         <div class="flex items-center justify-between gap-2 border-t px-4 py-3 sm:px-5">
-          <p class="text-sm text-muted-foreground tabular-nums">
+          <p class="text-muted-foreground text-sm tabular-nums">
             Page {$pageIndex + 1} of {$pageCount} · {$rows.length} incidents
           </p>
           <div class="flex gap-2">
