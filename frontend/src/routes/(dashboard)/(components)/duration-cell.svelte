@@ -1,9 +1,8 @@
 <script>
   import * as Tooltip from '$lib/components/ui/tooltip/index.js';
-  import { formatDistance, format, formatRelative } from 'date-fns';
+  import { format, formatRelative } from 'date-fns';
+  import { formatDuration } from './format.js';
 
-  
-  
   /**
    * @typedef {Object} Props
    * @property {string} start
@@ -15,8 +14,8 @@
 </script>
 
 <Tooltip.Root>
-  <Tooltip.Trigger class="flex space-x-2">
-    {formatDistance(start, end)}
+  <Tooltip.Trigger>
+    {formatDuration(start, end)}
   </Tooltip.Trigger>
   <Tooltip.Content>
     <p>{formatRelative(start, new Date())} to {format(end, 'p')}</p>
