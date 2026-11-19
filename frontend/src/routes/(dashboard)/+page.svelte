@@ -27,6 +27,7 @@
   import DurationCell from './(components)/duration-cell.svelte';
   import DateCell from './(components)/date-cell.svelte';
   import DateFilter from './(components)/date-filter.svelte';
+  import ServicesAttention from './(components)/services-attention.svelte';
   import { formatDuration, formatStarted } from './(components)/format.js';
   import { goto } from '$app/navigation';
   import { toast } from 'svelte-sonner';
@@ -221,6 +222,10 @@
   <StatCard label="Down" value={$stats.down} context="Failing checks" tone="down" />
   <StatCard label="Errors" value={$stats.failed} context="Check couldn't run" tone="pending" />
   <StatCard label="Paused" value={paused} context="Not being checked" tone="neutral" />
+</div>
+
+<div in:fly={{ y: 20, duration: 200 }}>
+  <ServicesAttention />
 </div>
 
 <div in:fly={{ y: 20, duration: 200 }}>
