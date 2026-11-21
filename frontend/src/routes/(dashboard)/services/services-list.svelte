@@ -177,7 +177,8 @@
 </script>
 
 <div class="flex flex-col gap-4">
-  <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+  <!-- The filters move to their own line when they don't fit beside the chips. -->
+  <div class="flex flex-wrap items-center justify-between gap-3">
     <div class="flex flex-wrap gap-2" role="group" aria-label="Filter by status">
       {#each chips as chip (chip.value)}
         <button
@@ -203,8 +204,8 @@
       {/each}
     </div>
 
-    <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center">
-      <div class="relative col-span-2 sm:w-64">
+    <div class="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center">
+      <div class="relative col-span-2 sm:w-72">
         <Search
           class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
           aria-hidden="true"
