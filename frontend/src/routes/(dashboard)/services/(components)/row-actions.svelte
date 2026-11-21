@@ -1,11 +1,10 @@
 <script>
   import Ellipsis from '@lucide/svelte/icons/ellipsis';
-  import { toast } from 'svelte-sonner';
 
   import { Button } from '$lib/components/ui/button/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
-  import { cfetch } from '$lib/utils.js';
+  import { deleteService, togglePause } from '$lib/data/service-actions.js';
 
   /**
    * @typedef {Object} Props
@@ -20,52 +19,12 @@
 
   function handleDelete() {
     deleteDialogOpen = false;
-    const promise = new Promise((resolve, reject) =>
-      cfetch(`/services/${service.id}`, { method: 'DELETE' }).then(async (res) => {
-        if (res.ok) {
-          resolve(await res.json());
-        } else {
-          reject(res.statusText);
-        }
-      })
-    );
-
-    toast.promise(promise, {
-      loading: 'Loading...',
-      success: `Service "${service.name}" deleted`,
-      error: (e) => {
-        return `Error: ${e}`;
-      }
-    });
+    // The toast reports failures.
+    deleteService(service).catch(() => {});
   }
 
   function handlePause() {
-    const pausing = service.active;
-    const promise = new Promise((resolve, reject) =>
-      cfetch(`/services/${service.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ active: !service.active })
-      })
-        .then(async (res) => {
-          if (res.ok) {
-            resolve(await res.json());
-          } else {
-            reject(res.statusText);
-          }
-        })
-        .catch((e) => {
-          reject(e);
-        })
-    );
-
-    toast.promise(promise, {
-      loading: 'Loading...',
-      success: `Service "${service.name}" ${pausing ? 'paused' : 'resumed'}`,
-      error: (e) => {
-        return `Error: ${e}`;
-      }
-    });
+    togglePause(service).catch(() => {});
   }
 </script>
 
