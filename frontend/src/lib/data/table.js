@@ -11,6 +11,7 @@ export const StatusValue = {
  * @property {number} value - The integer representation of the status.
  * @property {string} label - status label
  * @property {'default' | 'destructive' | 'secondary' | 'outline'} variant - variant to use for the badge
+ * @property {import('$lib/components/dashboard/tones.js').Tone} tone - status colour for pills, dots and ticks
  */
 
 /** @type {Status[]} */
@@ -18,26 +19,31 @@ export const statuses = [
   {
     value: StatusValue.Pending,
     label: 'Pending',
+    tone: 'pending',
     variant: 'outline'
   },
   {
     value: StatusValue.Up,
     label: 'Up',
+    tone: 'up',
     variant: 'default'
   },
   {
     value: StatusValue.Down,
     label: 'Down',
+    tone: 'down',
     variant: 'destructive'
   },
   {
     value: StatusValue.Failed,
     label: 'Failed',
+    tone: 'down',
     variant: 'secondary'
   },
   {
     value: StatusValue.Maintenance,
     label: 'Maintenance',
+    tone: 'maintenance',
     variant: 'secondary'
   }
 ];
