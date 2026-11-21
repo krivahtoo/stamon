@@ -8,7 +8,7 @@
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
   import { SIDEBAR_COOKIE_NAME } from '$lib/components/ui/sidebar/constants.js';
   import instance from '$lib/store/instance.js';
-  import services from '$lib/store/services.js';
+  import services, { servicesLoaded } from '$lib/store/services.js';
   import stats from '$lib/store/stats.js';
   import demo from '$lib/store/demo.js';
   import FlaskConical from '@lucide/svelte/icons/flask-conical';
@@ -45,6 +45,7 @@
           const data = await res.json();
           // console.log(data);
           services.set(data.services);
+          servicesLoaded.set(true);
         }
       });
 

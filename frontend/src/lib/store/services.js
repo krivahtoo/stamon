@@ -17,3 +17,6 @@ import { writable } from 'svelte/store';
 
 /** @type {import('svelte/store').Writable<Service[]>} */
 export default writable([]);
+
+/** True once the first list of services has loaded. */
+export const servicesLoaded = writable(false);
