@@ -31,6 +31,22 @@ export function formatDateTime(time) {
 }
 
 /**
+ * Part of a date and time in the signed-in user's timezone, or the browser's
+ * when they haven't picked one.
+ * @param {string | number | Date} time
+ * @param {Intl.DateTimeFormatOptions} options - What to show, e.g. `{ hour: '2-digit' }`.
+ * @returns {string}
+ */
+export function formatTime(time, options) {
+  const timeZone = get(user)?.timezone ?? undefined;
+  try {
+    return new Date(time).toLocaleString(undefined, { ...options, timeZone });
+  } catch {
+    return new Date(time).toLocaleString(undefined, options);
+  }
+}
+
+/**
  * The URL a push monitor's service calls to send a heartbeat.
  * @param {string} pushToken
  * @returns {string}
