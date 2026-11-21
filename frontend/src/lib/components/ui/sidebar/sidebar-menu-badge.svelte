@@ -1,22 +1,17 @@
 <script>
-	import { cn } from "$lib/utils.js";
-	let {
-		ref = $bindable(null),
-		class: className,
-		children,
-		...restProps
-	} = $props();
+  import { cn } from '$lib/utils.js';
+  let { ref = $bindable(null), class: className, children, ...restProps } = $props();
 </script>
 
 <div
-	bind:this={ref}
-	data-slot="sidebar-menu-badge"
-	data-sidebar="menu-badge"
-	class={cn(
-		"text-sidebar-foreground peer-hover/menu-button:text-sidebar-accent-foreground peer-data-active/menu-button:text-sidebar-accent-foreground pointer-events-none absolute right-1 flex h-5 min-w-5 rounded-[calc(var(--radius-sm)_-_2px)] px-1 text-xs font-medium peer-data-[size=default]/menu-button:top-1.5 peer-data-[size=lg]/menu-button:top-2.5 peer-data-[size=sm]/menu-button:top-1 flex items-center justify-center tabular-nums select-none group-data-[collapsible=icon]:hidden",
-		className
-	)}
-	{...restProps}
+  bind:this={ref}
+  data-slot="sidebar-menu-badge"
+  data-sidebar="menu-badge"
+  class={cn(
+    'pointer-events-none absolute right-1 flex flex h-5 min-w-5 items-center justify-center rounded-[calc(var(--radius-sm)_-_2px)] px-1 text-xs font-medium text-sidebar-foreground tabular-nums select-none group-data-[collapsible=icon]:hidden peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[size=default]/menu-button:top-1.5 peer-data-[size=lg]/menu-button:top-2.5 peer-data-[size=sm]/menu-button:top-1 peer-data-active/menu-button:text-sidebar-accent-foreground',
+    className
+  )}
+  {...restProps}
 >
-	{@render children?.()}
+  {@render children?.()}
 </div>

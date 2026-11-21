@@ -177,7 +177,7 @@
           <dd class="font-medium">{instance.token_minutes} minutes</dd>
           {#if instance.data_path}
             <dt class="text-muted-foreground">Data directory</dt>
-            <dd class="break-all font-mono text-xs leading-5">{instance.data_path}</dd>
+            <dd class="font-mono text-xs leading-5 break-all">{instance.data_path}</dd>
           {/if}
         </dl>
       </section>

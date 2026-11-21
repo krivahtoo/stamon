@@ -5,7 +5,6 @@
   import { Label } from '$lib/components/ui/label/index.js';
   import { cfetch } from '$lib/utils.js';
 
-  
   /**
    * @typedef {Object} Props
    * @property {number[]} [selected] - Ids of the channels picked for the service.

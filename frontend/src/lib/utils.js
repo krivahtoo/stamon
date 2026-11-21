@@ -3,7 +3,7 @@ import user from './store/user.js';
 import { dev } from '$app/environment';
 import { get } from 'svelte/store';
 
-export { cn } from "cn";
+export { cn } from 'cn';
 
 /**
  * @param {string} path

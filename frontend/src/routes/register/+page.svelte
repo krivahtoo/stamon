@@ -183,7 +183,7 @@
           <Label
             id="show-password-label"
             for="show-password"
-            class="cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            class="cursor-pointer text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
             Show password
           </Label>

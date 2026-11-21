@@ -1,26 +1,26 @@
 <script>
-	import { Pagination as PaginationPrimitive } from "bits-ui";
+  import { Pagination as PaginationPrimitive } from 'bits-ui';
 
-	import { cn } from "$lib/utils.js";
+  import { cn } from '$lib/utils.js';
 
-	/** @type {any} */
-	let {
-		ref = $bindable(null),
-		class: className,
-		count = 0,
-		perPage = 10,
-		page = $bindable(1),
-		siblingCount = 1,
-		...restProps
-	} = $props();
+  /** @type {any} */
+  let {
+    ref = $bindable(null),
+    class: className,
+    count = 0,
+    perPage = 10,
+    page = $bindable(1),
+    siblingCount = 1,
+    ...restProps
+  } = $props();
 </script>
 
 <PaginationPrimitive.Root
-	bind:ref
-	class={cn("mx-auto flex w-full flex-col items-center", className)}
-	{count}
-	{perPage}
-	{siblingCount}
-	bind:page
-	{...restProps}
+  bind:ref
+  class={cn('mx-auto flex w-full flex-col items-center', className)}
+  {count}
+  {perPage}
+  {siblingCount}
+  bind:page
+  {...restProps}
 />

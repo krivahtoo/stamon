@@ -81,21 +81,21 @@
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
         {#snippet child({ props })}
-        <Button
-          variant="ghost"
-          {...props}
-          class="-ml-3 h-8 data-[state=open]:bg-accent"
-          size="sm"
-        >
-          {@render children?.()}
-          {#if colProps.sort.order === 'desc'}
-            <ArrowUpAZ class="ml-2 h-4 w-4" />
-          {:else if colProps.sort.order === 'asc'}
-            <ArrowDownAZ class="ml-2 h-4 w-4" />
-          {:else}
-            <ChevronsUpDown class="ml-2 h-4 w-4" />
-          {/if}
-        </Button>
+          <Button
+            variant="ghost"
+            {...props}
+            class="-ml-3 h-8 data-[state=open]:bg-accent"
+            size="sm"
+          >
+            {@render children?.()}
+            {#if colProps.sort.order === 'desc'}
+              <ArrowUpAZ class="ml-2 h-4 w-4" />
+            {:else if colProps.sort.order === 'asc'}
+              <ArrowDownAZ class="ml-2 h-4 w-4" />
+            {:else}
+              <ChevronsUpDown class="ml-2 h-4 w-4" />
+            {/if}
+          </Button>
         {/snippet}
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="start">

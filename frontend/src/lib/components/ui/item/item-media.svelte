@@ -1,38 +1,39 @@
 <script module>
-	import { tv } from "tailwind-variants";
+  import { tv } from 'tailwind-variants';
 
-	export const itemMediaVariants = tv({
-		base: "gap-2 group-has-data-[slot=item-description]/item:translate-y-0.5 group-has-data-[slot=item-description]/item:self-start flex shrink-0 items-center justify-center [&_svg]:pointer-events-none",
-		variants: {
-			variant: {
-				default: "bg-transparent",
-				icon: "[&_svg:not([class*='size-'])]:size-4",
-				image: "size-8 overflow-hidden rounded-sm group-data-[size=sm]/item:size-8 group-data-[size=xs]/item:size-6 [&_img]:size-full [&_img]:object-cover",
-			},
-		},
-		defaultVariants: {
-			variant: "default",
-		},
-	});
+  export const itemMediaVariants = tv({
+    base: 'gap-2 group-has-data-[slot=item-description]/item:translate-y-0.5 group-has-data-[slot=item-description]/item:self-start flex shrink-0 items-center justify-center [&_svg]:pointer-events-none',
+    variants: {
+      variant: {
+        default: 'bg-transparent',
+        icon: "[&_svg:not([class*='size-'])]:size-4",
+        image:
+          'size-8 overflow-hidden rounded-sm group-data-[size=sm]/item:size-8 group-data-[size=xs]/item:size-6 [&_img]:size-full [&_img]:object-cover'
+      }
+    },
+    defaultVariants: {
+      variant: 'default'
+    }
+  });
 </script>
 
 <script>
-	import { cn } from "$lib/utils.js";
-	let {
-		ref = $bindable(null),
-		class: className,
-		children,
-		variant = "default",
-		...restProps
-	} = $props();
+  import { cn } from '$lib/utils.js';
+  let {
+    ref = $bindable(null),
+    class: className,
+    children,
+    variant = 'default',
+    ...restProps
+  } = $props();
 </script>
 
 <div
-	bind:this={ref}
-	data-slot="item-media"
-	data-variant={variant}
-	class={cn(itemMediaVariants({ variant }), className)}
-	{...restProps}
+  bind:this={ref}
+  data-slot="item-media"
+  data-variant={variant}
+  class={cn(itemMediaVariants({ variant }), className)}
+  {...restProps}
 >
-	{@render children?.()}
+  {@render children?.()}
 </div>

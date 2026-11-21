@@ -41,7 +41,6 @@
   /** @type {StatusPage | null} */
   let deleting = $state(null);
 
-
   function emptyForm() {
     return {
       title: '',

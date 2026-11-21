@@ -11,12 +11,12 @@
   <DropdownMenu.Root>
     <DropdownMenu.Trigger>
       {#snippet child({ props })}
-            <Button {...props} variant="outline" size="sm" class="h-8 gap-1">
+        <Button {...props} variant="outline" size="sm" class="h-8 gap-1">
           <ListFilter class="h-3.5 w-3.5" />
           <span class="sr-only sm:not-sr-only sm:whitespace-nowrap"> Filter </span>
         </Button>
-                {/snippet}
-        </DropdownMenu.Trigger>
+      {/snippet}
+    </DropdownMenu.Trigger>
     <DropdownMenu.Content align="end">
       <DropdownMenu.Label>Filter by</DropdownMenu.Label>
       <DropdownMenu.Separator />

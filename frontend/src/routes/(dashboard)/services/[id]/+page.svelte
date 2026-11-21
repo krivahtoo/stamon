@@ -32,7 +32,6 @@
   /** @type {import('svelte/store').Writable<Log[]>} */
   let logs = writable([]);
 
-
   /**
    * @typedef {Object} Props
    * @property {import('./$types').PageData} data

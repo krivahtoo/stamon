@@ -1,12 +1,8 @@
 <script>
-	/** @type {any} */
-	let {
-		ref = $bindable(null),
-		children,
-		...restProps
-	} = $props();
+  /** @type {any} */
+  let { ref = $bindable(null), children, ...restProps } = $props();
 </script>
 
 <li bind:this={ref} {...restProps}>
-	{@render children?.()}
+  {@render children?.()}
 </li>
