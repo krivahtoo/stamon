@@ -1,5 +1,5 @@
 <script>
-  import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';
+  import Ellipsis from '@lucide/svelte/icons/ellipsis';
   import { toast } from 'svelte-sonner';
 
   import { Button } from '$lib/components/ui/button/index.js';
@@ -23,9 +23,7 @@
     const promise = new Promise((resolve, reject) =>
       cfetch(`/services/${service.id}`, { method: 'DELETE' }).then(async (res) => {
         if (res.ok) {
-          const data = await res.json();
-          // console.log(data);
-          resolve(data);
+          resolve(await res.json());
         } else {
           reject(res.statusText);
         }
@@ -34,7 +32,7 @@
 
     toast.promise(promise, {
       loading: 'Loading...',
-      success: `Monitor "${service.name}" deleted`,
+      success: `Service "${service.name}" deleted`,
       error: (e) => {
         return `Error: ${e}`;
       }
@@ -42,6 +40,7 @@
   }
 
   function handlePause() {
+    const pausing = service.active;
     const promise = new Promise((resolve, reject) =>
       cfetch(`/services/${service.id}`, {
         method: 'PUT',
@@ -50,9 +49,7 @@
       })
         .then(async (res) => {
           if (res.ok) {
-            const data = await res.json();
-            // console.log(data);
-            resolve(data);
+            resolve(await res.json());
           } else {
             reject(res.statusText);
           }
@@ -64,7 +61,7 @@
 
     toast.promise(promise, {
       loading: 'Loading...',
-      success: `Monitor "${service.name}" paused`,
+      success: `Service "${service.name}" ${pausing ? 'paused' : 'resumed'}`,
       error: (e) => {
         return `Error: ${e}`;
       }
@@ -76,36 +73,41 @@
   <DropdownMenu.Root>
     <DropdownMenu.Trigger>
       {#snippet child({ props })}
-        <Button variant="ghost" {...props} class="flex h-8 w-8 p-0 data-[state=open]:bg-muted">
-          <EllipsisVertical class="h-4 w-4" />
-          <span class="sr-only">Open Monitor Options</span>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          {...props}
+          class="text-muted-foreground data-[state=open]:bg-raised"
+        >
+          <Ellipsis />
+          <span class="sr-only">Actions for {service.name}</span>
         </Button>
       {/snippet}
     </DropdownMenu.Trigger>
     <DropdownMenu.Content class="w-auto" align="end">
-      <DropdownMenu.Item href={`/services/${service.id}`}>Open</DropdownMenu.Item>
+      <DropdownMenu.Item>
+        {#snippet child({ props })}
+          <a href="/services/{service.id}" {...props}>Open</a>
+        {/snippet}
+      </DropdownMenu.Item>
       <DropdownMenu.Item onSelect={handlePause}>
-        {#if service.active}
-          Pause
-        {:else}
-          Resume
-        {/if}
+        {service.active ? 'Pause' : 'Resume'}
       </DropdownMenu.Item>
       <DropdownMenu.Separator />
-      <Dialog.Trigger class="w-full">
-        <DropdownMenu.Item>Delete</DropdownMenu.Item>
-      </Dialog.Trigger>
+      <DropdownMenu.Item variant="destructive" onSelect={() => (deleteDialogOpen = true)}>
+        Delete
+      </DropdownMenu.Item>
     </DropdownMenu.Content>
   </DropdownMenu.Root>
   <Dialog.Content class="sm:max-w-[425px]">
     <Dialog.Header>
-      <Dialog.Title>Delete Service</Dialog.Title>
+      <Dialog.Title>Delete service</Dialog.Title>
       <Dialog.Description>
         Are you sure you want to delete "{service.name}"?
       </Dialog.Description>
     </Dialog.Header>
     <Dialog.Footer>
-      <Button variant="destructive" onclick={handleDelete}>Yes, Delete</Button>
+      <Button variant="destructive" onclick={handleDelete}>Yes, delete</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>
