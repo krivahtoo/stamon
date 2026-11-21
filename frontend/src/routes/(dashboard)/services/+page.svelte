@@ -1,13 +1,25 @@
 <script>
-  import { fly } from 'svelte/transition';
-  import DataTable from './data-table.svelte';
+  import Plus from '@lucide/svelte/icons/plus';
+  import services, { servicesLoaded } from '$lib/store/services.js';
+  import { Button } from '$lib/components/ui/button/index.js';
+  import { PageHeader } from '$lib/components/dashboard/index.js';
+  import ServicesList from './services-list.svelte';
 </script>
 
-<div in:fly={{ y: 20, duration: 200 }} class="flex items-center justify-between space-y-2">
-  <div>
-    <h2 class="text-2xl font-bold tracking-tight">Services</h2>
-    <p class="text-muted-foreground">Here's a list of your services monitored!</p>
-  </div>
-</div>
+<div class="flex flex-col gap-6">
+  <PageHeader
+    label="Infrastructure"
+    title="Services"
+    count={$servicesLoaded ? $services.length : undefined}
+    description="Everything Stamon checks, and how each check is doing."
+  >
+    {#snippet actions()}
+      <Button href="/services/new">
+        <Plus />
+        New service
+      </Button>
+    {/snippet}
+  </PageHeader>
 
-<DataTable />
+  <ServicesList />
+</div>
