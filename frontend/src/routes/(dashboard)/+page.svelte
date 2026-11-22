@@ -18,6 +18,7 @@
   import Wrench from '@lucide/svelte/icons/wrench';
   import Search from '@lucide/svelte/icons/search';
   import CircleCheck from '@lucide/svelte/icons/circle-check';
+  import CircleAlert from '@lucide/svelte/icons/circle-alert';
   import ChevronLeft from '@lucide/svelte/icons/chevron-left';
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
@@ -46,6 +47,7 @@
   /** @type {import('svelte/store').Writable<Incident[]>} */
   const data = writable([]);
   let loaded = $state(false);
+  let failed = $state(false);
 
   const table = createTable(data, {
     page: addPagination({ initialPageSize: 10 }),
@@ -164,19 +166,23 @@
 
   let paused = $derived(Math.max($stats.count - $stats.active, 0));
 
-  onMount(() => {
+  function loadIncidents() {
+    loaded = false;
+    failed = false;
     cfetch('/logs/incidents')
       .then(async (res) => {
         if (res.ok) {
           const json_data = await res.json();
           data.set(json_data.incidents);
         } else {
+          failed = true;
           if (res.status === 401) {
             goto('/login');
           }
         }
       })
       .catch((e) => {
+        failed = true;
         toast.error('Failed to get incidents', {
           description: `${e}`
         });
@@ -184,7 +190,9 @@
       .finally(() => {
         loaded = true;
       });
-  });
+  }
+
+  onMount(loadIncidents);
 </script>
 
 <svelte:head>
@@ -228,7 +236,11 @@
       {/if}
     </div>
 
-    {#if loaded && $data.length === 0}
+    {#if loaded && failed}
+      <EmptyState icon={CircleAlert} message="Couldn't load incidents." framed={false}>
+        <Button variant="outline" onclick={loadIncidents}>Try again</Button>
+      </EmptyState>
+    {:else if loaded && $data.length === 0}
       <EmptyState
         icon={CircleCheck}
         message="No incidents. All services are running normally."
@@ -308,7 +320,7 @@
                 <ServiceCell id={incident.service_id} name={incident.service_name} />
                 <StatusCell statusId={incident.status} />
               </div>
-              <p class="line-clamp-2 text-sm text-muted-foreground">{incident.messages}</p>
+              <p class="text-sm break-words text-muted-foreground">{incident.messages}</p>
               <p class="text-xs text-muted-foreground tabular-nums">
                 {formatStarted(incident.start)} · {formatDuration(incident.start, incident.end)} ·
                 {incident.count}

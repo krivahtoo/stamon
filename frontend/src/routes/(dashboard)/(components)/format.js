@@ -1,4 +1,4 @@
-import { differenceInSeconds, format, isToday, isYesterday } from 'date-fns';
+import { differenceInSeconds, format, isToday, isYesterday, parseISO } from 'date-fns';
 
 /**
  * When an incident started: "Today, 14:02", "Yesterday, 22:41" or "Oct 14, 09:12".
@@ -53,7 +53,9 @@ export function formatDuration(start, end) {
  * @param {string} date
  */
 export function formatDay(date) {
-  if (isToday(date)) return 'Today';
-  if (isYesterday(date)) return 'Yesterday';
-  return format(date, 'EEE, MMM d');
+  // parseISO keeps a bare date in local time; new Date() would read it as UTC.
+  const day = parseISO(date);
+  if (isToday(day)) return 'Today';
+  if (isYesterday(day)) return 'Yesterday';
+  return format(day, 'EEE, MMM d');
 }
