@@ -14,10 +14,11 @@
   /**
    * @typedef {Object} Props
    * @property {import('./service-form.js').ServiceModel} model
+   * @property {boolean} [locked] - Show only the model's type, for editing a service.
    */
 
   /** @type {Props} */
-  let { model = $bindable() } = $props();
+  let { model = $bindable(), locked = false } = $props();
 
   /** @type {Record<string, typeof Globe>} */
   const icons = {
@@ -34,6 +35,7 @@
   };
 
   let selected = $derived(kindOf(model));
+  let kinds = $derived(locked ? checkKinds.filter((k) => k.value === selected) : checkKinds);
 
   /**
    * Arrow keys move between the cards, as in a radio group.
@@ -44,15 +46,15 @@
     const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
     if (!step) return;
     event.preventDefault();
-    const next = (index + step + checkKinds.length) % checkKinds.length;
-    setKind(model, checkKinds[next].value);
+    const next = (index + step + kinds.length) % kinds.length;
+    setKind(model, kinds[next].value);
     const group = /** @type {HTMLElement} */ (event.currentTarget).parentElement;
     /** @type {HTMLElement | undefined} */ (group?.children[next])?.focus();
   }
 </script>
 
 <div role="radiogroup" aria-label="Check type" class="grid grid-cols-2 gap-3 lg:grid-cols-3">
-  {#each checkKinds as kind, index (kind.value)}
+  {#each kinds as kind, index (kind.value)}
     {@const Icon = icons[kind.value]}
     {@const checked = selected === kind.value}
     <button

@@ -3,6 +3,7 @@ import {
   REDACTED,
   buildConfig,
   createPayload,
+  editPayload,
   emptyService,
   fromService,
   kindOf,
@@ -70,6 +71,16 @@ describe('createPayload', () => {
       channel_ids: [3],
       config: { type: 'http', headers: { Accept: 'application/json' }, body: null }
     });
+  });
+});
+
+describe('editPayload', () => {
+  it('sends tags but not channels', () => {
+    const model = fromService(saved({ type: 'ping', host: 'example.com' }));
+    model.channel_ids = [3];
+    const payload = editPayload(model);
+    expect(payload).toMatchObject({ tags: ['prod', 'api'], config: { host: 'example.com' } });
+    expect(payload).not.toHaveProperty('channel_ids');
   });
 });
 

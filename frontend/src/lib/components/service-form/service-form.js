@@ -441,8 +441,15 @@ export const createPayload = (model) => ({
 });
 
 /**
- * The body of `PUT /services/{id}` from the check settings editor, which
+ * The body of `PUT /services/{id}` from the check settings card, which
  * leaves tags and channels to their own editors.
  * @param {ServiceModel} model
  */
 export const updatePayload = (model) => settings(model);
+
+/**
+ * The body of `PUT /services/{id}` from the edit page. Channels are saved
+ * separately, with `PUT /services/{id}/channels`.
+ * @param {ServiceModel} model
+ */
+export const editPayload = (model) => ({ ...settings(model), tags: model.tags });
