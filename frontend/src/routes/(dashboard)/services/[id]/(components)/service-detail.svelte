@@ -6,6 +6,7 @@
   import Bell from '@lucide/svelte/icons/bell';
   import Copy from '@lucide/svelte/icons/copy';
   import Pause from '@lucide/svelte/icons/pause';
+  import Pencil from '@lucide/svelte/icons/pencil';
   import Play from '@lucide/svelte/icons/play';
   import Trash2 from '@lucide/svelte/icons/trash-2';
   import * as Card from '$lib/components/ui/card/index.js';
@@ -258,6 +259,10 @@
             Resume
           {/if}
         </Button>
+        <Button variant="outline" href={`/services/${service.id}/edit`}>
+          <Pencil />
+          Edit
+        </Button>
         <Button
           variant="outline"
           size="icon"
@@ -335,7 +340,7 @@
     </div>
 
     <aside class="flex flex-col gap-6 lg:col-start-2 lg:row-span-2 lg:row-start-1">
-      <CheckSettings {service} />
+      <CheckSettings bind:service {canEdit} />
 
       <Card.Root class="gap-0 py-0">
         <div class="flex items-center justify-between gap-2 border-b px-4 py-3 sm:px-5">
