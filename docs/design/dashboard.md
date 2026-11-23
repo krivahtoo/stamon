@@ -81,9 +81,12 @@ Status colours are used only to show status, never as decoration.
   target and actions. Below it, stat cards, a push URL strip for push checks,
   and a response-time chart with 1h/24h/7d/30d ranges. A side column holds
   the check settings, tags and alert channels, and the check history table
-  sits underneath.
+  sits underneath. The header's Edit opens the edit page. The check settings
+  card's Edit turns its rows into compact inputs in place, keeping the card's
+  size, with only a Cancel/Save footer added.
 - **New/edit service:** check types appear as a grid of cards, each with an
-  icon and one line of description.
+  icon and one line of description. The edit page shows only the service's
+  type, which can't be changed, and saves with "Save changes".
 - **Notifications:** one card per channel with Test and Edit actions and an
   enable toggle.
 - **Sign in / Register:** the logo above one 400px card on the surface colour,
