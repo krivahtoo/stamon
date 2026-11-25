@@ -95,7 +95,7 @@ importers:
         version: 1.8.0
       arktype:
         specifier: ^2.2.9
-        version: 2.2.9
+        version: 2.2.10
       autoprefixer:
         specifier: ^10.4.16
         version: 10.4.21(postcss@8.5.3)
@@ -183,11 +183,11 @@ importers:
 
 packages:
 
-  '@ark/schema@0.56.8':
-    resolution: {integrity: sha512-R05TOe85oQBGFFw2zKMuZpqkXibLKuC/aJt6VwFn5Cjc4x3NkWfhvGRpRDycNkj3ddcHnOPtIsmjVowJO9Yxdw==}
+  '@ark/schema@0.56.9':
+    resolution: {integrity: sha512-3kFUweE9PagqzEC9FEOirBRrVxBj0D6o8UiZDDrCyrcaBepRFHjUezf6MuTk8mKfJ4NKzSsaUCOVK+jzcm+dPw==}
 
-  '@ark/util@0.56.8':
-    resolution: {integrity: sha512-XLiQyGfpJcws1zCtp2Cva8s1oheCdFn1Rt6JSyC4NnkDrpwCJnlaiawuuOc1Z97vMH+jEzW5vyyf0xOju5wUQA==}
+  '@ark/util@0.56.9':
+    resolution: {integrity: sha512-/yA1me+AMmI75VaQ5owz1A1owopAJ0ZZFXy9SI1Q69kErJfxuglQBYjGeOTFyygJjZ9Rf4UjCtD5XTuEiNiGHw==}
 
   '@babel/code-frame@7.26.2':
     resolution: {integrity: sha512-RJlIHRueQgwWitWgF8OdFYGZX328Ax5BCemNGlqHfplnRT9ESi8JkFlvaVYbS+UubVY6dpv87Fs2u5M29iNFVQ==}
@@ -1157,11 +1157,11 @@ packages:
     resolution: {integrity: sha512-Z/ZeOgVl7bcSYZ/u/rh0fOpvEpq//LZmdbkXyc7syVzjPAhfOa9ebsdTSjEBDU4vs5nC98Kfduj1uFo0qyET3g==}
     engines: {node: '>= 0.4'}
 
-  arkregex@0.0.14:
-    resolution: {integrity: sha512-G3I/uCtWE0IKQiPh0qqmmAFDdtjZKZQ5mNPR6gJBeAMZ7VqYCpoaDeXnLju2Zo6ywExtmxZJELeVFb0MPDjPyA==}
+  arkregex@0.0.15:
+    resolution: {integrity: sha512-mu9vS4b8kTipqr2AfVIL1NYhGH47CZgPdYFzB762lu4/dsxm7hmNsN3ayDahcM9OhepOpTQc+W744yh4KE+mAw==}
 
-  arktype@2.2.9:
-    resolution: {integrity: sha512-Cja0IMEn19rB35on9da1i1z6QMasuS7ULffXbetCry09jvCGYT8Bi1KgYiqri5FymF4nQAXkM90yksYkgSK2EA==}
+  arktype@2.2.10:
+    resolution: {integrity: sha512-xfum3++1RGjULFBeeXph3XrejEhAfswZlpH/V5m324j8aZ/53tHUd8OPCXE1v5iU/2UEkn/ZDFUT0Exkjv96xA==}
 
   assertion-error@1.1.0:
     resolution: {integrity: sha512-jgsaNduz+ndvGyFt3uSuWqvy4lCnIJiovtouQN5JZHOKCS2QuhEdbcQHFhVksz2N2U9hXJo8odG7ETyWlEeuDw==}
@@ -2868,11 +2868,11 @@ packages:
 
 snapshots:
 
-  '@ark/schema@0.56.8':
+  '@ark/schema@0.56.9':
     dependencies:
-      '@ark/util': 0.56.8
+      '@ark/util': 0.56.9
 
-  '@ark/util@0.56.8': {}
+  '@ark/util@0.56.9': {}
 
   '@babel/code-frame@7.26.2':
     dependencies:
@@ -3805,15 +3805,15 @@ snapshots:
 
   aria-query@5.3.1: {}
 
-  arkregex@0.0.14:
+  arkregex@0.0.15:
     dependencies:
-      '@ark/util': 0.56.8
+      '@ark/util': 0.56.9
 
-  arktype@2.2.9:
+  arktype@2.2.10:
     dependencies:
-      '@ark/schema': 0.56.8
-      '@ark/util': 0.56.8
-      arkregex: 0.0.14
+      '@ark/schema': 0.56.9
+      '@ark/util': 0.56.9
+      arkregex: 0.0.15
 
   assertion-error@1.1.0: {}
 
@@ -5214,7 +5214,7 @@ snapshots:
       '@typeschema/class-validator': 0.3.0(@types/json-schema@7.0.15)(class-validator@0.14.4)
       '@valibot/to-json-schema': 1.8.0(valibot@1.5.0(typescript@5.9.2))
       '@vinejs/vine': 4.4.0
-      arktype: 2.2.9
+      arktype: 2.2.10
       class-validator: 0.14.4
       effect: 3.22.4
       joi: 17.13.9
