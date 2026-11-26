@@ -40,11 +40,11 @@
     </a>
   </Sidebar.Header>
 
-  <Sidebar.Content class="gap-0 px-1">
+  <Sidebar.Content class="gap-0 px-1 group-data-[collapsible=icon]:px-0">
     {#each groups as group (group.label)}
       <Sidebar.Group class="py-0">
         <Sidebar.GroupLabel
-          class="mt-2 px-2.5 text-xs font-bold tracking-[0.08em] text-muted-foreground uppercase"
+          class="mt-2 px-2.5 text-xs font-bold tracking-[0.08em] text-muted-foreground uppercase group-data-[collapsible=icon]:pointer-events-none"
         >
           {group.label}
         </Sidebar.GroupLabel>
