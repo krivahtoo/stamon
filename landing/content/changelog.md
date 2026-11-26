@@ -5,6 +5,29 @@ weight = 5
 aliases = ["/docs/changelog/"]
 +++
 
+## [0.5.0](https://github.com/krivahtoo/stamon/compare/v0.4.1...v0.5.0) (2026-11-26)
+
+
+### Features
+
+* **dashboard:** migrate application components to Svelte 5 ([#208](https://github.com/krivahtoo/stamon/issues/208)) ([c85eb33](https://github.com/krivahtoo/stamon/commit/c85eb3320afaaca662e907d1239fb59aa522c54f))
+* **frontend:** add shared dashboard building blocks ([#215](https://github.com/krivahtoo/stamon/issues/215)) ([dcfeab4](https://github.com/krivahtoo/stamon/commit/dcfeab44d34888dfc367086e3d2d47273e570e32)), closes [#185](https://github.com/krivahtoo/stamon/issues/185)
+* **frontend:** adopt the DevLab design tokens ([#214](https://github.com/krivahtoo/stamon/issues/214)) ([f1dd5b2](https://github.com/krivahtoo/stamon/commit/f1dd5b2d7372dd9b871cf294b62bc5d3878917d4)), closes [#184](https://github.com/krivahtoo/stamon/issues/184)
+* **frontend:** migrate application to Svelte 5 ([#206](https://github.com/krivahtoo/stamon/issues/206)) ([570a37b](https://github.com/krivahtoo/stamon/commit/570a37b660a6e40d3d707e3b3dc26c7f4c7f6955))
+* **frontend:** redesign the app shell ([#216](https://github.com/krivahtoo/stamon/issues/216)) ([1041afb](https://github.com/krivahtoo/stamon/commit/1041afb66268c3a28564c3c22f62fb05ae203882)), closes [#186](https://github.com/krivahtoo/stamon/issues/186)
+* **frontend:** redesign the dashboard overview ([#217](https://github.com/krivahtoo/stamon/issues/217)) ([52010f3](https://github.com/krivahtoo/stamon/commit/52010f3831ad4e55917693abba36b385b63ce39f))
+* **frontend:** redesign the services list ([#223](https://github.com/krivahtoo/stamon/issues/223)) ([998925a](https://github.com/krivahtoo/stamon/commit/998925a315cdc31fe7ac0498d1c71a786cec70ba))
+* **frontend:** show services needing attention on the dashboard ([#222](https://github.com/krivahtoo/stamon/issues/222)) ([8b69105](https://github.com/krivahtoo/stamon/commit/8b69105e9390cee2c04a44653393243385629a2f))
+* **ui:** migrate shared components to Svelte 5 ([#207](https://github.com/krivahtoo/stamon/issues/207)) ([46bb3ed](https://github.com/krivahtoo/stamon/commit/46bb3edb6450876f348e673583a35e890c9855ab))
+
+
+### Bug Fixes
+
+* **frontend:** fit the active pill and clicks in the collapsed sidebar ([#227](https://github.com/krivahtoo/stamon/issues/227)) ([04f7c65](https://github.com/krivahtoo/stamon/commit/04f7c653c2ca0a1ed89f08ce2aa2234d9408d302))
+* **frontend:** migrate Tailwind CSS v3 to v4 ([#210](https://github.com/krivahtoo/stamon/issues/210)) ([da24bc8](https://github.com/krivahtoo/stamon/commit/da24bc85e131d41d5f612e8ee4ab1ad63c462be7)), closes [#183](https://github.com/krivahtoo/stamon/issues/183)
+* **frontend:** require prettier 3.7.3 so the tailwind plugin works ([#220](https://github.com/krivahtoo/stamon/issues/220)) ([1306f9b](https://github.com/krivahtoo/stamon/commit/1306f9b88036ecd80ee145136c1f7eac4673aab5))
+* **frontend:** resolve Svelte 5 type-check errors ([#209](https://github.com/krivahtoo/stamon/issues/209)) ([117f11d](https://github.com/krivahtoo/stamon/commit/117f11d1dc95522af6ea02377d92e3b673ec2fd3))
+
 ## [0.4.1](https://github.com/krivahtoo/stamon/compare/v0.4.0...v0.4.1) (2026-10-20)
 
 
