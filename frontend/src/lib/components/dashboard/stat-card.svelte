@@ -27,6 +27,6 @@
   </div>
   <p class="text-2xl font-bold tracking-[-0.015em] tabular-nums sm:text-[2rem]">{value}</p>
   {#if context}
-    <p class="truncate text-xs text-muted-foreground sm:text-sm">{context}</p>
+    <p class="line-clamp-2 text-xs text-muted-foreground sm:truncate sm:text-sm">{context}</p>
   {/if}
 </Card.Root>

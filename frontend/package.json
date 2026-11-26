@@ -63,8 +63,6 @@
   },
   "type": "module",
   "dependencies": {
-    "@unovis/svelte": "^1.4.1",
-    "@unovis/ts": "^1.4.1",
     "bits-ui": "^2.20.4",
     "clsx": "^2.1.0",
     "date-fns": "^3.6.0",

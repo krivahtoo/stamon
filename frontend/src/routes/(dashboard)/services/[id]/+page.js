@@ -9,14 +9,7 @@ export async function load({ params }) {
 
     if (res.ok) {
       const data = await res.json();
-
-      const res_log = await cfetch(`/services/${params.id}/logs?limit=60`);
-      const logs = await res_log.json();
-      // console.log(logs);
-      return {
-        service: data.service,
-        logs: logs.logs.reverse()
-      };
+      return { service: data.service };
     } else if (res.status === 401) {
       goto('/login');
     } else if (res.status === 404) {

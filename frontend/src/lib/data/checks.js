@@ -2,6 +2,22 @@ import { toDate, formatRFC7231 } from 'date-fns';
 import { cfetch } from '$lib/utils.js';
 import { statuses, StatusValue } from './table.js';
 
+/** Display names of the check types. */
+/** @type {Record<string, string>} */
+export const typeLabels = {
+  http: 'HTTP',
+  ping: 'Ping',
+  tcp: 'TCP',
+  dns: 'DNS',
+  tls: 'TLS',
+  docker: 'Docker',
+  database: 'Database',
+  push: 'Push'
+};
+
+/** @param {string} type */
+export const typeLabel = (type) => typeLabels[type] ?? type;
+
 /**
  * @typedef {Object} Log
  * @property {number} service_id - The id of the service.

@@ -6,7 +6,7 @@
 
   import { goto } from '$app/navigation';
   import services, { servicesLoaded } from '$lib/store/services.js';
-  import { loadRecentChecks } from '$lib/data/checks.js';
+  import { loadRecentChecks, typeLabel } from '$lib/data/checks.js';
   import { statuses, StatusValue } from '$lib/data/table.js';
   import { cn } from '$lib/utils.js';
   import * as Card from '$lib/components/ui/card/index.js';
@@ -26,18 +26,6 @@
    */
 
   const PAGE_SIZE = 10;
-
-  /** @type {Record<string, string>} */
-  const typeLabels = {
-    http: 'HTTP',
-    ping: 'Ping',
-    tcp: 'TCP',
-    dns: 'DNS',
-    tls: 'TLS',
-    docker: 'Docker',
-    database: 'Database',
-    push: 'Push'
-  };
 
   /** @type {{ value: StatusFilter, label: string, tone?: import('$lib/components/dashboard/tones.js').Tone }[]} */
   const chips = [
@@ -79,9 +67,6 @@
     service.active
       ? (statuses.find((s) => s.value === service.last_status)?.tone ?? 'neutral')
       : 'neutral';
-
-  /** @param {string} type */
-  const typeLabel = (type) => typeLabels[type] ?? type;
 
   /** @param {Service} service */
   const targetOf = (service) => service.target ?? 'push';

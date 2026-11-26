@@ -10,7 +10,7 @@ use serde_json::json;
 use tracing::error;
 
 use checks::CheckConfig;
-use chrono::{TimeDelta, Utc};
+use chrono::{DateTime, TimeDelta, Utc};
 use sqlx::types::Json as SqlJson;
 
 use crate::{
@@ -30,6 +30,58 @@ use crate::{
 #[derive(Deserialize)]
 struct Pagination {
     limit: Option<u32>,
+    /// Only logs older than this log id.
+    before: Option<i64>,
+}
+
+/// The periods the response-time chart can show.
+#[derive(Deserialize, Default, Clone, Copy)]
+enum Range {
+    #[serde(rename = "1h")]
+    Hour,
+    #[default]
+    #[serde(rename = "24h")]
+    Day,
+    #[serde(rename = "7d")]
+    Week,
+    #[serde(rename = "30d")]
+    Month,
+}
+
+impl Range {
+    fn as_str(self) -> &'static str {
+        match self {
+            Range::Hour => "1h",
+            Range::Day => "24h",
+            Range::Week => "7d",
+            Range::Month => "30d",
+        }
+    }
+
+    fn span(self) -> TimeDelta {
+        match self {
+            Range::Hour => TimeDelta::hours(1),
+            Range::Day => TimeDelta::days(1),
+            Range::Week => TimeDelta::days(7),
+            Range::Month => TimeDelta::days(30),
+        }
+    }
+
+    /// Bucket sizes that give the chart 60 to 170 points.
+    fn bucket_secs(self) -> i64 {
+        match self {
+            Range::Hour => 60,
+            Range::Day => 10 * 60,
+            Range::Week => 60 * 60,
+            Range::Month => 6 * 60 * 60,
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct LatencyQuery {
+    #[serde(default)]
+    range: Range,
 }
 
 fn bad_request(message: String) -> Response {
@@ -209,6 +261,38 @@ async fn service_stats(
 }
 
 #[debug_handler]
+async fn service_latency(
+    _: ViewerClaims,
+    State(state): State<AppState>,
+    Path(service_id): Path<u32>,
+    Query(LatencyQuery { range }): Query<LatencyQuery>,
+) -> Response {
+    match Service::get(&state.pool, service_id).await {
+        Ok(Some(_)) => {}
+        Ok(None) => return json_response(404, "Service not found"),
+        Err(e) => {
+            error!("Error loading service({service_id}): {e}");
+            return json_response(500, "Internal server error");
+        }
+    }
+    // Start on a bucket boundary so the first bucket isn't cut short.
+    let bucket_secs = range.bucket_secs();
+    let start = (Utc::now() - range.span()).timestamp() / bucket_secs * bucket_secs;
+    let since = DateTime::from_timestamp(start, 0).unwrap_or_default();
+    match Log::latency(&state.pool, service_id, since, bucket_secs).await {
+        Ok(latency) => {
+            let mut body = json!(latency);
+            body["range"] = json!(range.as_str());
+            Json(body).into_response()
+        }
+        Err(e) => {
+            error!("Error computing latency for service({service_id}): {e}");
+            json_response(500, "Internal server error")
+        }
+    }
+}
+
+#[debug_handler]
 async fn get_service(
     ViewerClaims(claims): ViewerClaims,
     State(state): State<AppState>,
@@ -354,7 +438,7 @@ async fn list_service_logs(
     Path(service_id): Path<u32>,
     pagination: Query<Pagination>,
 ) -> Response {
-    match Log::list(&state.pool, service_id, pagination.limit).await {
+    match Log::list(&state.pool, service_id, pagination.limit, pagination.before).await {
         Ok(logs) => Response::builder()
             .header("Content-Type", "application/json")
             .body(json!({ "logs": logs }).to_string())
@@ -381,6 +465,7 @@ pub fn routes() -> Router<AppState> {
         )
         .route("/services/{id}/logs", get(list_service_logs))
         .route("/services/{id}/stats", get(service_stats))
+        .route("/services/{id}/latency", get(service_latency))
         .route(
             "/services/{id}/channels",
             get(get_service_channels).put(set_service_channels),

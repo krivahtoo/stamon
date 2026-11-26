@@ -145,15 +145,21 @@ impl Log {
         Ok(logs)
     }
 
+    /// A service's logs, newest first. With `before`, only logs older than
+    /// that log id, for paging.
     pub async fn list(
         pool: &SqlitePool,
         service_id: u32,
         limit: Option<u32>,
+        before: Option<i64>,
     ) -> sqlx::Result<Vec<Log>> {
         let logs = sqlx::query_as::<_, Log>(
-            r#"SELECT * FROM Logs WHERE service_id = ? ORDER BY id DESC LIMIT ?"#,
+            r#"SELECT * FROM Logs
+               WHERE service_id = ? AND id < COALESCE(?, 9223372036854775807)
+               ORDER BY id DESC LIMIT ?"#,
         )
         .bind(service_id)
+        .bind(before)
         .bind(limit.unwrap_or(100))
         .fetch_all(pool)
         .await?;
@@ -170,6 +176,30 @@ pub struct Uptime {
     /// Mean response time of up checks, in milliseconds.
     pub avg_latency: Option<f64>,
     pub checks: u32,
+}
+
+/// Up and down results in one slice of time. Latency only counts up checks,
+/// so it is `None` when every check in the bucket was down.
+#[derive(Debug, Serialize, PartialEq)]
+pub struct LatencyBucket {
+    pub start: DateTime<Utc>,
+    pub avg: Option<f64>,
+    pub min: Option<u32>,
+    pub max: Option<u32>,
+    pub up: u32,
+    pub down: u32,
+}
+
+/// Response times of a service over a period, in buckets, oldest first.
+/// Buckets without up or down results are left out.
+#[derive(Debug, Serialize, PartialEq)]
+pub struct Latency {
+    pub bucket_secs: i64,
+    pub buckets: Vec<LatencyBucket>,
+    /// Mean response time of all the up checks.
+    pub avg: Option<f64>,
+    pub min: Option<u32>,
+    pub max: Option<u32>,
 }
 
 impl Log {
@@ -197,6 +227,59 @@ impl Log {
             percent: (checks > 0).then(|| f64::from(up) * 100.0 / f64::from(checks)),
             avg_latency,
             checks,
+        })
+    }
+
+    /// Response times since `since`, in buckets of `bucket_secs` aligned to
+    /// the Unix epoch.
+    pub async fn latency(
+        pool: &SqlitePool,
+        service_id: u32,
+        since: DateTime<Utc>,
+        bucket_secs: i64,
+    ) -> sqlx::Result<Latency> {
+        let rows: Vec<(i64, Option<f64>, Option<u32>, Option<u32>, u32, u32)> = sqlx::query_as(
+            r#"SELECT CAST(strftime('%s', time) AS INTEGER) / ?2 * ?2 AS bucket,
+                      AVG(duration) FILTER (WHERE status = 1),
+                      MIN(duration) FILTER (WHERE status = 1),
+                      MAX(duration) FILTER (WHERE status = 1),
+                      COUNT(*) FILTER (WHERE status = 1),
+                      COUNT(*) FILTER (WHERE status = 2)
+               FROM Logs
+               WHERE service_id = ?1 AND datetime(time) >= datetime(?3)
+               GROUP BY bucket
+               HAVING COUNT(*) FILTER (WHERE status IN (1, 2)) > 0
+               ORDER BY bucket"#,
+        )
+        .bind(service_id)
+        .bind(bucket_secs)
+        .bind(since)
+        .fetch_all(pool)
+        .await?;
+
+        let buckets: Vec<_> = rows
+            .into_iter()
+            .map(|(start, avg, min, max, up, down)| LatencyBucket {
+                start: DateTime::from_timestamp(start, 0).unwrap_or_default(),
+                avg,
+                min,
+                max,
+                up,
+                down,
+            })
+            .collect();
+
+        let up: u32 = buckets.iter().map(|b| b.up).sum();
+        let total: f64 = buckets
+            .iter()
+            .filter_map(|b| b.avg.map(|avg| avg * f64::from(b.up)))
+            .sum();
+        Ok(Latency {
+            bucket_secs,
+            avg: (up > 0).then(|| total / f64::from(up)),
+            min: buckets.iter().filter_map(|b| b.min).min(),
+            max: buckets.iter().filter_map(|b| b.max).max(),
+            buckets,
         })
     }
 
@@ -265,6 +348,7 @@ impl std::fmt::Display for LogForCreate {
 
 #[cfg(test)]
 mod tests {
+    use chrono::TimeZone;
     use sqlx::SqlitePool;
 
     use super::*;
@@ -325,7 +409,7 @@ mod tests {
 
     #[sqlx::test(fixtures("users", "services", "logs"))]
     async fn list_service_logs(pool: SqlitePool) -> sqlx::Result<()> {
-        let logs = Log::list(&pool, 2, Some(2)).await?;
+        let logs = Log::list(&pool, 2, Some(2), None).await?;
 
         dbg!(&logs);
 
@@ -364,7 +448,7 @@ mod tests {
         assert_eq!(count, 1);
 
         // Verify the log was created
-        let logs = Log::list(&pool, 1, Some(1)).await?;
+        let logs = Log::list(&pool, 1, Some(1), None).await?;
         assert_eq!(logs.len(), 1);
         assert_eq!(logs[0].service_id, 1);
         assert!(matches!(logs[0].status, Status::Up));
@@ -391,7 +475,7 @@ mod tests {
         assert_eq!(count, 1);
 
         // Verify the log was created without message
-        let logs = Log::list(&pool, 2, Some(1)).await?;
+        let logs = Log::list(&pool, 2, Some(1), None).await?;
         assert_eq!(logs.len(), 1);
         assert_eq!(logs[0].service_id, 2);
         assert!(matches!(logs[0].status, Status::Down));
@@ -429,7 +513,7 @@ mod tests {
         }
 
         // Verify all logs were created
-        let logs = Log::list(&pool, 1, Some(10)).await?;
+        let logs = Log::list(&pool, 1, Some(10), None).await?;
         assert_eq!(logs.len(), 5);
         assert!(matches!(logs[0].status, Status::Maintenance));
 
@@ -438,7 +522,7 @@ mod tests {
 
     #[sqlx::test(fixtures("users", "services", "logs"))]
     async fn list_logs_with_limit(pool: SqlitePool) -> sqlx::Result<()> {
-        let logs = Log::list(&pool, 2, Some(1)).await?;
+        let logs = Log::list(&pool, 2, Some(1), None).await?;
 
         // Should return only 1 log due to limit
         assert_eq!(logs.len(), 1);
@@ -448,7 +532,7 @@ mod tests {
 
     #[sqlx::test(fixtures("users", "services", "logs"))]
     async fn list_logs_no_limit(pool: SqlitePool) -> sqlx::Result<()> {
-        let logs = Log::list(&pool, 2, None).await?;
+        let logs = Log::list(&pool, 2, None, None).await?;
 
         // Should return all logs for service 2 (3 logs in fixtures)
         assert_eq!(logs.len(), 3);
@@ -558,7 +642,7 @@ mod tests {
         insert_at(&pool, Status::Up, 10, 1).await;
         let removed = Log::prune(&pool, Utc::now() - chrono::TimeDelta::days(90)).await?;
         assert_eq!(removed, 1);
-        assert_eq!(Log::list(&pool, 1, None).await?.len(), 1);
+        assert_eq!(Log::list(&pool, 1, None, None).await?.len(), 1);
         Ok(())
     }
 
@@ -573,6 +657,80 @@ mod tests {
 
         let counts = Log::daily_counts(&pool, 1, Utc::now() - chrono::TimeDelta::days(30)).await?;
         assert_eq!(counts, [(day_of(60 * 24 * 2), 1, 1), (day_of(1), 1, 0)]);
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services", "logs"))]
+    async fn list_service_logs_before(pool: SqlitePool) -> sqlx::Result<()> {
+        let ids = |logs: Vec<Log>| logs.into_iter().map(|log| log.id).collect::<Vec<_>>();
+        let all = ids(Log::list(&pool, 2, None, None).await?);
+        assert_eq!(all.len(), 3);
+
+        let older = ids(Log::list(&pool, 2, None, Some(all[0])).await?);
+        assert_eq!(older, all[1..], "only logs older than the given id");
+        assert!(Log::list(&pool, 2, None, Some(all[2])).await?.is_empty());
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services"))]
+    async fn latency_groups_checks_into_buckets(pool: SqlitePool) -> sqlx::Result<()> {
+        let at = |minute: u32| Utc.with_ymd_and_hms(2024, 7, 27, 10, minute, 0).unwrap();
+        let insert = |status, time, duration| {
+            Log::insert(
+                &pool,
+                LogForCreate {
+                    service_id: 1,
+                    status,
+                    message: None,
+                    time: Some(time),
+                    duration,
+                },
+            )
+        };
+        insert(Status::Up, at(0) - chrono::TimeDelta::minutes(5), 999).await?; // before `since`
+        insert(Status::Up, at(1), 100).await?;
+        insert(Status::Up, at(5), 200).await?;
+        insert(Status::Down, at(7), 0).await?;
+        insert(Status::Pending, at(8), 50).await?;
+        insert(Status::Up, at(31), 400).await?;
+        insert(Status::Maintenance, at(45), 0).await?; // a bucket with no checks
+
+        let latency = Log::latency(&pool, 1, at(0), 600).await?;
+        assert_eq!(
+            latency.buckets,
+            [
+                LatencyBucket {
+                    start: at(0),
+                    avg: Some(150.0),
+                    min: Some(100),
+                    max: Some(200),
+                    up: 2,
+                    down: 1,
+                },
+                LatencyBucket {
+                    start: at(30),
+                    avg: Some(400.0),
+                    min: Some(400),
+                    max: Some(400),
+                    up: 1,
+                    down: 0,
+                },
+            ]
+        );
+        assert_eq!(latency.avg, Some(700.0 / 3.0), "weighted by up checks");
+        assert_eq!((latency.min, latency.max), (Some(100), Some(400)));
+        Ok(())
+    }
+
+    #[sqlx::test(fixtures("users", "services"))]
+    async fn latency_of_only_down_checks(pool: SqlitePool) -> sqlx::Result<()> {
+        insert_at(&pool, Status::Down, 5, 0).await;
+
+        let latency = Log::latency(&pool, 1, Utc::now() - chrono::TimeDelta::hours(1), 60).await?;
+        assert_eq!(latency.buckets.len(), 1);
+        assert_eq!(latency.buckets[0].avg, None);
+        assert_eq!(latency.buckets[0].down, 1);
+        assert_eq!((latency.avg, latency.min, latency.max), (None, None, None));
         Ok(())
     }
 }
