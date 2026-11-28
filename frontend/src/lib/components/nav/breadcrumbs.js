@@ -12,6 +12,7 @@ import { navGroups } from '$lib/data/nav.js';
  */
 const SEGMENT_LABELS = {
   new: 'New service',
+  edit: 'Edit',
   appearance: 'Appearance',
   general: 'General'
 };

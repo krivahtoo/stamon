@@ -22,6 +22,7 @@ describe('crumbs', () => {
     const services = [{ id: 3, name: 'API' }];
     expect(labels('/services/3/', services)).toEqual(['Stamon', 'Services', 'API']);
     expect(labels('/services/9/', services)).toEqual(['Stamon', 'Services', '#9']);
+    expect(labels('/services/3/edit/', services)).toEqual(['Stamon', 'Services', 'API', 'Edit']);
   });
 
   it('names sub pages and links each level', () => {

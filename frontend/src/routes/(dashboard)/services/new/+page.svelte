@@ -1,135 +1,23 @@
 <script>
-  import { preventDefault } from 'svelte/legacy';
-
   import { onMount } from 'svelte';
-  import { fly } from 'svelte/transition';
+  import { goto } from '$app/navigation';
   import { toast } from 'svelte-sonner';
-  import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 
-  import { Button } from '$lib/components/ui/button/index.js';
-  import { Footer } from '$lib/components/ui/dialog/index.js';
-  import { Input } from '$lib/components/ui/input/index.js';
-  import { Label } from '$lib/components/ui/label/index.js';
-  import * as Select from '$lib/components/ui/select/index.js';
-  import { Switch } from '$lib/components/ui/switch/index.js';
-  import { Textarea } from '$lib/components/ui/textarea/index.js';
-  import { Separator } from '$lib/components/ui/separator/index.js';
-  import ChannelPicker from '$lib/components/channel-picker.svelte';
-  import { cfetch, pushUrl } from '$lib/utils.js';
-
-  const serviceTypes = [
-    { value: 'http', label: 'HTTP(s)' },
-    { value: 'ping', label: 'Ping' },
-    { value: 'tcp', label: 'TCP Port' },
-    { value: 'dns', label: 'DNS' },
-    { value: 'tls', label: 'TLS Certificate' },
-    { value: 'docker', label: 'Docker Container' },
-    { value: 'database', label: 'Database' },
-    { value: 'push', label: 'Push (heartbeat)' }
-  ];
-
-  const databaseEngines = [
-    { value: 'postgres', label: 'PostgreSQL', port: 5432 },
-    { value: 'mysql', label: 'MySQL / MariaDB', port: 3306 },
-    { value: 'redis', label: 'Redis', port: 6379 }
-  ];
-
-  const recordTypes = ['A', 'AAAA', 'CNAME', 'MX', 'NS', 'TXT'].map((t) => ({
-    value: t,
-    label: t
-  }));
-
-  /** A random token for a push URL; works without a secure context. */
-  function newPushToken() {
-    const bytes = crypto.getRandomValues(new Uint8Array(16));
-    return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  const httpMethods = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'].map((m) => ({
-    value: m,
-    label: m
-  }));
-
-  /**
-   * @typedef {Object} NewService
-   * @property {string} name - The monitor name.
-   * @property {string} service_type - The monitor type.
-   * @property {number} retry - The number of retries.
-   * @property {number} retry_interval - The interval between retries in seconds.
-   * @property {number} interval - The monitoring interval in seconds.
-   * @property {number} timeout - The check timeout in seconds.
-   * @property {boolean} invert - Invert the expected result.
-   * @property {string} url - HTTP: the URL to request.
-   * @property {string} method - HTTP: the request method.
-   * @property {string} headers - HTTP: request headers, one `Name: value` per line.
-   * @property {string} body - HTTP: the request body.
-   * @property {number | string} expected_code - HTTP: expected status code, or 1-5 for a class.
-   * @property {string} expected_payload - HTTP: JSON the response must equal.
-   * @property {string} keyword - HTTP: text the response must contain.
-   * @property {string} json_pointer - HTTP: JSON pointer to a value in the response.
-   * @property {string} json_expected - HTTP: what the value at json_pointer must be.
-   * @property {string} host - Ping, TCP, DNS, TLS: the IP address or hostname.
-   * @property {number | string} port - TCP, TLS: the port.
-   * @property {string} record_type - DNS: the record type to look up.
-   * @property {string} resolver - DNS: nameserver to ask, `ip` or `ip:port`.
-   * @property {string} expected_records - DNS: values that must be answered, one per line.
-   * @property {number | string} warn_days - TLS: days before expiry to report down.
-   * @property {string} push_token - Push: the secret in the push URL.
-   * @property {number | string} grace_secs - Push: extra seconds before a heartbeat is late.
-   * @property {string} container - Docker: the container name or id.
-   * @property {string} docker_host - Docker: `unix://` or `tcp://` address of the daemon.
-   * @property {string} db_engine - Database: postgres, mysql or redis.
-   * @property {number | string} db_port - Database: the port, empty for the engine's default.
-   * @property {string} db_username - Database: the user to connect as.
-   * @property {string} db_password - Database: the password.
-   * @property {string} db_name - Database: the database name, or number for Redis.
-   * @property {boolean} db_tls - Database: require TLS.
-   * @property {number[]} channel_ids - Channels that receive this service's alerts.
-   * @property {string} tags - Comma-separated labels.
-   */
+  import { PageHeader } from '$lib/components/dashboard/index.js';
+  import FormFooter from '$lib/components/service-form/form-footer.svelte';
+  import FormSections from '$lib/components/service-form/form-sections.svelte';
+  import {
+    createPayload,
+    emptyService,
+    validate
+  } from '$lib/components/service-form/service-form.js';
+  import { cfetch } from '$lib/utils.js';
 
   /** Scheduling defaults, replaced by the ones saved in Settings once loaded. */
   let defaults = { retry: 1, retry_interval: 30, interval: 60, timeout: 20 };
 
-  /** @returns {NewService} */
-  function emptyService() {
-    return {
-      name: '',
-      service_type: '',
-      ...defaults,
-      invert: false,
-      url: '',
-      method: 'GET',
-      headers: '',
-      body: '',
-      expected_code: 2,
-      expected_payload: '',
-      keyword: '',
-      json_pointer: '',
-      json_expected: '',
-      host: '',
-      port: '',
-      record_type: 'A',
-      resolver: '',
-      expected_records: '',
-      warn_days: 14,
-      push_token: newPushToken(),
-      grace_secs: 0,
-      container: '',
-      docker_host: '',
-      db_engine: 'postgres',
-      db_port: '',
-      db_username: '',
-      db_password: '',
-      db_name: '',
-      db_tls: false,
-      channel_ids: [],
-      tags: ''
-    };
-  }
-
-  /** @type {NewService} */
-  let newService = $state(emptyService());
+  let model = $state(emptyService(defaults));
+  let saving = $state(false);
 
   onMount(async () => {
     const res = await cfetch('/settings').catch(() => null);
@@ -143,543 +31,71 @@
     };
     // Keep values the user already typed or restored from a snapshot.
     for (const key of /** @type {(keyof typeof defaults)[]} */ (Object.keys(loaded))) {
-      if (newService[key] === defaults[key]) newService[key] = loaded[key];
+      if (model[key] === defaults[key]) model[key] = loaded[key];
     }
     defaults = loaded;
   });
 
-  /** @type {import('../$types').Snapshot<NewService>} */
+  /** @type {import('./$types').Snapshot<import('$lib/components/service-form/service-form.js').ServiceModel>} */
   export const snapshot = {
-    capture: () => newService,
-    restore: (value) => (newService = value)
+    capture: () => model,
+    restore: (value) => (model = value)
   };
 
-  /**
-   * Parse `Name: value` lines into a header map.
-   * @param {string} text
-   * @returns {Record<string, string>}
-   */
-  function parseHeaders(text) {
-    /** @type {Record<string, string>} */
-    const headers = {};
-    for (const line of text.split('\n')) {
-      if (!line.trim()) continue;
-      const split = line.indexOf(':');
-      if (split <= 0) throw new Error(`Invalid header line: "${line}"`);
-      headers[line.slice(0, split).trim()] = line.slice(split + 1).trim();
-    }
-    return headers;
-  }
-
-  /** Build the type-specific check config sent to the API. */
-  function buildConfig() {
-    switch (newService.service_type) {
-      case 'http':
-        return {
-          type: 'http',
-          url: newService.url,
-          method: newService.method,
-          headers: parseHeaders(newService.headers),
-          body: newService.body || null,
-          expected_code: newService.expected_code === '' ? null : Number(newService.expected_code),
-          expected_payload: newService.expected_payload || null,
-          keyword: newService.keyword || null,
-          json_pointer: newService.json_pointer || null,
-          json_expected: newService.json_expected || null
-        };
-      case 'ping':
-        return { type: 'ping', host: newService.host };
-      case 'tcp':
-        return { type: 'tcp', host: newService.host, port: Number(newService.port) };
-      case 'dns':
-        return {
-          type: 'dns',
-          host: newService.host,
-          record_type: newService.record_type,
-          resolver: newService.resolver || null,
-          expected: newService.expected_records
-            .split('\n')
-            .map((v) => v.trim())
-            .filter(Boolean)
-        };
-      case 'tls':
-        return {
-          type: 'tls',
-          host: newService.host,
-          port: Number(newService.port) || 443,
-          warn_days: Number(newService.warn_days)
-        };
-      case 'docker':
-        return {
-          type: 'docker',
-          container: newService.container,
-          docker_host: newService.docker_host || null
-        };
-      case 'database':
-        return {
-          type: 'database',
-          engine: newService.db_engine,
-          host: newService.host,
-          port: newService.db_port === '' ? null : Number(newService.db_port),
-          username: newService.db_username || null,
-          password: newService.db_password || null,
-          database: newService.db_name || null,
-          tls: newService.db_tls
-        };
-      case 'push':
-        return {
-          type: 'push',
-          token: newService.push_token,
-          grace_secs: Number(newService.grace_secs) || 0
-        };
-      default:
-        throw new Error('Select a service type');
-    }
-  }
-
-  function addService() {
-    // Validate inputs; push monitors aren't checked, so they have no timeout.
-    if (
-      newService.service_type !== 'push' &&
-      Number(newService.timeout) >= Number(newService.interval)
-    ) {
-      toast.error('Timeout must be less than interval');
+  /** @param {SubmitEvent} event */
+  async function create(event) {
+    event.preventDefault();
+    const invalid = validate(model);
+    if (invalid) {
+      toast.error(invalid);
       return;
     }
 
-    let config;
+    let payload;
     try {
-      config = buildConfig();
+      payload = createPayload(model);
     } catch (e) {
       toast.error(`${e instanceof Error ? e.message : e}`);
       return;
     }
 
-    const payload = {
-      name: newService.name,
-      retry: Number(newService.retry),
-      retry_interval: Number(newService.retry_interval),
-      interval: Number(newService.interval),
-      timeout: Number(newService.timeout),
-      invert: newService.invert,
-      config,
-      tags: newService.tags.split(','),
-      channel_ids: newService.channel_ids
-    };
-    const promise = new Promise((resolve, reject) =>
-      cfetch('/services', {
+    saving = true;
+    try {
+      const res = await cfetch('/services', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
         body: JSON.stringify(payload)
-      })
-        .then(async (res) => {
-          if (res.ok) {
-            resolve(await res.json());
-          } else {
-            const data = await res.json().catch(() => null);
-            reject(data?.message ?? data?.error ?? res.statusText);
-          }
-        })
-        .catch((e) => {
-          reject(e);
-        })
-    );
-
-    toast.promise(promise, {
-      loading: 'Loading...',
-      success: `Monitor "${newService.name}" added`,
-      error: (e) => {
-        return `Error: ${e}`;
+      });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(`Error: ${body?.message ?? body?.error ?? res.statusText}`);
+        return;
       }
-    });
+      toast.success(`Service "${model.name}" added`);
+      await goto(`/services/${body.id}`);
+    } catch (e) {
+      toast.error(`Error: ${e instanceof Error ? e.message : e}`);
+    } finally {
+      saving = false;
+    }
   }
 </script>
 
-<div in:fly={{ y: 20, duration: 200 }} class="flex items-center justify-start space-y-2">
-  <Button
-    variant="ghost"
-    size="icon"
-    class="h-7 w-7 md:mx-6 lg:mx-10 lg:h-auto lg:w-auto lg:p-2"
-    onclick={() => history.back()}
-  >
-    <ChevronLeft class="h-4 w-4" />
-    <span class="sr-only lg:not-sr-only">Back</span>
-  </Button>
-  <div>
-    <h2 class="text-2xl font-bold tracking-tight">New Service</h2>
-    <p class="text-muted-foreground">Add a new service to monitor!</p>
-  </div>
-</div>
+<form id="new-service" class="mx-auto flex w-full max-w-3xl flex-col gap-5" onsubmit={create}>
+  <PageHeader
+    label="Services"
+    title="New service"
+    description="Choose what to check, then how often and who to alert."
+  />
 
-<Separator class="my-1" />
-
-<form onsubmit={preventDefault(addService)}>
-  <div class="grid gap-4 py-4">
-    <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-      <Label for="name" class="sm:text-right">Name</Label>
-      <Input
-        bind:value={newService.name}
-        id="name"
-        placeholder="Service Name"
-        class="col-span-3"
-        required
-      />
-    </div>
-    <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-      <Label for="type" class="sm:text-right">Type</Label>
-      <Select.Root type="single" bind:value={newService.service_type} name="service_type" required>
-        <Select.Trigger class="w-[180px]" id="type">
-          {serviceTypes.find((o) => o.value === newService.service_type)?.label ??
-            'Select a service type'}
-        </Select.Trigger>
-        <Select.Content>
-          <Select.Group>
-            <Select.GroupHeading>Basic Types</Select.GroupHeading>
-            {#each serviceTypes as type}
-              <Select.Item value={type.value} label={type.label}>{type.label}</Select.Item>
-            {/each}
-          </Select.Group>
-        </Select.Content>
-      </Select.Root>
-    </div>
-
-    {#if newService.service_type === 'http'}
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="url" class="sm:text-right">URL</Label>
-        <Input
-          id="url"
-          bind:value={newService.url}
-          placeholder="https://example.com/health"
-          type="url"
-          class="col-span-3"
-          required
-        />
-      </div>
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="method" class="sm:text-right">Method</Label>
-        <Select.Root type="single" bind:value={newService.method} name="method">
-          <Select.Trigger class="w-[180px]" id="method">
-            {httpMethods.find((o) => o.value === newService.method)?.label ?? 'GET'}
-          </Select.Trigger>
-          <Select.Content>
-            {#each httpMethods as method}
-              <Select.Item value={method.value} label={method.label}>{method.label}</Select.Item>
-            {/each}
-          </Select.Content>
-        </Select.Root>
-      </div>
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="headers" class="sm:text-right">Headers</Label>
-        <Textarea
-          id="headers"
-          bind:value={newService.headers}
-          placeholder={'Authorization: Bearer <token>\nAccept: application/json'}
-          class="col-span-3 font-mono"
-        />
-      </div>
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="body" class="sm:text-right">Body</Label>
-        <Textarea
-          id="body"
-          bind:value={newService.body}
-          placeholder="Request body"
-          class="col-span-3 font-mono"
-        />
-      </div>
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="expected_code" class="sm:text-right">Expected Code</Label>
-        <Input
-          id="expected_code"
-          placeholder="Status code, or 1-5 for a whole class (2 = any 2xx)"
-          bind:value={newService.expected_code}
-          type="number"
-          min="0"
-          max="599"
-          class="col-span-3"
-        />
-      </div>
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="expected_payload" class="sm:text-right">Expected Payload</Label>
-        <Textarea
-          id="expected_payload"
-          placeholder="JSON the response must equal"
-          bind:value={newService.expected_payload}
-          class="col-span-3 font-mono"
-        />
-      </div>
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="keyword" class="sm:text-right">Keyword</Label>
-        <Input
-          id="keyword"
-          bind:value={newService.keyword}
-          placeholder="Text the response must contain"
-          class="col-span-3"
-        />
-      </div>
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="json_pointer" class="sm:text-right">JSON Value</Label>
-        <div class="col-span-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <Input
-            id="json_pointer"
-            bind:value={newService.json_pointer}
-            placeholder="Pointer, e.g. /status"
-            class="font-mono"
-          />
-          <Input
-            id="json_expected"
-            bind:value={newService.json_expected}
-            placeholder="Must equal, e.g. ok (optional)"
-            class="font-mono"
-          />
-        </div>
-      </div>
-    {:else if ['ping', 'tcp', 'dns', 'tls'].includes(newService.service_type)}
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="host" class="sm:text-right">Host</Label>
-        <Input
-          id="host"
-          bind:value={newService.host}
-          placeholder={newService.service_type === 'dns'
-            ? 'Name to look up, e.g. example.com'
-            : 'IP address or hostname'}
-          class="col-span-3"
-          required
-        />
-      </div>
-      {#if newService.service_type === 'tcp' || newService.service_type === 'tls'}
-        <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-          <Label for="port" class="sm:text-right">Port</Label>
-          <Input
-            id="port"
-            bind:value={newService.port}
-            placeholder={newService.service_type === 'tls' ? '443' : 'e.g. 5432'}
-            type="number"
-            min="1"
-            max="65535"
-            class="col-span-3"
-            required={newService.service_type === 'tcp'}
-          />
-        </div>
-      {/if}
-      {#if newService.service_type === 'tls'}
-        <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-          <Label for="warn_days" class="sm:text-right">Warn Days</Label>
-          <Input
-            id="warn_days"
-            bind:value={newService.warn_days}
-            placeholder="Report down this many days before expiry"
-            type="number"
-            min="0"
-            class="col-span-3"
-          />
-        </div>
-      {/if}
-      {#if newService.service_type === 'dns'}
-        <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-          <Label for="record_type" class="sm:text-right">Record Type</Label>
-          <Select.Root type="single" bind:value={newService.record_type} name="record_type">
-            <Select.Trigger class="w-[180px]" id="record_type">
-              {recordTypes.find((o) => o.value === newService.record_type)?.label ?? 'A'}
-            </Select.Trigger>
-            <Select.Content>
-              {#each recordTypes as recordType}
-                <Select.Item value={recordType.value} label={recordType.label}
-                  >{recordType.label}</Select.Item
-                >
-              {/each}
-            </Select.Content>
-          </Select.Root>
-        </div>
-        <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-          <Label for="resolver" class="sm:text-right">Resolver</Label>
-          <Input
-            id="resolver"
-            bind:value={newService.resolver}
-            placeholder="Nameserver IP, e.g. 1.1.1.1 (default: system)"
-            class="col-span-3"
-          />
-        </div>
-        <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-          <Label for="expected_records" class="sm:text-right">Expected Values</Label>
-          <Textarea
-            id="expected_records"
-            bind:value={newService.expected_records}
-            placeholder={'Values that must be answered, one per line\ne.g. 93.184.215.14'}
-            class="col-span-3 font-mono"
-          />
-        </div>
-      {/if}
-    {:else if newService.service_type === 'docker'}
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="container" class="sm:text-right">Container</Label>
-        <Input
-          id="container"
-          bind:value={newService.container}
-          placeholder="Container name or id"
-          class="col-span-3"
-          required
-        />
-      </div>
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="docker_host" class="sm:text-right">Docker Host</Label>
-        <div class="col-span-3 space-y-1">
-          <Input
-            id="docker_host"
-            bind:value={newService.docker_host}
-            placeholder="unix:///var/run/docker.sock"
-          />
-          <p class="text-xs text-muted-foreground">
-            Or <code>tcp://host:2375</code>. When Stamon runs in Docker, mount the socket into its
-            container.
-          </p>
-        </div>
-      </div>
-    {:else if newService.service_type === 'database'}
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="db_engine" class="sm:text-right">Engine</Label>
-        <Select.Root type="single" bind:value={newService.db_engine} name="db_engine">
-          <Select.Trigger class="w-[200px]" id="db_engine">
-            {databaseEngines.find((o) => o.value === newService.db_engine)?.label ?? 'PostgreSQL'}
-          </Select.Trigger>
-          <Select.Content>
-            {#each databaseEngines as engine}
-              <Select.Item value={engine.value} label={engine.label}>{engine.label}</Select.Item>
-            {/each}
-          </Select.Content>
-        </Select.Root>
-      </div>
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="db_host" class="sm:text-right">Host</Label>
-        <div class="col-span-3 grid grid-cols-3 gap-2">
-          <Input
-            id="db_host"
-            bind:value={newService.host}
-            placeholder="db.internal"
-            class="col-span-2"
-            required
-          />
-          <Input
-            id="db_port"
-            bind:value={newService.db_port}
-            type="number"
-            min="1"
-            max="65535"
-            placeholder={`${databaseEngines.find((e) => e.value === newService.db_engine)?.port ?? ''}`}
-            aria-label="Port"
-          />
-        </div>
-      </div>
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="db_username" class="sm:text-right">Credentials</Label>
-        <div class="col-span-3 grid grid-cols-2 gap-2">
-          <Input
-            id="db_username"
-            bind:value={newService.db_username}
-            placeholder="Username"
-            autocomplete="off"
-          />
-          <Input
-            id="db_password"
-            bind:value={newService.db_password}
-            type="password"
-            placeholder="Password"
-            autocomplete="new-password"
-          />
-        </div>
-      </div>
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="db_name" class="sm:text-right">Database</Label>
-        <Input
-          id="db_name"
-          bind:value={newService.db_name}
-          placeholder={newService.db_engine === 'redis' ? 'Database number, e.g. 0' : 'Optional'}
-          class="col-span-3"
-        />
-      </div>
-      {#if newService.db_engine !== 'redis'}
-        <div class="grid grid-cols-4 items-center gap-4">
-          <Label for="db_tls" class="sm:text-right">Require TLS</Label>
-          <Switch id="db_tls" bind:checked={newService.db_tls} class="sm:col-span-3" />
-        </div>
-      {/if}
-      <p class="text-xs text-muted-foreground sm:col-start-2">
-        Use a read-only account: the check only connects and runs a trivial query.
-      </p>
-    {:else if newService.service_type === 'push'}
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="push_url" class="sm:text-right">Push URL</Label>
-        <div class="col-span-3 space-y-1">
-          <Input id="push_url" readonly value={pushUrl(newService.push_token)} class="font-mono" />
-          <p class="text-xs text-muted-foreground">
-            Have your service call this URL at least once per interval. Add
-            <code>?status=down&amp;msg=...</code> to report a failure.
-          </p>
-        </div>
-      </div>
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="grace_secs" class="sm:text-right">Grace Period</Label>
-        <Input
-          id="grace_secs"
-          bind:value={newService.grace_secs}
-          placeholder="Extra seconds before a heartbeat counts as missed"
-          type="number"
-          min="0"
-          class="col-span-3"
-        />
-      </div>
-    {/if}
-
-    <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-      <Label for="tags" class="sm:text-right">Tags</Label>
-      <Input
-        id="tags"
-        bind:value={newService.tags}
-        placeholder="Comma-separated, e.g. prod, api"
-        class="col-span-3"
-      />
-    </div>
-    <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-      <Label for="interval" class="sm:text-right">Interval</Label>
-      <Input
-        id="interval"
-        bind:value={newService.interval}
-        placeholder="Monitor interval"
-        type="number"
-        min="30"
-        max="86400"
-        class="col-span-3"
-      />
-    </div>
-    {#if newService.service_type !== 'push'}
-      <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-4">
-        <Label for="timeout" class="sm:text-right">Timeout</Label>
-        <Input
-          id="timeout"
-          placeholder="Timeout in seconds"
-          bind:value={newService.timeout}
-          min="1"
-          max="60"
-          type="number"
-          class="col-span-3"
-        />
-      </div>
-    {/if}
-    <div class="grid grid-cols-4 items-center gap-4">
-      <Label for="invert" class="sm:text-right">Invert Check</Label>
-      <Switch id="invert" bind:checked={newService.invert} class="sm:col-span-3" />
-    </div>
-    <div class="grid grid-cols-1 items-start gap-4 sm:grid-cols-4">
-      <Label class="sm:pt-1 sm:text-right">Alert Channels</Label>
-      <div class="col-span-3">
-        <ChannelPicker bind:selected={newService.channel_ids} />
-      </div>
-    </div>
-  </div>
-  <Footer class="gap-2">
-    <Button variant="outline" type="reset" onclick={() => (newService = emptyService())}
-      >Reset</Button
-    >
-    <Button type="submit">Add Service</Button>
-  </Footer>
+  <FormSections bind:model />
 </form>
+
+<FormFooter
+  form="new-service"
+  note="Stamon starts checking as soon as you save."
+  submitLabel="Create service"
+  disabled={saving}
+  oncancel={() => history.back()}
+/>
